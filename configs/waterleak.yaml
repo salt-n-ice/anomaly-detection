@@ -1,0 +1,19 @@
+sensors:
+  - id: leak_basement
+    capability: water
+    archetype: binary
+    expected_interval_sec: 7200
+    heartbeat_sec: 7200
+    deterministic_trigger: true
+  - id: leak_temperature
+    capability: temperature
+    archetype: continuous
+    expected_interval_sec: 600
+    min_value: -40
+    max_value: 80
+  - id: leak_battery
+    capability: battery
+    archetype: continuous
+    expected_interval_sec: 21600
+    min_value: 0
+    max_value: 100

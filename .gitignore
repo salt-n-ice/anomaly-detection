@@ -1,0 +1,7 @@
+.pytest_cache
+.claude
+out
+*.zip
+.stackdump
+docs
+*egg-info
