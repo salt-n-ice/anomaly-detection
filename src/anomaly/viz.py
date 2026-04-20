@@ -99,7 +99,7 @@ def _gantt(ax, intervals: list[Interval], w0, w1, color: str,
 
 def render(events: pd.DataFrame, labels: pd.DataFrame,
            detections: pd.DataFrame | None, out_path: Path,
-           window: str = "1d") -> None:
+           window: str = "1d", explain: bool = False) -> None:
     _style()
     events = events.copy()
     events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
@@ -114,6 +114,24 @@ def render(events: pd.DataFrame, labels: pd.DataFrame,
     sensors = list(events.groupby(["sensor_id", "capability"]).size().index)
     gt_all = _load(labels)
     det_all = _load(detections) if detections is not None else []
+    if explain and detections is not None and len(det_all):
+        # Re-label each detection interval with the explainer's inferred_type.
+        # Grouping in `_gantt` is by anomaly_type, so swapping that field here
+        # makes the detected lane's rows read as canonical types ("level_shift",
+        # "spike", "dropout") instead of the detector combination string. The
+        # detector combination is lossy for a human reader — e.g., the same
+        # "cusum+sub_pca+temporal_profile" combo fires on both short spikes
+        # and multi-day drifts, which the classifier separates cleanly.
+        from .explain import _detections_to_alerts, classify_type
+        alerts = _detections_to_alerts(detections)
+        type_by_key: dict[tuple[str, pd.Timestamp, pd.Timestamp], str] = {
+            (a.sensor_id, a.window_start, a.window_end): classify_type(a)
+            for a in alerts
+        }
+        det_all = [Interval(iv.sensor_id, iv.start, iv.end,
+                            type_by_key.get((iv.sensor_id, iv.start, iv.end),
+                                            iv.anomaly_type))
+                   for iv in det_all]
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     n = max(1, len(sensors))

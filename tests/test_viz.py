@@ -53,3 +53,48 @@ def test_render_smoke(tmp_path):
     out = tmp_path / "viz.pdf"
     render(events, labels, det, out, window="1d")
     assert out.exists() and out.stat().st_size > 0
+
+
+def test_render_explain_relabels_detections(tmp_path, monkeypatch):
+    """With explain=True, detection intervals are regrouped under the
+    classifier's inferred_type rather than the raw detector string."""
+    from anomaly.viz import render, _load
+    import anomaly.viz as viz_mod
+    events = pd.DataFrame({
+        "timestamp": pd.to_datetime(["2026-02-01T00:00:00Z", "2026-02-01T12:00:00Z",
+                                     "2026-02-02T00:00:00Z", "2026-02-02T12:00:00Z"]),
+        "sensor_id": ["s","s","s","s"], "capability": ["v","v","v","v"],
+        "value": [10.0, 20.0, 10.0, 15.0], "unit": ["","","",""]
+    })
+    labels = pd.DataFrame({
+        "sensor_id": ["s"], "capability": ["v"],
+        "start": pd.to_datetime(["2026-02-01T11:00:00Z"]),
+        "end": pd.to_datetime(["2026-02-01T13:00:00Z"]),
+        "anomaly_type": ["spike"]
+    })
+    # A statistical fused detection where anomaly_type falls back to the detector
+    # string (matches pipeline._write_detections behavior).
+    det = pd.DataFrame({
+        "sensor_id": ["s"], "capability": ["v"],
+        "start": pd.to_datetime(["2026-02-01T11:30:00Z"]),
+        "end": pd.to_datetime(["2026-02-01T11:45:00Z"]),
+        "anomaly_type": ["cusum+sub_pca"], "detector": ["cusum+sub_pca"],
+        "score": [1.0]
+    })
+    # Spy on _gantt calls to inspect the anomaly_type values the detected lane sees.
+    seen_det_types: list[list[str]] = []
+    orig_gantt = viz_mod._gantt
+    def _spy(ax, intervals, w0, w1, color, empty_label, max_rows=8):
+        # Only record the blue (detected) lane.
+        if color == viz_mod._DETECT:
+            seen_det_types.append([iv.anomaly_type for iv in intervals])
+        return orig_gantt(ax, intervals, w0, w1, color, empty_label, max_rows)
+    monkeypatch.setattr(viz_mod, "_gantt", _spy)
+    out = tmp_path / "viz_explain.pdf"
+    render(events, labels, det, out, window="1d", explain=True)
+    assert out.exists() and out.stat().st_size > 0
+    # The detection was re-labeled. It's no longer "cusum+sub_pca"; it's whatever
+    # classify_type decided (e.g. "shape_anomaly", "level_shift", etc.).
+    all_seen = [t for page in seen_det_types for t in page]
+    assert all_seen, "expected at least one detection to be passed to _gantt"
+    assert "cusum+sub_pca" not in all_seen

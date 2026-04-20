@@ -361,6 +361,10 @@ def main(argv=None) -> int:
     v.add_argument("--detections", type=Path, default=None)
     v.add_argument("--out", required=True, type=Path)
     v.add_argument("--window", default="1d", help="e.g. 1h, 6h, 1d, 2d")
+    v.add_argument("--explain", action="store_true",
+                   help="label detection rows with the explainer's inferred_type "
+                        "(level_shift / spike / calibration_drift / ...) instead "
+                        "of the raw detector combination string")
     vl = sub.add_parser("viz-long")
     vl.add_argument("--events", required=True, type=Path)
     vl.add_argument("--labels", required=True, type=Path)
@@ -383,7 +387,7 @@ def main(argv=None) -> int:
         ev = pd.read_csv(args.events)
         lb = pd.read_csv(args.labels)
         dt = pd.read_csv(args.detections) if args.detections else None
-        render(ev, lb, dt, args.out, args.window)
+        render(ev, lb, dt, args.out, args.window, explain=args.explain)
         print(f"wrote {args.out}")
         return 0
     if args.cmd == "viz-long":
