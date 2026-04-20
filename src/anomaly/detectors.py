@@ -265,9 +265,15 @@ def _fit_pca(X: np.ndarray, var_ratio: float = 0.95):
     mu = X.mean(axis=0)
     Xc = X - mu
     _, S, VT = np.linalg.svd(Xc, full_matrices=False)
-    total = (S ** 2).sum() or 1.0
-    cum = np.cumsum(S ** 2) / total
-    k = max(1, int(np.searchsorted(cum, var_ratio) + 1))
+    total = (S ** 2).sum()
+    if total == 0.0:
+        # Degenerate: constant data; keep 1 component so reconstruction is
+        # partial and any deviation from the training constant is detectable.
+        k = 1
+    else:
+        cum = np.cumsum(S ** 2) / total
+        k = max(1, int(np.searchsorted(cum, var_ratio) + 1))
+        k = min(k, len(S))  # guard: searchsorted may return len(S)
     P = VT[:k].T  # projection d×k
     return mu, P
 
@@ -351,8 +357,12 @@ class SubPCA:
         err = _pca_error(x, mu, P)
         if err > thr and not in_warmup:
             return [_alert(self.config, ts, self.name, err, thr, None, float(v),
-                           state=s, w0=ts - pd.Timedelta(seconds=self.window*self.config.granularity_sec),
-                           w1=ts)]
+                           state=s,
+                           w0=ts - pd.Timedelta(seconds=self.window*self.config.granularity_sec),
+                           w1=ts,
+                           context={"detector": self.name, "state": s,
+                                    "err": float(err), "thr": float(thr),
+                                    "window": self.window, "feature": self.feature})]
         return []
 
     def adapt_to_recent(self, rows):
@@ -429,7 +439,21 @@ class MultivariatePCA:
         mu, P, thr = model
         err = _pca_error(v, mu, P)
         if err > thr and not in_warmup:
-            return [_alert(self.config, ts, self.name, err, thr, None, float(v[0]), state=s)]
+            # Per-feature squared residual, identify top contributor.
+            xc = v - mu
+            rec = xc @ P @ P.T
+            resid = xc - rec
+            per_feat = resid * resid
+            top_i = int(per_feat.argmax())
+            return [_alert(self.config, ts, self.name, err, thr, None, float(v[0]),
+                           state=s,
+                           context={"detector": self.name, "state": s,
+                                    "err": float(err), "thr": float(thr),
+                                    "top_feature": self.features[top_i],
+                                    "top_feature_contribution": float(per_feat[top_i]),
+                                    "feature_residuals": {
+                                        self.features[i]: float(per_feat[i])
+                                        for i in range(len(self.features))}})]
         return []
 
     def adapt_to_recent(self, rows):

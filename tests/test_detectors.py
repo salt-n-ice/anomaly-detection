@@ -221,3 +221,33 @@ def test_cusum_context_populated_on_fire():
     assert ctx["feature"] == "value"
     assert ctx["direction"] in ("+", "-")
     assert "mu" in ctx and "sigma" in ctx and "sp" in ctx and "sn" in ctx
+
+def test_sub_pca_context_populated_on_fire():
+    cfg = _cfg(expected_interval_sec=60)
+    p = SubPCA(cfg, window=10)
+    rows = [(ts(f"2026-02-01T00:{i:02d}:00Z"), {"value": 10.0 + ((i % 2) - 0.5) * 0.01})
+            for i in range(60)]
+    p.fit(rows)
+    fired = []
+    for i in range(20):
+        fired += p.update(ts(f"2026-02-02T00:{i:02d}:00Z"), {"value": 50.0})
+    assert fired, "expected SubPCA to fire"
+    ctx = fired[0].context[0]
+    assert ctx["detector"] == "sub_pca"
+    assert ctx["err"] > ctx["thr"]
+
+def test_mvpca_context_populated_on_fire():
+    cfg = _cfg(expected_interval_sec=60)
+    p = MultivariatePCA(cfg, features=["value", "value_diff"])
+    rows = [(ts(f"2026-02-01T00:{i:02d}:00Z"), {"value": 10.0, "value_diff": 0.0})
+            for i in range(60)]
+    p.fit(rows)
+    fired = []
+    for i in range(5):
+        fired += p.update(ts(f"2026-02-02T00:{i:02d}:00Z"),
+                          {"value": 1000.0, "value_diff": 990.0})
+    assert fired, "expected MvPCA to fire"
+    ctx = fired[0].context[0]
+    assert ctx["detector"] == "multivariate_pca"
+    assert ctx["top_feature"] in ("value", "value_diff")
+    assert ctx["err"] > ctx["thr"]
