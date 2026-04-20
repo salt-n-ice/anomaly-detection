@@ -204,3 +204,20 @@ def test_dqg_context_populated_on_fire():
     assert oor.context[0]["reason"] == "out_of_range"
     assert oor.context[0]["value"] == 999
     assert oor.context[0]["limit"] == 100
+
+def test_cusum_context_populated_on_fire():
+    cfg = _cfg(expected_interval_sec=60)
+    c = CUSUM(cfg, features=["value"])
+    rows = [(ts(f"2026-02-01T00:{i:02d}:00Z"), {"value": 10.0 + (i % 2) * 0.05})
+            for i in range(60)]
+    c.fit(rows)
+    # Drive CUSUM to fire with a large sustained deviation.
+    fired = []
+    for i in range(60):
+        fired += c.update(ts(f"2026-02-02T00:{i:02d}:00Z"), {"value": 20.0})
+    assert fired, "expected CUSUM to fire"
+    ctx = fired[0].context[0]
+    assert ctx["detector"] == "cusum"
+    assert ctx["feature"] == "value"
+    assert ctx["direction"] in ("+", "-")
+    assert "mu" in ctx and "sigma" in ctx and "sp" in ctx and "sn" in ctx

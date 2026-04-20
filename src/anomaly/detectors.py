@@ -229,8 +229,14 @@ class CUSUM:
             if fired:
                 if not in_warmup:
                     score = max(sp, -sn)
+                    direction = "+" if sp > thresh else "-"
                     out.append(_alert(self.config, ts, self.name, score, thresh,
-                                      None, float(v), state=s))
+                                      None, float(v), state=s,
+                                      context={"detector": self.name, "feature": k,
+                                               "state": s, "direction": direction,
+                                               "mu": float(mu), "sigma": float(sd),
+                                               "sp": float(sp), "sn": float(sn),
+                                               "value": float(v)}))
                 sp = sn = 0.0  # reset on fire (silent during warmup)
             st[2], st[3] = sp, sn
         return out
