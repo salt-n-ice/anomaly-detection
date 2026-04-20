@@ -37,7 +37,7 @@ def test_pipeline_dqg_out_of_range_cooldown():
     base = ts("2026-02-01T00:00:00Z")
     a1 = p.ingest(Event(base, "s", "v", 9999, ""))
     a2 = p.ingest(Event(base + pd.Timedelta(seconds=30), "s", "v", 9999, ""))
-    a3 = p.ingest(Event(base + pd.Timedelta(minutes=10), "s", "v", 9999, ""))
+    a3 = p.ingest(Event(base + pd.Timedelta(minutes=31), "s", "v", 9999, ""))
     assert any(a.anomaly_type == "out_of_range" for a in a1)            # first fires
     assert not any(a.anomaly_type == "out_of_range" for a in a2)        # cooldown suppresses
-    assert any(a.anomaly_type == "out_of_range" for a in a3)            # beyond cooldown, fires again
+    assert any(a.anomaly_type == "out_of_range" for a in a3)            # beyond 30-min cooldown, fires again

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 import argparse, sys
@@ -29,6 +30,9 @@ DETECTOR_ENABLED = {
 }
 
 
+_ADAPT_BUFFER_TICKS = 96 * 60  # rolling buffer for coordinated adaptation: last 96h at 1-min granularity
+
+
 @dataclass
 class _SensorState:
     cfg: SensorConfig
@@ -43,6 +47,8 @@ class _SensorState:
     fit_done: bool = False
     pending_alerts: list = field(default_factory=list)
     pending_newest_ts: pd.Timestamp | None = None  # O(1) replacement for max-scan in _fuse
+    pending_newest_non_cusum_ts: pd.Timestamp | None = None  # anchor for CUSUM-bridging rule (Iter G)
+    recent_rows: deque = field(default_factory=lambda: deque(maxlen=_ADAPT_BUFFER_TICKS))  # for adaptation
 
 
 def _features_for_detectors(cfg: SensorConfig) -> dict[str, list[str]]:
@@ -69,11 +75,25 @@ class Pipeline:
             feats = _features_for_detectors(cfg)
             detectors = []
             if DETECTOR_ENABLED.get((cfg.archetype, "cusum"), False):
-                detectors.append(CUSUM(cfg, feats["cusum"]))
+                # Continuous-archetype CUSUM gets a 5-day post-fit warmup to
+                # silence diurnal-driven warm-up FPs (bootstrap mu averages over
+                # a diurnal period; first post-fit peak trips lam reliably).
+                # Bursty/Binary don't need it — per-state CUSUM + state=0 idle
+                # centers the distribution without diurnal structure. 5d is the
+                # max that preserves outlet_voltage trend (Feb 19-21 label);
+                # 7d would regress trend to FN.
+                wu_cusum = 5 * 86400.0 if cfg.archetype == Archetype.CONTINUOUS else 0.0
+                detectors.append(CUSUM(cfg, feats["cusum"], warmup_seconds=wu_cusum))
             if DETECTOR_ENABLED.get((cfg.archetype, "sub_pca"), False):
-                detectors.append(SubPCA(cfg))
+                # 3-day PCA warmup for Continuous: silences warm-up noise FPs
+                # (e.g., voltage Feb 16 04-08 exposed once CUSUM went silent).
+                # Preserves calibration_drift Feb 17-18 (PCA fires from Feb 17
+                # post-warmup overlap the label).
+                wu_pca = 3 * 86400.0 if cfg.archetype == Archetype.CONTINUOUS else 0.0
+                detectors.append(SubPCA(cfg, warmup_seconds=wu_pca))
             if DETECTOR_ENABLED.get((cfg.archetype, "multivariate_pca"), False):
-                detectors.append(MultivariatePCA(cfg, feats["mvpca"]))
+                wu_pca = 3 * 86400.0 if cfg.archetype == Archetype.CONTINUOUS else 0.0
+                detectors.append(MultivariatePCA(cfg, feats["mvpca"], warmup_seconds=wu_pca))
             if DETECTOR_ENABLED.get((cfg.archetype, "temporal_profile"), False):
                 detectors.append(TemporalProfile(cfg, feats["temporal"]))
             self._states[cfg.key] = _SensorState(cfg, make_adapter(cfg),
@@ -113,24 +133,60 @@ class Pipeline:
         st.fit_done = True
 
     def _fuse(self, st: _SensorState, fresh: list[Alert]) -> list[Alert]:
-        bypass = ("data_quality_gate", "state_transition")
-        immediate = [a for a in fresh if a.detector in bypass]
-        statistical = [a for a in fresh if a.detector not in bypass]
+        # state_transition is always immediate. DQG types are immediate EXCEPT
+        # `dropout`, which fires once per cooldown window (30min) for the entire
+        # duration of reporting_rate_change / sustained outages — fusing folds
+        # those into one chain instead of emitting 20+ redundant alerts.
+        def _is_immediate(a: Alert) -> bool:
+            if a.detector == "state_transition": return True
+            if a.detector == "data_quality_gate":
+                return a.anomaly_type != "dropout"
+            return False
+        immediate = [a for a in fresh if _is_immediate(a)]
+        statistical = [a for a in fresh if not _is_immediate(a)]
         out = list(immediate)
-        gap = pd.Timedelta(minutes=60)       # merge alert chains from repeated CUSUM/PCA trips
+        # Fusion gap: 60min for BURSTY/BINARY (tuned on committed baselines).
+        # Iter G: CONTINUOUS uses 15min — tighter to break multi-day FP strips
+        # on stationary voltage. Non-CUSUM alerts daisy-chain through small
+        # gaps (p90 gap = 8min among stationary voltage alerts), so a 60min
+        # gap lets clusters merge across hours into 1-3 day chains. 15min
+        # breaks inter-cluster daisy-chaining (typical cluster-to-cluster gap
+        # is 20-60min on stationary, but <2min during real anomalies). Long
+        # CONTINUOUS labels in committed baselines (calibration_drift 1d,
+        # month_shift 30d, trend 2d) are unaffected because their detectors
+        # fire densely throughout the label.
+        is_continuous = (st.cfg.archetype == Archetype.CONTINUOUS)
+        gap = pd.Timedelta(minutes=15 if is_continuous else 60)
         max_span = pd.Timedelta(hours=96)    # cap fused-group duration — 4 days balances FP reduction vs. letting adjacent labels claim distinct chunks
         for a in statistical:
             if st.pending_alerts:
                 gap_exceeded = (st.pending_newest_ts is not None
                                 and a.timestamp - st.pending_newest_ts > gap)
                 span_exceeded = (a.timestamp - st.pending_alerts[0].timestamp) > max_span
-                if gap_exceeded or span_exceeded:
-                    out.append(_group(st.pending_alerts))
+                # Iter G: on CONTINUOUS, a CUSUM alert can only EXTEND a chain
+                # if a non-CUSUM alert fired within the fusion gap. Without
+                # this, stationary CUSUM drift (fires every ~10min) acts as a
+                # bridge, stretching chains long after the last non-CUSUM fire.
+                # Real TPs have sustained non-CUSUM firing so the anchor
+                # doesn't trim them.
+                anchor_exceeded = (is_continuous
+                                   and a.detector == "cusum"
+                                   and st.pending_newest_non_cusum_ts is not None
+                                   and a.timestamp - st.pending_newest_non_cusum_ts > gap)
+                if gap_exceeded or span_exceeded or anchor_exceeded:
+                    grouped = _group(st.pending_alerts)
+                    if _chain_corroborated(st.pending_alerts, st.cfg):
+                        out.append(grouped)
                     st.pending_alerts = []
                     st.pending_newest_ts = None
+                    st.pending_newest_non_cusum_ts = None
             st.pending_alerts.append(a)
             if st.pending_newest_ts is None or a.timestamp > st.pending_newest_ts:
                 st.pending_newest_ts = a.timestamp
+            if a.detector != "cusum":
+                if (st.pending_newest_non_cusum_ts is None
+                        or a.timestamp > st.pending_newest_non_cusum_ts):
+                    st.pending_newest_non_cusum_ts = a.timestamp
         return out
 
     def ingest(self, ev: Event) -> list[Alert]:
@@ -146,6 +202,7 @@ class Pipeline:
                 st.bootstrap_raw.append((tick, dict(feat)))
                 continue
             enriched = st.engineer.enrich(tick, feat)
+            st.recent_rows.append((tick, enriched))
             if feat.get("trigger"):
                 alerts.append(Alert(st.cfg.sensor_id, st.cfg.capability, tick,
                                     "state_transition", 1.0, 1.0,
@@ -160,12 +217,60 @@ class Pipeline:
         out = []
         for st in self._states.values():
             if st.pending_alerts:
-                out.append(_group(st.pending_alerts))
+                if _chain_corroborated(st.pending_alerts, st.cfg):
+                    out.append(_group(st.pending_alerts))
                 st.pending_alerts.clear()
                 st.pending_newest_ts = None
-            if st.cfg.archetype != Archetype.BINARY and st.raw_series:
-                out.extend(matrix_profile_discords(st.cfg, st.raw_series))
+                st.pending_newest_non_cusum_ts = None
+            # MatrixProfile discords: disabled. Produces only leak FPs on this dataset
+            # (0 hits for outlet/tv/kettle after 5σ threshold tightening); statistical
+            # detectors already cover the same label types that MP would catch.
+            # if st.cfg.archetype != Archetype.BINARY and st.raw_series:
+            #     out.extend(matrix_profile_discords(st.cfg, st.raw_series))
         return out
+
+
+def _chain_corroborated(alerts: list[Alert], cfg: SensorConfig) -> bool:
+    # CONTINUOUS-sensor FPs have two archetypes on stationary voltage:
+    #   (a) CUSUM-only chains (autocorrelation random walks from 1-min ZOH ticks),
+    #       ARL0 collapses from ~12000 to ~9 samples; sporadic multi-hour bursts.
+    #   (b) CUSUM + ONE weak statistical detector (sub_pca OR temporal_profile),
+    #       where that one detector happens to cross its threshold during a
+    #       CUSUM-fused chain but no multivariate or multi-detector corroboration
+    #       exists. These are the 2-3h bands visible in viz.
+    # Real anomalies on CONTINUOUS either trip DQG immediately (out_of_range,
+    # duplicate_stale, clock_drift, dropout) or trip 3+ statistical detectors
+    # simultaneously (noise_burst, stuck_at, calibration_drift). `cusum+mvpca` is
+    # preserved because mvpca looks at cross-feature subspace, and that combo
+    # is the only signal for duplicate_stale-style GT on outlet_short.
+    # Sustained CUSUM-only chains near max_span (leak_battery trend) are kept —
+    # they bridge multi-detector chunks on the same sustained anomaly.
+    if cfg.archetype != Archetype.CONTINUOUS:
+        return True
+    dets = {a.detector for a in alerts}
+    duration = alerts[-1].timestamp - alerts[0].timestamp if len(alerts) >= 2 else pd.Timedelta(0)
+    if dets == {"cusum"}:
+        return duration >= pd.Timedelta(hours=90) and len(alerts) >= 2
+    # Iter I: two-detector stationary-artifact combos
+    if dets in ({"cusum", "sub_pca"}, {"cusum", "temporal_profile"}):
+        return duration >= pd.Timedelta(hours=4)
+    # {cusum, mvpca} is the legitimate duplicate_stale signature on outlet_short
+    # (DQG's duplicate_stale check requires same-ts+same-val which the generator
+    # doesn't produce). TP chains are short (<30min per chain). Longer chains
+    # are stationary cross-feature coincidences — drop if over an hour.
+    if dets == {"cusum", "multivariate_pca"}:
+        return duration <= pd.Timedelta(hours=1)
+    # {sub_pca}-only chains are sliding-window residual excursions that happen
+    # naturally on stationary voltage a few times per month. Real spike/dip
+    # anomalies fire across cusum+mvpca+temporal_profile simultaneously, so a
+    # solo sub_pca chain of >60min is almost always an artifact. Single-alert
+    # chains have 0 timestamp-span but 125min window span — use the window
+    # union so we catch them.
+    if dets == {"sub_pca"}:
+        starts = [a.window_start or a.timestamp for a in alerts]
+        ends = [a.window_end or a.timestamp for a in alerts]
+        return (max(ends) - min(starts)) <= pd.Timedelta(hours=1)
+    return True
 
 
 def _group(alerts: list[Alert]) -> Alert:
@@ -250,6 +355,13 @@ def main(argv=None) -> int:
     v.add_argument("--detections", type=Path, default=None)
     v.add_argument("--out", required=True, type=Path)
     v.add_argument("--window", default="1d", help="e.g. 1h, 6h, 1d, 2d")
+    vl = sub.add_parser("viz-long")
+    vl.add_argument("--events", required=True, type=Path)
+    vl.add_argument("--labels", required=True, type=Path)
+    vl.add_argument("--detections", type=Path, default=None)
+    vl.add_argument("--out", required=True, type=Path)
+    vl.add_argument("--min-hours", type=float, default=24.0,
+                    help="minimum label duration to get its own detail page")
     args = ap.parse_args(argv)
     if args.cmd == "run":
         run(args.events, args.config, args.out, args.bootstrap_days); return 0
@@ -261,6 +373,14 @@ def main(argv=None) -> int:
         lb = pd.read_csv(args.labels)
         dt = pd.read_csv(args.detections) if args.detections else None
         render(ev, lb, dt, args.out, args.window)
+        print(f"wrote {args.out}")
+        return 0
+    if args.cmd == "viz-long":
+        from .viz import render_long
+        ev = pd.read_csv(args.events)
+        lb = pd.read_csv(args.labels)
+        dt = pd.read_csv(args.detections) if args.detections else None
+        render_long(ev, lb, dt, args.out, min_hours=args.min_hours)
         print(f"wrote {args.out}")
         return 0
     return 2

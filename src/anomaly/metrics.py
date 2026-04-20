@@ -75,3 +75,107 @@ def compute_metrics_pointwise(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict
     f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
     return {"tp": len(tp_gt), "fp": len(fp), "fn": len(fn),
             "precision": prec, "recall": rec, "f1": f1}
+
+
+def _merge_events(ivs: list[Interval], gap: pd.Timedelta = pd.Timedelta(hours=1)) -> list[Interval]:
+    """Merge per-sensor overlapping or near-adjacent intervals into event clusters.
+    Fusion caps individual alerts at 96h max_span, which fragments a single sustained
+    anomaly into many chunks; the user-visible alert is one event, not N chunks."""
+    by_sensor: dict[str, list[Interval]] = {}
+    for iv in ivs:
+        by_sensor.setdefault(iv.sensor_id, []).append(iv)
+    out: list[Interval] = []
+    for sid, group in by_sensor.items():
+        group.sort(key=lambda x: x.start)
+        cur_s, cur_e, cur_t = group[0].start, group[0].end, group[0].anomaly_type
+        for iv in group[1:]:
+            if iv.start <= cur_e + gap:
+                cur_e = max(cur_e, iv.end)
+                if iv.anomaly_type and iv.anomaly_type != cur_t:
+                    cur_t = f"{cur_t}|{iv.anomaly_type}" if cur_t else iv.anomaly_type
+            else:
+                out.append(Interval(sid, cur_s, cur_e, cur_t))
+                cur_s, cur_e, cur_t = iv.start, iv.end, iv.anomaly_type
+        out.append(Interval(sid, cur_s, cur_e, cur_t))
+    return out
+
+
+def compute_metrics_time(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
+    """Duration-weighted confusion metric (seconds).
+
+    Event F1 counts a 3-day FP strip the same as a 10-min FP, which hides the
+    calendar cost of multi-day detector drift chains (e.g. voltage cusum+sub_pca
+    fusing into 1-3 day bands on stationary noise). This metric sweeps each
+    sensor timeline and accumulates elapsed time into TP/FP/FN buckets:
+
+    - TP-sec: seconds where a GT interval and a det interval are both active
+    - FP-sec: seconds where a det interval is active but no GT interval is
+    - FN-sec: seconds where a GT interval is active but no det interval is
+
+    Precision/recall/F1 are computed on these seconds, and per-sensor
+    breakdowns are returned so voltage vs power strips are visible separately.
+    """
+    gt = _load(gt_df); det = _load(det_df)
+    sensors = set(iv.sensor_id for iv in gt) | set(iv.sensor_id for iv in det)
+    tp_sec = fp_sec = fn_sec = 0.0
+    per_sensor: dict[str, dict[str, float]] = {}
+    for s in sensors:
+        gt_s = [iv for iv in gt if iv.sensor_id == s]
+        det_s = [iv for iv in det if iv.sensor_id == s]
+        events: list[tuple[pd.Timestamp, int, int]] = []
+        for iv in gt_s:
+            events.append((iv.start, 0, +1)); events.append((iv.end, 0, -1))
+        for iv in det_s:
+            events.append((iv.start, 1, +1)); events.append((iv.end, 1, -1))
+        if not events:
+            continue
+        # Apply closings before openings at the same timestamp (stable counts).
+        events.sort(key=lambda x: (x[0], x[2]))
+        gt_open = det_open = 0
+        prev_ts = events[0][0]
+        s_tp = s_fp = s_fn = 0.0
+        for ts, kind, delta in events:
+            dt = (ts - prev_ts).total_seconds()
+            if dt > 0:
+                if gt_open > 0 and det_open > 0:
+                    s_tp += dt
+                elif det_open > 0:
+                    s_fp += dt
+                elif gt_open > 0:
+                    s_fn += dt
+            if kind == 0:
+                gt_open += delta
+            else:
+                det_open += delta
+            prev_ts = ts
+        tp_sec += s_tp; fp_sec += s_fp; fn_sec += s_fn
+        per_sensor[s] = {"tp_sec": s_tp, "fp_sec": s_fp, "fn_sec": s_fn}
+    prec = tp_sec / (tp_sec + fp_sec) if (tp_sec + fp_sec) > 0 else 0.0
+    rec = tp_sec / (tp_sec + fn_sec) if (tp_sec + fn_sec) > 0 else 0.0
+    f1 = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
+    return {"tp_sec": tp_sec, "fp_sec": fp_sec, "fn_sec": fn_sec,
+            "time_precision": prec, "time_recall": rec, "time_f1": f1,
+            "per_sensor": per_sensor}
+
+
+def compute_metrics_event(gt_df: pd.DataFrame, det_df: pd.DataFrame,
+                          merge_gap: pd.Timedelta = pd.Timedelta(hours=1)) -> dict:
+    """Event-level F1: merge overlapping/near-adjacent detections into event clusters
+    (the user-facing unit — one sustained alert is one event regardless of internal
+    chunking), then TP/FP/FN over events vs GT. This is the honest number when long
+    labels cause the pipeline to fuse into multiple bounded chunks."""
+    gt = _load(gt_df)
+    det_events = _merge_events(_load(det_df), merge_gap)
+    tp_gt = [g for g in gt if any(_overlaps(g, e) for e in det_events)]
+    fn = [g for g in gt if g not in tp_gt]
+    tp_events = [e for e in det_events if any(_overlaps(g, e) for g in gt)]
+    fp = [e for e in det_events if e not in tp_events]
+    ntp, nfp, nfn = len(tp_gt), len(fp), len(fn)
+    # precision uses detection-events as the denominator, not GTs
+    n_events = len(det_events)
+    prec = len(tp_events) / n_events if n_events else 0.0
+    rec = ntp / (ntp + nfn) if ntp + nfn else 0.0
+    f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
+    return {"tp": ntp, "fp": nfp, "fn": nfn,
+            "precision": prec, "recall": rec, "f1": f1,
+            "n_events": n_events}

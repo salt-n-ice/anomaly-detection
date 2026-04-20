@@ -4,29 +4,52 @@ Compact Python pipeline for detecting anomalies in smart-home sensor streams (po
 
 ## Quickstart (with the companion synthetic generator)
 
+End-to-end: YAML scenario → events CSV → detections CSV → metrics + PDFs.
+
 ```bash
-# 1. Generate a labeled scenario
+# 1. Generate a labeled scenario from a YAML spec
 cd synthetic-generator
 sensorgen run scenarios/outlet_demo.yaml --out out/outlet
+#   writes out/outlet/events.csv  and  out/outlet/labels.csv
 
-# 2. Run the pipeline
+# 2. Run the detection pipeline
 cd ../anomaly-detection
 python -m anomaly run \
   --events ../synthetic-generator/out/outlet/events.csv \
   --config configs/outlet.yaml \
   --out out/outlet_detections.csv \
   --bootstrap-days 14
+#   writes out/outlet_detections.csv
 
 # 3. Score against ground truth
 python -m anomaly eval \
   --detections out/outlet_detections.csv \
   --labels ../synthetic-generator/out/outlet/labels.csv
+
+# 4a. Visualize (multi-page, 1-day windows — best for short/mixed anomalies)
+python -m anomaly viz \
+  --events ../synthetic-generator/out/outlet/events.csv \
+  --labels ../synthetic-generator/out/outlet/labels.csv \
+  --detections out/outlet_detections.csv \
+  --out out/outlet_viz.pdf \
+  --window 1d
+
+# 4b. Visualize long-duration anomalies (one page per label ≥ 24h, with signal curves)
+python -m anomaly viz-long \
+  --events ../synthetic-generator/out/outlet/events.csv \
+  --labels ../synthetic-generator/out/outlet/labels.csv \
+  --detections out/outlet_detections.csv \
+  --out out/outlet_viz_long.pdf \
+  --min-hours 24
 ```
 
-To sweep all 4 bundled scenarios (outlet / outlet-tv / outlet-kettle / waterleak) and compare both metrics:
+To sweep all 5 bundled scenarios (outlet / outlet-tv / outlet-kettle / waterleak / outlet_short) and compare all metrics side-by-side:
 ```bash
 python scripts/run_all_scenarios.py
 ```
+(expects the generator's `out/` directory to be a sibling of this project — set `SENSORGEN_OUT` to override)
+
+A session-by-session tuning log lives in `CHANGES.md`.
 
 ## Install
 
@@ -102,9 +125,14 @@ python -m anomaly eval \
   --labels labels.csv
 ```
 
-Prints `{tp, fp, fn, precision, recall, f1}` using **1:1** interval-overlap matching (each label can match at most one detection, greedy by label order). A pointwise variant — where any detection overlapping any label counts as TP — is available via `compute_metrics_pointwise` in `anomaly.metrics`. For long-duration anomalies (day/week-scale drifts, month shifts), pointwise is the more faithful picture of detector quality; 1:1 over-counts as FP the redundant chunks that sit on a single long label.
+Prints `{tp, fp, fn, precision, recall, f1}` using **1:1** interval-overlap matching. Four F1 flavors are implemented in `anomaly.metrics`:
 
-To run on multiple scenarios and compare both metrics side-by-side, see `scripts/run_all_scenarios.py`.
+- `compute_metrics` — **1:1** greedy matching (legacy). Penalizes multi-chunk detection of long labels.
+- `compute_metrics_pointwise` — any-overlap set semantics. Recall equals `incident_recall`.
+- `compute_metrics_event` — **event-level F1** (primary target). Detections within a 1h gap are merged into "events" before matching; one sustained alert is one event regardless of internal chunking.
+- `compute_metrics_time` — **duration-weighted**. TP/FP/FN in seconds via per-sensor interval sweep. Surfaces multi-day FP strips that event F1 collapses into a single event.
+
+To run on multiple scenarios and compare all metrics side-by-side, see `scripts/run_all_scenarios.py`. It also reports `incident_recall`, `fp_h_per_day`, and `events_per_incident` (alert burden).
 
 ### Visualize
 ```bash
@@ -125,6 +153,21 @@ Vertical alignment between a red row and a blue row = caught. Unmatched red = mi
 
 `--window` accepts any pandas Timedelta string: `1h`, `6h`, `12h`, `1d`, `2d`, etc.
 
+### Long-anomaly viz (`viz-long`)
+
+For scenarios with day- or week-scale anomalies, strip markers across 30 days don't communicate much. `viz-long` produces a per-label interpretive PDF:
+
+```bash
+python -m anomaly viz-long \
+  --events events.csv \
+  --labels labels.csv \
+  --detections detections.csv \
+  --out viz_long.pdf \
+  --min-hours 24
+```
+
+Page 1 is a summary table of every label with duration, TP/FN, and detector mix. Each following page is one GT label whose duration ≥ `--min-hours`, showing the full 60-day signal with the label region highlighted, a zoomed signal with padded context (`max(1d, duration/3)`, capped at 14d), and aligned truth/detection strips.
+
 ## Project structure
 
 ```
@@ -138,9 +181,10 @@ src/anomaly/
   metrics.py     interval-overlap + pointwise matching
   viz.py         PDF visualization
 configs/                     sample sensor configurations (outlet / tv / kettle / waterleak)
-scripts/run_all_scenarios.py runs the pipeline on all bundled scenarios, reports 1:1 + pointwise metrics
-tests/                       41 unit + integration tests
+scripts/run_all_scenarios.py runs the pipeline on all 5 bundled scenarios, reports 1:1 / event / pointwise / time-weighted metrics
+tests/                       unit + integration tests
 pipeline.md                  full design spec (algorithms, suppression matrix, bootstrap phases)
+CHANGES.md                   tuning-session log (detector / fusion / metric evolution)
 ```
 
 ## Tests
@@ -149,7 +193,7 @@ pipeline.md                  full design spec (algorithms, suppression matrix, b
 pytest -v
 ```
 
-41 tests — all pure unit/integration tests using in-memory fixtures. No external data required.
+All pure unit/integration tests using in-memory fixtures. No external data required.
 
 Some optional integration tests (if present) look for generated synthetic scenarios under the companion `synthetic-generator/` project's `out/` directory (e.g. `outlet7`, `leak7`). They auto-skip if the data isn't present, so the core suite runs everywhere.
 

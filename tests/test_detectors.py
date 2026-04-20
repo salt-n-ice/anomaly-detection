@@ -31,12 +31,32 @@ def test_dqg_duplicate_stale():
     alerts = dqg.check(Event(base, "s", "v", 10.0, ""))
     assert any(a.anomaly_type == "duplicate_stale" for a in alerts)
 
-def test_dqg_future_timestamp(monkeypatch):
-    dqg = DataQualityGate(_cfg())
-    now = ts("2026-02-01T00:00:00Z")
-    future = now + pd.Timedelta(hours=1)
-    alerts = dqg.check(Event(future, "s", "v", 10.0, ""), now=now)
+def test_dqg_clock_drift_ewma():
+    # New clock_drift semantics: EWMA of (actual_gap - expected_interval) on
+    # CONTINUOUS sensors. Seed with on-cadence events, then stretch intervals
+    # to simulate drift; expect clock_drift within a few drifted events.
+    cfg = _cfg(expected_interval_sec=60)
+    dqg = DataQualityGate(cfg)
+    base = ts("2026-02-01T00:00:00Z")
+    alerts = []
+    for i in range(3):
+        alerts += dqg.check(Event(base + pd.Timedelta(seconds=60 * i), "s", "v", 10.0, ""))
+    # Drift: each subsequent event 75s after previous (delta_tick = +15s).
+    t = base + pd.Timedelta(seconds=60 * 2)
+    for _ in range(10):
+        t = t + pd.Timedelta(seconds=75)
+        alerts += dqg.check(Event(t, "s", "v", 10.0, ""))
     assert any(a.anomaly_type == "clock_drift" for a in alerts)
+
+def test_dqg_no_clock_drift_on_cadence():
+    # Stationary sensor at exact cadence should never fire clock_drift.
+    cfg = _cfg(expected_interval_sec=60)
+    dqg = DataQualityGate(cfg)
+    base = ts("2026-02-01T00:00:00Z")
+    alerts = []
+    for i in range(200):
+        alerts += dqg.check(Event(base + pd.Timedelta(seconds=60 * i), "s", "v", 10.0, ""))
+    assert not any(a.anomaly_type == "clock_drift" for a in alerts)
 
 def test_dqg_dropout():
     cfg = _cfg(expected_interval_sec=60)  # max_gap=300s

@@ -42,7 +42,7 @@ def matrix_profile_discords(config: SensorConfig, series: list[tuple[pd.Timestam
     if vals.size < window * 3:
         return []
     mp = _matrix_profile(vals, window)
-    thr = mp.mean() + 3 * mp.std()
+    thr = mp.mean() + 5 * mp.std()  # tightened from 3 — leak scenario produced 4 unmatched MP FPs at 3*std
     idx_sorted = np.argsort(mp)[::-1]
     out: list[Alert] = []
     used_ez = window

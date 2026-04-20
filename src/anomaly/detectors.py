@@ -24,8 +24,12 @@ class DataQualityGate:
     name = "data_quality_gate"
     live = True
 
-    _OOR_COOLDOWN = pd.Timedelta(minutes=5)      # suppress repeat OOR alerts within this window
+    _OOR_COOLDOWN = pd.Timedelta(minutes=30)     # suppress repeat OOR alerts within this window (oscillation during noise_burst / frequency_change crosses boundaries many times)
     _DROPOUT_COOLDOWN = pd.Timedelta(minutes=30) # suppress repeat dropout alerts (reporting_rate_change floods)
+    _BATCH_COOLDOWN = pd.Timedelta(minutes=30)   # suppress repeat batch_arrival alerts (generator batches release many events, tripping the burst detector every 12 events)
+    _CLOCK_DRIFT_COOLDOWN = pd.Timedelta(minutes=5)
+    _CLOCK_DRIFT_TICK_RATIO = 0.005   # per-tick delta threshold as fraction of expected_interval (floor 3s)
+    _CLOCK_DRIFT_PERSISTENCE = 3      # consecutive drifted ticks required before firing
 
     def __init__(self, config: SensorConfig):
         self.config = config
@@ -36,11 +40,14 @@ class DataQualityGate:
         self._last_min_fire: pd.Timestamp | None = None
         self._last_max_fire: pd.Timestamp | None = None
         self._last_dropout_fire: pd.Timestamp | None = None
+        self._last_batch_fire: pd.Timestamp | None = None
+        self._clock_drift_count: int = 0   # consecutive-tick counter; decays on normal-cadence ticks
+        self._last_clock_drift_fire: pd.Timestamp | None = None
 
     def fit(self, rows): pass
     def update(self, ts, feat): return []
 
-    def check(self, ev: Event, now: pd.Timestamp | None = None) -> list[Alert]:
+    def check(self, ev: Event) -> list[Alert]:
         cfg = self.config
         out: list[Alert] = []
         # out-of-range: fire on entry, then cool down to suppress oscillation around threshold
@@ -65,27 +72,61 @@ class DataQualityGate:
         # duplicate / stale
         if self._last_ts is not None and ev.timestamp == self._last_ts and ev.value == self._last_val:
             out.append(_alert(cfg, ev.timestamp, self.name, 0, 0, "duplicate_stale", ev.value))
-        # clock drift: future or >5min stale vs now
-        if now is not None:
-            delta = (ev.timestamp - now).total_seconds()
-            if delta > 60 or delta < -300:
-                out.append(_alert(cfg, ev.timestamp, self.name, delta, 60, "clock_drift", ev.value))
+        # clock drift: per-tick deviation from expected cadence, persistence-gated.
+        # Only meaningful on CONTINUOUS sensors with sub-hourly heartbeat — bursty
+        # cadence is event-driven and battery-cadence sensors are too slow for a
+        # stable per-tick interval baseline. Gaps outside [0.5x, 1.5x] expected are
+        # excluded (handled by dropout/batch detectors). A counter grows on ticks
+        # whose deviation exceeds `max(3s, 0.5% * expected_interval)` and decays
+        # by one on normal ticks, so isolated boundary perturbations (e.g. a
+        # single short gap where a neighboring anomaly window starts) don't fire
+        # — only N-consecutive drifted ticks do.
+        if (cfg.archetype == Archetype.CONTINUOUS
+                and cfg.expected_interval_sec <= 3600
+                and self._last_ts is not None):
+            gap = (ev.timestamp - self._last_ts).total_seconds()
+            if 0.5 * cfg.expected_interval_sec <= gap <= 1.5 * cfg.expected_interval_sec:
+                delta_tick = gap - cfg.expected_interval_sec
+                thr_tick = max(3.0, self._CLOCK_DRIFT_TICK_RATIO * cfg.expected_interval_sec)
+                if abs(delta_tick) > thr_tick:
+                    # Cap at PERSISTENCE so a single post-drift normal tick drops
+                    # below the fire threshold — avoids 5h+ of post-GT clock_drift
+                    # alerts after the drift window ends.
+                    self._clock_drift_count = min(self._clock_drift_count + 1,
+                                                  self._CLOCK_DRIFT_PERSISTENCE)
+                else:
+                    self._clock_drift_count = max(0, self._clock_drift_count - 1)
+                if self._clock_drift_count >= self._CLOCK_DRIFT_PERSISTENCE:
+                    if (self._last_clock_drift_fire is None
+                            or (ev.timestamp - self._last_clock_drift_fire) >= self._CLOCK_DRIFT_COOLDOWN):
+                        out.append(_alert(cfg, ev.timestamp, self.name, delta_tick,
+                                          thr_tick, "clock_drift", ev.value))
+                        self._last_clock_drift_fire = ev.timestamp
         # dropout (cooldown mirrors OOR — reporting_rate_change floods with tiny-gap events)
         if self._last_ts is not None:
             gap = (ev.timestamp - self._last_ts).total_seconds()
             if gap > cfg.max_gap_sec:
                 if (self._last_dropout_fire is None
                         or (ev.timestamp - self._last_dropout_fire) >= self._DROPOUT_COOLDOWN):
+                    # Window the alert over the dropout span (last valid event → current)
+                    # so interval metrics line up with the GT dropout window. Without
+                    # this, the alert is an instant fire at ev.timestamp and misses the
+                    # GT window by one tick (detection is always post-dropout).
                     out.append(_alert(cfg, ev.timestamp, self.name, gap, cfg.max_gap_sec,
-                                      "dropout", ev.value))
+                                      "dropout", ev.value,
+                                      w0=self._last_ts, w1=ev.timestamp))
                     self._last_dropout_fire = ev.timestamp
-        # batch arrival: many events in <1s
+        # batch arrival: many events in <1s. Cooldown prevents a single batch-release
+        # from generator firing 10+ times (every 12 rapid events would otherwise trip).
         self._burst.append(ev.timestamp)
         if len(self._burst) == self._burst.maxlen:
             span = (self._burst[-1] - self._burst[0]).total_seconds()
             if span < 1.0:
-                out.append(_alert(cfg, ev.timestamp, self.name, len(self._burst), 1.0,
-                                  "batch_arrival", ev.value))
+                if (self._last_batch_fire is None
+                        or (ev.timestamp - self._last_batch_fire) >= self._BATCH_COOLDOWN):
+                    out.append(_alert(cfg, ev.timestamp, self.name, len(self._burst), 1.0,
+                                      "batch_arrival", ev.value))
+                    self._last_batch_fire = ev.timestamp
                 self._burst.clear()
         self._last_ts = ev.timestamp
         self._last_val = ev.value
@@ -96,14 +137,17 @@ class CUSUM:
     name = "cusum"
 
     def __init__(self, config: SensorConfig, features: list[str],
-                 delta_sigma: float = 0.1, lam: float = 5.0):
+                 delta_sigma: float = 0.1, lam: float = 5.0,
+                 warmup_seconds: float = 0.0):
         self.config = config
         self.features = features
         self.delta_sigma = delta_sigma
         self.lam = lam
+        self.warmup_seconds = warmup_seconds
         self.live = False
         # per-state per-feature: (mean, sigma, s_pos, s_neg)
         self._state: dict[tuple[int, str], list[float]] = {}
+        self._first_update_ts: pd.Timestamp | None = None
 
     def _get_state(self, feat: dict) -> int:
         return int(feat.get("state", 0)) if self.config.archetype == Archetype.BURSTY else 0
@@ -139,6 +183,14 @@ class CUSUM:
 
     def update(self, ts, feat):
         if not self.live: return []
+        if self._first_update_ts is None:
+            self._first_update_ts = ts
+        # Warmup: during the first `warmup_seconds` after going live, still
+        # process state (accumulate sp/sn, silent-reset on would-fire) but don't
+        # emit alerts. Fixes diurnal-driven CUSUM warm-up FPs on continuous
+        # sensors (e.g., leak_temperature) where bootstrap mu isn't calendar-aware.
+        in_warmup = (self.warmup_seconds > 0
+                     and (ts - self._first_update_ts).total_seconds() < self.warmup_seconds)
         out = []
         s = self._get_state(feat)
         for k in self.features:
@@ -154,12 +206,32 @@ class CUSUM:
             thresh = self.lam * sd
             fired = sp > thresh or -sn > thresh
             if fired:
-                score = max(sp, -sn)
-                out.append(_alert(self.config, ts, self.name, score, thresh,
-                                  None, float(v), state=s))
-                sp = sn = 0.0  # reset on alert
+                if not in_warmup:
+                    score = max(sp, -sn)
+                    out.append(_alert(self.config, ts, self.name, score, thresh,
+                                      None, float(v), state=s))
+                sp = sn = 0.0  # reset on fire (silent during warmup)
             st[2], st[3] = sp, sn
         return out
+
+    def adapt_to_recent(self, rows):
+        # Coordinated adaptation: when a fused chunk closes due to prolonged firing,
+        # absorb the recent baseline into mu so we stop firing on the new normal.
+        # Sigma is preserved (anomalous data inflates variance — keeping the bootstrap
+        # sigma maintains sensitivity for the next genuine deviation).
+        if not self.live or not rows: return
+        by_state: dict[tuple[int, str], list[float]] = {}
+        for ts, f in rows:
+            s = self._get_state(f)
+            for k in self.features:
+                v = f.get(k)
+                if v is None or (isinstance(v, float) and math.isnan(v)): continue
+                by_state.setdefault((s, k), []).append(float(v))
+        for (s, k), vals in by_state.items():
+            st = self._state.get((s, k))
+            if st is None or len(vals) < 10: continue
+            st[0] = float(np.mean(vals))
+            st[2] = st[3] = 0.0
 
 
 def _fit_pca(X: np.ndarray, var_ratio: float = 0.95):
@@ -183,13 +255,16 @@ def _pca_error(x: np.ndarray, mu: np.ndarray, P: np.ndarray) -> float:
 class SubPCA:
     name = "sub_pca"
 
-    def __init__(self, config: SensorConfig, window: int = 125, feature: str = "value"):
+    def __init__(self, config: SensorConfig, window: int = 125, feature: str = "value",
+                 warmup_seconds: float = 0.0):
         self.config = config
         self.window = window
         self.feature = feature
+        self.warmup_seconds = warmup_seconds
         self.live = False
         self._models: dict[int, tuple[np.ndarray, np.ndarray, float]] = {}
         self._buf: dict[int, deque[float]] = {}
+        self._first_update_ts: pd.Timestamp | None = None
 
     def _state(self, feat: dict) -> int:
         return int(feat.get("state", 0)) if self.config.archetype == Archetype.BURSTY else 0
@@ -206,11 +281,25 @@ class SubPCA:
             if len(seq) < self.window * 3:
                 continue
             arr = np.asarray(seq, dtype=float)
-            # non-overlapping windows
-            n = (arr.size // self.window)
+            # Fit PCA on non-overlapping windows (stable model).
+            n = arr.size // self.window
             X = arr[:n * self.window].reshape(n, self.window)
             mu, P = _fit_pca(X)
-            errs = np.array([_pca_error(X[i], mu, P) for i in range(n)])
+            # Threshold: for CONTINUOUS sensors, derive from sliding windows —
+            # non-overlap errors are in-sample residuals whose 99.9th
+            # percentile underestimates the out-of-sample tail, which on
+            # near-constant signals (voltage_mains σ=0.4V) caused a ~6%
+            # stationary FP rate. Sliding bootstrap matches the live error
+            # distribution (cuts that to ~0.2%). For BURSTY per-state models,
+            # keep non-overlap: per-state slices are already short, sliding
+            # inflates the threshold enough to fragment legitimate post-shift
+            # fusion chains on outlet_tv power.
+            if self.config.archetype == Archetype.CONTINUOUS:
+                n_slide = arr.size - self.window + 1
+                errs = np.array([_pca_error(arr[i:i + self.window], mu, P)
+                                 for i in range(n_slide)])
+            else:
+                errs = np.array([_pca_error(X[i], mu, P) for i in range(n)])
             thr = float(np.quantile(errs, 0.999))
             self._models[s] = (mu, P, thr)
             self._buf[s] = deque(maxlen=self.window)
@@ -218,6 +307,10 @@ class SubPCA:
 
     def update(self, ts, feat):
         if not self.live: return []
+        if self._first_update_ts is None:
+            self._first_update_ts = ts
+        in_warmup = (self.warmup_seconds > 0
+                     and (ts - self._first_update_ts).total_seconds() < self.warmup_seconds)
         s = self._state(feat)
         model = self._models.get(s)
         if model is None: return []
@@ -229,21 +322,44 @@ class SubPCA:
         x = np.asarray(buf, dtype=float)
         mu, P, thr = model
         err = _pca_error(x, mu, P)
-        if err > thr:
+        if err > thr and not in_warmup:
             return [_alert(self.config, ts, self.name, err, thr, None, float(v),
                            state=s, w0=ts - pd.Timedelta(seconds=self.window*self.config.granularity_sec),
                            w1=ts)]
         return []
 
+    def adapt_to_recent(self, rows):
+        # Shift mu (the window centroid) to the recent baseline, but KEEP the
+        # projection P and threshold from bootstrap. This recenters the model
+        # on the new normal without re-deriving sensitivity — refitting P/thr
+        # on narrow recent variance creates tight thresholds that over-fire.
+        if not self.live or not rows: return
+        per_state: dict[int, list[float]] = {}
+        for ts, f in rows:
+            v = f.get(self.feature)
+            if v is None or (isinstance(v, float) and math.isnan(v)): continue
+            per_state.setdefault(self._state(f), []).append(float(v))
+        for s, seq in per_state.items():
+            if s not in self._models or len(seq) < self.window * 2: continue
+            _, P, thr = self._models[s]
+            arr = np.asarray(seq, dtype=float)
+            n = arr.size // self.window
+            X = arr[:n * self.window].reshape(n, self.window)
+            new_mu = X.mean(axis=0)
+            self._models[s] = (new_mu, P, thr)
+
 
 class MultivariatePCA:
     name = "multivariate_pca"
 
-    def __init__(self, config: SensorConfig, features: list[str]):
+    def __init__(self, config: SensorConfig, features: list[str],
+                 warmup_seconds: float = 0.0):
         self.config = config
         self.features = features
+        self.warmup_seconds = warmup_seconds
         self.live = False
         self._models: dict[int, tuple[np.ndarray, np.ndarray, float]] = {}
+        self._first_update_ts: pd.Timestamp | None = None
 
     def _state(self, feat: dict) -> int:
         return int(feat.get("state", 0)) if self.config.archetype == Archetype.BURSTY else 0
@@ -274,6 +390,10 @@ class MultivariatePCA:
 
     def update(self, ts, feat):
         if not self.live: return []
+        if self._first_update_ts is None:
+            self._first_update_ts = ts
+        in_warmup = (self.warmup_seconds > 0
+                     and (ts - self._first_update_ts).total_seconds() < self.warmup_seconds)
         s = self._state(feat)
         model = self._models.get(s)
         if model is None: return []
@@ -281,16 +401,31 @@ class MultivariatePCA:
         if v is None: return []
         mu, P, thr = model
         err = _pca_error(v, mu, P)
-        if err > thr:
+        if err > thr and not in_warmup:
             return [_alert(self.config, ts, self.name, err, thr, None, float(v[0]), state=s)]
         return []
+
+    def adapt_to_recent(self, rows):
+        # Shift centroid mu to the recent mean, but KEEP P and threshold —
+        # same rationale as SubPCA.adapt_to_recent above.
+        if not self.live or not rows: return
+        per_state: dict[int, list[np.ndarray]] = {}
+        for ts, f in rows:
+            v = self._vec(f)
+            if v is None: continue
+            per_state.setdefault(self._state(f), []).append(v)
+        for s, vs in per_state.items():
+            if s not in self._models or len(vs) < max(20, 3 * len(self.features)): continue
+            _, P, thr = self._models[s]
+            new_mu = np.mean(np.stack(vs), axis=0)
+            self._models[s] = (new_mu, P, thr)
 
 
 class TemporalProfile:
     name = "temporal_profile"
 
     def __init__(self, config: SensorConfig, features: list[str], z_thresh: float = 4.0,
-                 min_samples: int = 5):
+                 min_samples: int = 20):
         self.config = config
         self.features = features
         self.z_thresh = z_thresh
@@ -308,7 +443,15 @@ class TemporalProfile:
 
     def _update_bucket(self, b, k, v):
         bkt = self._buckets.setdefault(b, {})
-        st = bkt.setdefault(k, [0, 0.0, 0.0])
+        st = bkt.setdefault(k, [0, 0.0, 0.0, None])  # [n, mean, M2, last_v]
+        # Dedupe consecutive identical values. ZOH-inflated tick streams (bursty
+        # value between events, binary derived features holding steady) otherwise
+        # pump bucket.n past min_samples without adding information, and a brief
+        # labeled-anomaly burst (e.g., 60 consecutive transitions_per_hour=1
+        # ticks during water_leak) permanently poisons the bucket mean.
+        if st[3] is not None and v == st[3]:
+            return
+        st[3] = v
         st[0] += 1
         dlt = v - st[1]
         st[1] += dlt / st[0]
@@ -351,7 +494,7 @@ class TemporalProfile:
             if st is None or st[0] < self.min_samples:
                 self._update_bucket(b, k, float(v))
                 continue
-            n, mean, m2 = st
+            n, mean, m2 = st[0], st[1], st[2]
             var = m2 / max(1, n - 1)
             sd = var ** 0.5
             anomalous = False
@@ -364,3 +507,18 @@ class TemporalProfile:
             if not anomalous:
                 self._update_bucket(b, k, float(v))
         return out
+
+    def adapt_to_recent(self, rows):
+        # Force-absorb recent values into the matching buckets, even ones that
+        # `update()` skipped because they fired. After a max_span fused close,
+        # the recent values ARE the new normal (level shift, weekend pattern,
+        # post-calibration baseline) — feeding them in shifts the bucket
+        # mean/sd toward the new distribution so the profile stops re-firing.
+        if not self.live or not rows: return
+        for ts, f in rows:
+            s = self._state(f)
+            b = self._bucket(ts, s)
+            for k in self.features:
+                v = f.get(k)
+                if v is None or (isinstance(v, float) and math.isnan(v)): continue
+                self._update_bucket(b, k, float(v))
