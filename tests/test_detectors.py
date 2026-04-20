@@ -194,3 +194,13 @@ def test_temporal_profile_cold_start_silent():
     # no fit
     alerts = det.update(ts("2026-02-02T10:00:00Z"), {"value": 1000.0})
     assert alerts == []
+
+def test_dqg_context_populated_on_fire():
+    dqg = DataQualityGate(_cfg())
+    a = dqg.check(Event(ts("2026-02-01T00:00:00Z"), "s", "v", 999, ""))
+    oor = next(x for x in a if x.anomaly_type == "out_of_range")
+    assert oor.context is not None
+    assert oor.context[0]["detector"] == "data_quality_gate"
+    assert oor.context[0]["reason"] == "out_of_range"
+    assert oor.context[0]["value"] == 999
+    assert oor.context[0]["limit"] == 100

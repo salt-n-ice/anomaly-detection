@@ -55,24 +55,34 @@ class DataQualityGate:
         if cfg.min_value is not None and ev.value < cfg.min_value:
             if self._last_min_fire is None or (ev.timestamp - self._last_min_fire) >= self._OOR_COOLDOWN:
                 out.append(_alert(cfg, ev.timestamp, self.name, ev.value, cfg.min_value,
-                                  "out_of_range", ev.value))
+                                  "out_of_range", ev.value,
+                                  context={"detector": self.name, "reason": "out_of_range",
+                                           "side": "min", "value": ev.value, "limit": cfg.min_value}))
                 self._last_min_fire = ev.timestamp
         if cfg.max_value is not None and ev.value > cfg.max_value:
             if self._last_max_fire is None or (ev.timestamp - self._last_max_fire) >= self._OOR_COOLDOWN:
                 out.append(_alert(cfg, ev.timestamp, self.name, ev.value, cfg.max_value,
-                                  "out_of_range", ev.value))
+                                  "out_of_range", ev.value,
+                                  context={"detector": self.name, "reason": "out_of_range",
+                                           "side": "max", "value": ev.value, "limit": cfg.max_value}))
                 self._last_max_fire = ev.timestamp
         # saturation (10+ consecutive at max)
         if cfg.max_value is not None and ev.value >= cfg.max_value:
             self._sat_run += 1
             if self._sat_run == 10:
                 out.append(_alert(cfg, ev.timestamp, self.name, ev.value, cfg.max_value,
-                                  "saturation", ev.value))
+                                  "saturation", ev.value,
+                                  context={"detector": self.name, "reason": "saturation",
+                                           "value": ev.value, "max": cfg.max_value,
+                                           "consecutive_at_max": self._sat_run}))
         else:
             self._sat_run = 0
         # duplicate / stale
         if self._last_ts is not None and ev.timestamp == self._last_ts and ev.value == self._last_val:
-            out.append(_alert(cfg, ev.timestamp, self.name, 0, 0, "duplicate_stale", ev.value))
+            out.append(_alert(cfg, ev.timestamp, self.name, 0, 0, "duplicate_stale", ev.value,
+                              context={"detector": self.name, "reason": "duplicate_stale",
+                                       "value": ev.value,
+                                       "repeats_ts": self._last_ts.isoformat()}))
         # clock drift: per-tick deviation from expected cadence, persistence-gated.
         # Only meaningful on CONTINUOUS sensors with sub-hourly heartbeat — bursty
         # cadence is event-driven and battery-cadence sensors are too slow for a
@@ -101,7 +111,11 @@ class DataQualityGate:
                     if (self._last_clock_drift_fire is None
                             or (ev.timestamp - self._last_clock_drift_fire) >= self._CLOCK_DRIFT_COOLDOWN):
                         out.append(_alert(cfg, ev.timestamp, self.name, delta_tick,
-                                          thr_tick, "clock_drift", ev.value))
+                                          thr_tick, "clock_drift", ev.value,
+                                          context={"detector": self.name, "reason": "clock_drift",
+                                                   "delta_sec": float(delta_tick),
+                                                   "threshold_sec": float(thr_tick),
+                                                   "expected_interval_sec": cfg.expected_interval_sec}))
                         self._last_clock_drift_fire = ev.timestamp
         # dropout (cooldown mirrors OOR — reporting_rate_change floods with tiny-gap events)
         if self._last_ts is not None:
@@ -115,7 +129,10 @@ class DataQualityGate:
                     # GT window by one tick (detection is always post-dropout).
                     out.append(_alert(cfg, ev.timestamp, self.name, gap, cfg.max_gap_sec,
                                       "dropout", ev.value,
-                                      w0=self._last_ts, w1=ev.timestamp))
+                                      w0=self._last_ts, w1=ev.timestamp,
+                                      context={"detector": self.name, "reason": "dropout",
+                                               "gap_sec": float(gap),
+                                               "max_gap_sec": float(cfg.max_gap_sec)}))
                     self._last_dropout_fire = ev.timestamp
         # batch arrival: many events in <1s. Cooldown prevents a single batch-release
         # from generator firing 10+ times (every 12 rapid events would otherwise trip).
@@ -126,7 +143,10 @@ class DataQualityGate:
                 if (self._last_batch_fire is None
                         or (ev.timestamp - self._last_batch_fire) >= self._BATCH_COOLDOWN):
                     out.append(_alert(cfg, ev.timestamp, self.name, len(self._burst), 1.0,
-                                      "batch_arrival", ev.value))
+                                      "batch_arrival", ev.value,
+                                      context={"detector": self.name, "reason": "batch_arrival",
+                                               "burst_size": len(self._burst),
+                                               "span_sec": float(span)}))
                     self._last_batch_fire = ev.timestamp
                 self._burst.clear()
         self._last_ts = ev.timestamp
