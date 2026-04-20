@@ -368,6 +368,11 @@ def main(argv=None) -> int:
     vl.add_argument("--out", required=True, type=Path)
     vl.add_argument("--min-hours", type=float, default=24.0,
                     help="minimum label duration to get its own detail page")
+    ex = sub.add_parser("explain")
+    ex.add_argument("--events", required=True, type=Path)
+    ex.add_argument("--detections", required=True, type=Path)
+    ex.add_argument("--out", required=True, type=Path,
+                    help="JSONL path - one bundle per detection")
     args = ap.parse_args(argv)
     if args.cmd == "run":
         run(args.events, args.config, args.out, args.bootstrap_days); return 0
@@ -388,6 +393,11 @@ def main(argv=None) -> int:
         dt = pd.read_csv(args.detections) if args.detections else None
         render_long(ev, lb, dt, args.out, min_hours=args.min_hours)
         print(f"wrote {args.out}")
+        return 0
+    if args.cmd == "explain":
+        from .explain import explain_detections_csv
+        n = explain_detections_csv(args.events, args.detections, args.out)
+        print(f"wrote {n} bundles to {args.out}")
         return 0
     return 2
 

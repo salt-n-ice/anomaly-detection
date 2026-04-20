@@ -126,3 +126,56 @@ def temporal_framing(alert: Alert) -> dict:
         "month": ts.month_name(),
         "time_of_day_bucket": bucket,
     }
+
+
+def explain(alert: Alert, events: pd.DataFrame) -> dict:
+    """Top-level composer. Returns a structured bundle ready for an LLM prompt."""
+    w0 = alert.window_start or alert.timestamp
+    w1 = alert.window_end or alert.timestamp
+    return {
+        "alert_id": f"{alert.sensor_id}|{alert.capability}|{w0.isoformat()}",
+        "sensor": alert.sensor_id,
+        "capability": alert.capability,
+        "window": {"start": w0.isoformat(), "end": w1.isoformat(),
+                   "duration_sec": float((w1 - w0).total_seconds())},
+        "inferred_type": classify_type(alert),
+        "magnitude": extract_magnitude(alert, events),
+        "temporal": temporal_framing(alert),
+        "detectors": sorted(alert.detector.split("+")),
+        "detector_context": list(alert.context) if alert.context else [],
+        "score": float(alert.score),
+        "threshold": float(alert.threshold),
+    }
+
+
+def _detections_to_alerts(det_df: pd.DataFrame) -> list[Alert]:
+    out: list[Alert] = []
+    for r in det_df.itertuples(index=False):
+        w0 = pd.Timestamp(r.start) if not isinstance(r.start, pd.Timestamp) else r.start
+        w1 = pd.Timestamp(r.end)   if not isinstance(r.end,   pd.Timestamp) else r.end
+        out.append(Alert(
+            sensor_id=str(r.sensor_id), capability=str(r.capability),
+            timestamp=w0, detector=str(r.detector),
+            score=float(getattr(r, "score", 0.0)), threshold=0.0,
+            anomaly_type=str(getattr(r, "anomaly_type", "")) or None,
+            raw_value=None, state=None, window_start=w0, window_end=w1,
+            context=None,
+        ))
+    return out
+
+
+def explain_detections_csv(events_csv, detections_csv, out_jsonl) -> int:
+    """Batch explainer: CSV in, JSONL out. Returns the number of bundles written."""
+    import json as _json
+    from pathlib import Path as _P
+    events = pd.read_csv(events_csv)
+    events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
+    dets = pd.read_csv(detections_csv)
+    alerts = _detections_to_alerts(dets)
+    path = _P(out_jsonl); path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w") as f:
+        n = 0
+        for a in alerts:
+            f.write(_json.dumps(explain(a, events), default=str) + "\n")
+            n += 1
+    return n

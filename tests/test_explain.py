@@ -126,3 +126,52 @@ def test_temporal_framing_emits_calendar_fields():
     assert t["is_weekend"] is True
     assert t["month"] == "March"
     assert t["time_of_day_bucket"] == "afternoon"
+
+
+import json
+from pathlib import Path
+from anomaly.explain import explain, explain_detections_csv
+
+
+def test_explain_bundle_has_expected_keys():
+    df, t_peak = _events_df(baseline=120.0, peak=124.0)
+    alert = Alert(sensor_id="s", capability="v",
+                  timestamp=t_peak + pd.Timedelta(minutes=5),
+                  detector="cusum+sub_pca", score=1.0, threshold=0.5,
+                  window_start=t_peak, window_end=t_peak + pd.Timedelta(minutes=10),
+                  context=[{"detector": "cusum", "mu": 120.0, "sigma": 0.4,
+                            "direction": "+"}])
+    b = explain(alert, df)
+    assert b["sensor"] == "s"
+    assert b["inferred_type"] in ("level_shift", "statistical_anomaly",
+                                   "calibration_drift", "spike")
+    assert "magnitude" in b and b["magnitude"]["delta"] == 4.0
+    assert "temporal" in b and b["temporal"]["hour"] == t_peak.hour + 5 // 60
+    assert b["detectors"] == ["cusum", "sub_pca"]
+    assert b["detector_context"][0]["detector"] == "cusum"
+
+
+def test_explain_detections_csv_roundtrip(tmp_path: Path):
+    # Build tiny events + detections CSVs, run explain_detections_csv,
+    # verify the JSONL has one bundle per detection.
+    events = pd.DataFrame([
+        {"timestamp": "2026-03-05T08:00:00Z", "sensor_id": "s",
+         "capability": "v", "value": 120.0, "unit": "V"},
+        {"timestamp": "2026-03-05T10:00:00Z", "sensor_id": "s",
+         "capability": "v", "value": 124.0, "unit": "V"},
+    ])
+    dets = pd.DataFrame([{
+        "sensor_id": "s", "capability": "v",
+        "start": "2026-03-05T10:00:00Z", "end": "2026-03-05T10:30:00Z",
+        "anomaly_type": "out_of_range", "detector": "data_quality_gate",
+        "score": 1.0,
+    }])
+    ev_p = tmp_path / "events.csv"; events.to_csv(ev_p, index=False)
+    det_p = tmp_path / "dets.csv";   dets.to_csv(det_p, index=False)
+    out_p = tmp_path / "bundles.jsonl"
+    explain_detections_csv(ev_p, det_p, out_p)
+    lines = out_p.read_text().splitlines()
+    assert len(lines) == 1
+    bundle = json.loads(lines[0])
+    assert bundle["inferred_type"] == "out_of_range"
+    assert bundle["detectors"] == ["data_quality_gate"]
