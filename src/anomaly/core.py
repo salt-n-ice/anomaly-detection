@@ -50,3 +50,4 @@ class Alert:
     state: int | None = None
     window_start: pd.Timestamp | None = None
     window_end: pd.Timestamp | None = None
+    context: list[dict] | None = None

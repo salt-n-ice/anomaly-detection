@@ -207,7 +207,9 @@ class Pipeline:
                 alerts.append(Alert(st.cfg.sensor_id, st.cfg.capability, tick,
                                     "state_transition", 1.0, 1.0,
                                     "water_leak_sustained", 1.0, feat.get("state"),
-                                    tick, tick))
+                                    tick, tick,
+                                    [{"detector": "state_transition",
+                                      "state": feat.get("state")}]))
             for d in st.detectors:
                 alerts.extend(d.update(tick, enriched))
         self._maybe_fit(st, ev.timestamp)
@@ -278,9 +280,13 @@ def _group(alerts: list[Alert]) -> Alert:
     w0 = min((a.window_start or a.timestamp) for a in alerts)
     w1 = max((a.window_end or a.timestamp) for a in alerts)
     names = "+".join(sorted({a.detector for a in alerts}))
+    ctx: list[dict] = []
+    for a in alerts:
+        if a.context:
+            ctx.extend(a.context)
     return Alert(top.sensor_id, top.capability, top.timestamp, names,
                  top.score, top.threshold, top.anomaly_type, top.raw_value,
-                 top.state, w0, w1)
+                 top.state, w0, w1, ctx or None)
 
 
 # --- CLI ---

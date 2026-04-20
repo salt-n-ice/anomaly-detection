@@ -15,9 +15,10 @@ class Detector(Protocol):
 
 
 def _alert(cfg: SensorConfig, ts, detector, score, threshold, atype, raw, state=None,
-           w0=None, w1=None) -> Alert:
+           w0=None, w1=None, context=None) -> Alert:
     return Alert(cfg.sensor_id, cfg.capability, ts, detector, float(score),
-                 float(threshold), atype, raw, state, w0, w1)
+                 float(threshold), atype, raw, state, w0, w1,
+                 [context] if context is not None else None)
 
 
 class DataQualityGate:
