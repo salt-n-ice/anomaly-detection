@@ -251,3 +251,20 @@ def test_mvpca_context_populated_on_fire():
     assert ctx["detector"] == "multivariate_pca"
     assert ctx["top_feature"] in ("value", "value_diff")
     assert ctx["err"] > ctx["thr"]
+
+def test_temporal_profile_context_populated_on_fire():
+    cfg = _cfg(expected_interval_sec=60)
+    tp = TemporalProfile(cfg, features=["value"], z_thresh=2.0, min_samples=5)
+    base = ts("2026-02-01T00:00:00Z")
+    # Fill one bucket (hour=0, dow=6 for Sun Feb 1) with tight-variance values.
+    rows = [(base + pd.Timedelta(seconds=60*i),
+             {"value": 10.0 + (i % 5) * 0.01}) for i in range(30)]
+    tp.fit(rows)
+    # Fire in the same bucket with a far-off value.
+    fired = tp.update(base + pd.Timedelta(seconds=60*30), {"value": 100.0})
+    assert fired, "expected TemporalProfile to fire"
+    ctx = fired[0].context[0]
+    assert ctx["detector"] == "temporal_profile"
+    assert ctx["bucket"] == [0, 0, 6]  # [state, hour, dow]
+    assert abs(ctx["observed_z"]) > 2.0
+    assert "expected_mean" in ctx and "expected_sd" in ctx

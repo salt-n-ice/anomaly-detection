@@ -553,7 +553,14 @@ class TemporalProfile:
                 z = (float(v) - mean) / sd
                 if abs(z) > self.z_thresh:
                     out.append(_alert(self.config, ts, self.name, abs(z), self.z_thresh,
-                                      None, float(v), state=s))
+                                      None, float(v), state=s,
+                                      context={"detector": self.name, "state": s,
+                                               "feature": k,
+                                               "bucket": [s, ts.hour, ts.dayofweek],
+                                               "expected_mean": float(mean),
+                                               "expected_sd": float(sd),
+                                               "observed_value": float(v),
+                                               "observed_z": float(z)}))
                     anomalous = True
             if not anomalous:
                 self._update_bucket(b, k, float(v))
