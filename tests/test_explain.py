@@ -175,3 +175,26 @@ def test_explain_detections_csv_roundtrip(tmp_path: Path):
     bundle = json.loads(lines[0])
     assert bundle["inferred_type"] == "out_of_range"
     assert bundle["detectors"] == ["data_quality_gate"]
+
+
+def test_detections_to_alerts_strips_detector_string_fallback():
+    """pipeline._write_detections writes `anomaly_type or detector` so statistical
+    fused alerts land in the CSV with anomaly_type == detector. The loader must
+    strip that fallback, otherwise classify_type short-circuits on rule 1 and
+    returns the detector string as the inferred type."""
+    from anomaly.explain import _detections_to_alerts, classify_type
+    dets = pd.DataFrame([
+        # Statistical fused: anomaly_type matches the detector string.
+        {"sensor_id": "s", "capability": "v",
+         "start": "2026-03-05T10:00:00Z", "end": "2026-03-05T12:00:00Z",
+         "anomaly_type": "cusum+sub_pca", "detector": "cusum+sub_pca", "score": 1.0},
+        # DQG: anomaly_type is the actual type.
+        {"sensor_id": "s", "capability": "v",
+         "start": "2026-03-05T14:00:00Z", "end": "2026-03-05T14:01:00Z",
+         "anomaly_type": "out_of_range", "detector": "data_quality_gate", "score": 1.0},
+    ])
+    alerts = _detections_to_alerts(dets)
+    assert alerts[0].anomaly_type is None     # detector-string fallback stripped
+    assert alerts[1].anomaly_type == "out_of_range"
+    # And the classifier now runs the decision tree on the statistical row.
+    assert classify_type(alerts[0]) != "cusum+sub_pca"
