@@ -65,3 +65,64 @@ def classify_type(alert: Alert) -> str:
         return "frequency_change" if dur_sec >= 3600 else "shape_anomaly"
 
     return "statistical_anomaly"
+
+
+_TIME_BUCKETS = [(0, 6, "night"), (6, 12, "morning"),
+                 (12, 18, "afternoon"), (18, 24, "evening")]
+
+
+def extract_magnitude(alert: Alert, events: pd.DataFrame) -> dict:
+    """Signed magnitude of the anomalous excursion relative to a baseline.
+
+    Prefers ``cusum.mu`` when present (detector-native reference). Falls back to
+    the median of the 2h pre-window for the alert's sensor.
+    """
+    w0 = alert.window_start or alert.timestamp
+    w1 = alert.window_end or alert.timestamp
+    if "timestamp" in events.columns and events["timestamp"].dtype != "datetime64[ns, UTC]":
+        events = events.copy()
+        events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
+    sub = events[events["sensor_id"] == alert.sensor_id]
+
+    cusum = _find_ctx(alert, "cusum")
+    if cusum and "mu" in cusum:
+        baseline = float(cusum["mu"])
+        source = "cusum_mu"
+    else:
+        pre = sub[(sub["timestamp"] >= w0 - pd.Timedelta(hours=2))
+                  & (sub["timestamp"] < w0)]
+        baseline = float(pre["value"].median()) if len(pre) else float("nan")
+        source = "prewindow_median"
+
+    during = sub[(sub["timestamp"] >= w0) & (sub["timestamp"] <= w1)]
+    if len(during) == 0:
+        peak = float("nan"); delta = float("nan")
+    else:
+        deltas = during["value"].astype(float) - baseline
+        # The "peak" is the value with the largest |delta| during the window.
+        peak_idx = deltas.abs().idxmax()
+        peak = float(during.loc[peak_idx, "value"])
+        delta = float(peak - baseline)
+
+    pct = (delta / baseline * 100.0) if baseline and baseline != 0 else float("nan")
+    return {
+        "baseline": baseline,
+        "baseline_source": source,
+        "peak": peak,
+        "delta": delta,
+        "delta_pct": pct,
+    }
+
+
+def temporal_framing(alert: Alert) -> dict:
+    ts = alert.timestamp
+    bucket = next((name for lo, hi, name in _TIME_BUCKETS if lo <= ts.hour < hi),
+                  "unknown")
+    return {
+        "timestamp": ts.isoformat(),
+        "weekday": ts.day_name(),
+        "hour": int(ts.hour),
+        "is_weekend": bool(ts.dayofweek >= 5),
+        "month": ts.month_name(),
+        "time_of_day_bucket": bucket,
+    }
