@@ -177,6 +177,69 @@ def test_explain_detections_csv_roundtrip(tmp_path: Path):
     assert bundle["detectors"] == ["data_quality_gate"]
 
 
+from anomaly.explain import build_prompt
+
+
+def _sample_bundle(dur_sec=600.0, ctx=None, detectors=None):
+    ws = pd.Timestamp("2026-03-05T10:00:00+00:00")
+    we = ws + pd.Timedelta(seconds=dur_sec)
+    return {
+        "alert_id": "s|v|2026-03-05T10:00:00+00:00",
+        "sensor": "s", "capability": "v",
+        "window": {"start": ws.isoformat(), "end": we.isoformat(),
+                   "duration_sec": dur_sec},
+        "inferred_type": "spike",
+        "magnitude": {"baseline": 120.0, "baseline_source": "cusum_mu",
+                      "peak": 124.0, "delta": 4.0, "delta_pct": 3.33},
+        "temporal": {"timestamp": ws.isoformat(),
+                     "weekday": "Thursday", "hour": 10, "is_weekend": False,
+                     "month": "March", "time_of_day_bucket": "morning"},
+        "detectors": detectors if detectors is not None
+                     else ["cusum", "sub_pca"],
+        "detector_context": ctx if ctx is not None else [],
+        "score": 3.2, "threshold": 0.5,
+    }
+
+
+def test_build_prompt_includes_sensor_capability_and_time():
+    p = build_prompt(_sample_bundle())
+    assert "sensor s" in p
+    assert "capability: v" in p
+    assert "Thu Mar 05 2026 10:00 UTC" in p
+    assert "duration" in p
+
+
+def test_build_prompt_omits_inferred_type():
+    p = build_prompt(_sample_bundle())
+    assert "inferred_type" not in p.lower()
+
+
+def test_build_prompt_adds_long_duration_framing():
+    p = build_prompt(_sample_bundle(dur_sec=4 * 86400))  # 4 days
+    assert "Long-duration framing" in p
+    assert "4.0 days" in p
+    assert "weekend day" in p
+
+
+def test_build_prompt_renders_detector_context_dicts():
+    ctx = [
+        {"detector": "cusum", "direction": "+", "mu": 120.0,
+         "sigma": 0.4, "sp": 3.2, "sn": 0.0, "value": 124.0},
+        {"detector": "sub_pca", "err": 0.15, "thr": 0.05, "feature": "x"},
+    ]
+    p = build_prompt(_sample_bundle(ctx=ctx))
+    assert "cusum:" in p
+    assert "mu=120.0" in p
+    assert "direction=+" in p
+    assert "sub_pca: err=0.15" in p
+
+
+def test_build_prompt_falls_back_gracefully_when_context_empty():
+    p = build_prompt(_sample_bundle(ctx=[]))
+    assert "per-detector context dicts unavailable" in p
+    assert "Detectors fired:" in p and "cusum, sub_pca" in p
+
+
 def test_detections_to_alerts_strips_detector_string_fallback():
     """pipeline._write_detections writes `anomaly_type or detector` so statistical
     fused alerts land in the CSV with anomaly_type == detector. The loader must
