@@ -10,6 +10,7 @@ from .core import Event, Alert, Archetype, SensorConfig
 from .adapter import make_adapter, Adapter
 from .features import FeatureEngineer
 from .detectors import DataQualityGate, CUSUM, SubPCA, MultivariatePCA, TemporalProfile
+from .fusion import DefaultAlertFuser, make_fuser
 from .batch import matrix_profile_discords
 from .metrics import compute_metrics
 
@@ -40,14 +41,12 @@ class _SensorState:
     engineer: FeatureEngineer
     dqg: DataQualityGate
     detectors: list
+    fuser: DefaultAlertFuser = None
     bootstrap_raw: list = field(default_factory=list)   # (tick, adapter_features)
     bootstrap_rows: list = field(default_factory=list)  # (tick, enriched)
     raw_series: list = field(default_factory=list)
     start_ts: pd.Timestamp | None = None
     fit_done: bool = False
-    pending_alerts: list = field(default_factory=list)
-    pending_newest_ts: pd.Timestamp | None = None  # O(1) replacement for max-scan in _fuse
-    pending_newest_non_cusum_ts: pd.Timestamp | None = None  # anchor for CUSUM-bridging rule (Iter G)
     recent_rows: deque = field(default_factory=lambda: deque(maxlen=_ADAPT_BUFFER_TICKS))  # for adaptation
 
 
@@ -98,7 +97,8 @@ class Pipeline:
                 detectors.append(TemporalProfile(cfg, feats["temporal"]))
             self._states[cfg.key] = _SensorState(cfg, make_adapter(cfg),
                                                  FeatureEngineer(cfg),
-                                                 DataQualityGate(cfg), detectors)
+                                                 DataQualityGate(cfg), detectors,
+                                                 fuser=make_fuser(cfg))
 
     def is_live(self, key) -> bool:
         st = self._states.get(key)
@@ -133,61 +133,7 @@ class Pipeline:
         st.fit_done = True
 
     def _fuse(self, st: _SensorState, fresh: list[Alert]) -> list[Alert]:
-        # state_transition is always immediate. DQG types are immediate EXCEPT
-        # `dropout`, which fires once per cooldown window (30min) for the entire
-        # duration of reporting_rate_change / sustained outages — fusing folds
-        # those into one chain instead of emitting 20+ redundant alerts.
-        def _is_immediate(a: Alert) -> bool:
-            if a.detector == "state_transition": return True
-            if a.detector == "data_quality_gate":
-                return a.anomaly_type != "dropout"
-            return False
-        immediate = [a for a in fresh if _is_immediate(a)]
-        statistical = [a for a in fresh if not _is_immediate(a)]
-        out = list(immediate)
-        # Fusion gap: 60min for BURSTY/BINARY (tuned on committed baselines).
-        # Iter G: CONTINUOUS uses 15min — tighter to break multi-day FP strips
-        # on stationary voltage. Non-CUSUM alerts daisy-chain through small
-        # gaps (p90 gap = 8min among stationary voltage alerts), so a 60min
-        # gap lets clusters merge across hours into 1-3 day chains. 15min
-        # breaks inter-cluster daisy-chaining (typical cluster-to-cluster gap
-        # is 20-60min on stationary, but <2min during real anomalies). Long
-        # CONTINUOUS labels in committed baselines (calibration_drift 1d,
-        # month_shift 30d, trend 2d) are unaffected because their detectors
-        # fire densely throughout the label.
-        is_continuous = (st.cfg.archetype == Archetype.CONTINUOUS)
-        gap = pd.Timedelta(minutes=15 if is_continuous else 60)
-        max_span = pd.Timedelta(hours=96)    # cap fused-group duration — 4 days balances FP reduction vs. letting adjacent labels claim distinct chunks
-        for a in statistical:
-            if st.pending_alerts:
-                gap_exceeded = (st.pending_newest_ts is not None
-                                and a.timestamp - st.pending_newest_ts > gap)
-                span_exceeded = (a.timestamp - st.pending_alerts[0].timestamp) > max_span
-                # Iter G: on CONTINUOUS, a CUSUM alert can only EXTEND a chain
-                # if a non-CUSUM alert fired within the fusion gap. Without
-                # this, stationary CUSUM drift (fires every ~10min) acts as a
-                # bridge, stretching chains long after the last non-CUSUM fire.
-                # Real TPs have sustained non-CUSUM firing so the anchor
-                # doesn't trim them.
-                anchor_exceeded = (is_continuous
-                                   and a.detector == "cusum"
-                                   and st.pending_newest_non_cusum_ts is not None
-                                   and a.timestamp - st.pending_newest_non_cusum_ts > gap)
-                if gap_exceeded or span_exceeded or anchor_exceeded:
-                    grouped = _group(st.pending_alerts)
-                    if _chain_corroborated(st.pending_alerts, st.cfg):
-                        out.append(grouped)
-                    st.pending_alerts = []
-                    st.pending_newest_ts = None
-                    st.pending_newest_non_cusum_ts = None
-            st.pending_alerts.append(a)
-            if st.pending_newest_ts is None or a.timestamp > st.pending_newest_ts:
-                st.pending_newest_ts = a.timestamp
-            if a.detector != "cusum":
-                if (st.pending_newest_non_cusum_ts is None
-                        or a.timestamp > st.pending_newest_non_cusum_ts):
-                    st.pending_newest_non_cusum_ts = a.timestamp
-        return out
+        return st.fuser.ingest(fresh)
 
     def ingest(self, ev: Event) -> list[Alert]:
         st = self._states.get((ev.sensor_id, ev.capability))
@@ -218,75 +164,13 @@ class Pipeline:
     def finalize(self) -> list[Alert]:
         out = []
         for st in self._states.values():
-            if st.pending_alerts:
-                if _chain_corroborated(st.pending_alerts, st.cfg):
-                    out.append(_group(st.pending_alerts))
-                st.pending_alerts.clear()
-                st.pending_newest_ts = None
-                st.pending_newest_non_cusum_ts = None
+            out.extend(st.fuser.finalize())
             # MatrixProfile discords: disabled. Produces only leak FPs on this dataset
             # (0 hits for outlet/tv/kettle after 5σ threshold tightening); statistical
             # detectors already cover the same label types that MP would catch.
             # if st.cfg.archetype != Archetype.BINARY and st.raw_series:
             #     out.extend(matrix_profile_discords(st.cfg, st.raw_series))
         return out
-
-
-def _chain_corroborated(alerts: list[Alert], cfg: SensorConfig) -> bool:
-    # CONTINUOUS-sensor FPs have two archetypes on stationary voltage:
-    #   (a) CUSUM-only chains (autocorrelation random walks from 1-min ZOH ticks),
-    #       ARL0 collapses from ~12000 to ~9 samples; sporadic multi-hour bursts.
-    #   (b) CUSUM + ONE weak statistical detector (sub_pca OR temporal_profile),
-    #       where that one detector happens to cross its threshold during a
-    #       CUSUM-fused chain but no multivariate or multi-detector corroboration
-    #       exists. These are the 2-3h bands visible in viz.
-    # Real anomalies on CONTINUOUS either trip DQG immediately (out_of_range,
-    # duplicate_stale, clock_drift, dropout) or trip 3+ statistical detectors
-    # simultaneously (noise_burst, stuck_at, calibration_drift). `cusum+mvpca` is
-    # preserved because mvpca looks at cross-feature subspace, and that combo
-    # is the only signal for duplicate_stale-style GT on outlet_short.
-    # Sustained CUSUM-only chains near max_span (leak_battery trend) are kept —
-    # they bridge multi-detector chunks on the same sustained anomaly.
-    if cfg.archetype != Archetype.CONTINUOUS:
-        return True
-    dets = {a.detector for a in alerts}
-    duration = alerts[-1].timestamp - alerts[0].timestamp if len(alerts) >= 2 else pd.Timedelta(0)
-    if dets == {"cusum"}:
-        return duration >= pd.Timedelta(hours=90) and len(alerts) >= 2
-    # Iter I: two-detector stationary-artifact combos
-    if dets in ({"cusum", "sub_pca"}, {"cusum", "temporal_profile"}):
-        return duration >= pd.Timedelta(hours=4)
-    # {cusum, mvpca} is the legitimate duplicate_stale signature on outlet_short
-    # (DQG's duplicate_stale check requires same-ts+same-val which the generator
-    # doesn't produce). TP chains are short (<30min per chain). Longer chains
-    # are stationary cross-feature coincidences — drop if over an hour.
-    if dets == {"cusum", "multivariate_pca"}:
-        return duration <= pd.Timedelta(hours=1)
-    # {sub_pca}-only chains are sliding-window residual excursions that happen
-    # naturally on stationary voltage a few times per month. Real spike/dip
-    # anomalies fire across cusum+mvpca+temporal_profile simultaneously, so a
-    # solo sub_pca chain of >60min is almost always an artifact. Single-alert
-    # chains have 0 timestamp-span but 125min window span — use the window
-    # union so we catch them.
-    if dets == {"sub_pca"}:
-        starts = [a.window_start or a.timestamp for a in alerts]
-        ends = [a.window_end or a.timestamp for a in alerts]
-        return (max(ends) - min(starts)) <= pd.Timedelta(hours=1)
-    return True
-
-
-def _group(alerts: list[Alert]) -> Alert:
-    top = max(alerts, key=lambda a: a.score)
-    w0 = min((a.window_start or a.timestamp) for a in alerts)
-    w1 = max((a.window_end or a.timestamp) for a in alerts)
-    names = "+".join(sorted({a.detector for a in alerts}))
-    ctx: list[dict] = []
-    for a in alerts:
-        if a.context:
-            ctx.extend(a.context)
-    return Alert(top.sensor_id, top.capability, top.timestamp, names,
-                 top.score, top.threshold, top.anomaly_type, top.raw_value,
-                 top.state, w0, w1, ctx or None)
 
 
 # --- CLI ---
