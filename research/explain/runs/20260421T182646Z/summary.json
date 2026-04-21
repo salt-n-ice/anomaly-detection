@@ -1,0 +1,179 @@
+{
+  "timestamp": "20260421T182646Z",
+  "git_hash": "61a06ba",
+  "git_dirty": true,
+  "run_dir": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z",
+  "scenarios": [
+    {
+      "name": "outlet_60d",
+      "suite": "60d",
+      "n_cases": 117,
+      "n_tp": 98,
+      "n_fp": 19,
+      "tp_mean": 2.871,
+      "fp_mean": 2.702,
+      "dim_tp_means": {
+        "type_identifiability": 2.439,
+        "magnitude_fidelity": 4.01,
+        "temporal_fidelity": 2.439,
+        "detector_evidence_usefulness": 2.0,
+        "no_misleading_content": 3.469
+      },
+      "dim_fp_means": {
+        "self_weakness_signal": 2.053,
+        "evidence_coherence": 4.0,
+        "no_false_confidence": 2.053
+      }
+    },
+    {
+      "name": "outlet_tv_60d",
+      "suite": "60d",
+      "n_cases": 120,
+      "n_tp": 98,
+      "n_fp": 22,
+      "tp_mean": 2.81,
+      "fp_mean": 2.758,
+      "dim_tp_means": {
+        "type_identifiability": 2.286,
+        "magnitude_fidelity": 4.01,
+        "temporal_fidelity": 2.469,
+        "detector_evidence_usefulness": 2.0,
+        "no_misleading_content": 3.286
+      },
+      "dim_fp_means": {
+        "self_weakness_signal": 2.273,
+        "evidence_coherence": 4.0,
+        "no_false_confidence": 2.0
+      }
+    },
+    {
+      "name": "outlet_kettle_60d",
+      "suite": "60d",
+      "n_cases": 88,
+      "n_tp": 84,
+      "n_fp": 4,
+      "tp_mean": 2.812,
+      "fp_mean": 2.667,
+      "dim_tp_means": {
+        "type_identifiability": 2.31,
+        "magnitude_fidelity": 4.012,
+        "temporal_fidelity": 2.429,
+        "detector_evidence_usefulness": 2.0,
+        "no_misleading_content": 3.31
+      },
+      "dim_fp_means": {
+        "self_weakness_signal": 2.0,
+        "evidence_coherence": 4.0,
+        "no_false_confidence": 2.0
+      }
+    },
+    {
+      "name": "waterleak_60d",
+      "suite": "60d",
+      "n_cases": 43,
+      "n_tp": 27,
+      "n_fp": 16,
+      "tp_mean": 3.459,
+      "fp_mean": 3.021,
+      "dim_tp_means": {
+        "type_identifiability": 3.37,
+        "magnitude_fidelity": 4.222,
+        "temporal_fidelity": 3.222,
+        "detector_evidence_usefulness": 2.0,
+        "no_misleading_content": 4.481
+      },
+      "dim_fp_means": {
+        "self_weakness_signal": 2.438,
+        "evidence_coherence": 3.812,
+        "no_false_confidence": 2.812
+      }
+    },
+    {
+      "name": "outlet_short_60d",
+      "suite": "60d",
+      "n_cases": 94,
+      "n_tp": 91,
+      "n_fp": 3,
+      "tp_mean": 3.374,
+      "fp_mean": 3.111,
+      "dim_tp_means": {
+        "type_identifiability": 3.341,
+        "magnitude_fidelity": 4.692,
+        "temporal_fidelity": 2.473,
+        "detector_evidence_usefulness": 2.0,
+        "no_misleading_content": 4.363
+      },
+      "dim_fp_means": {
+        "self_weakness_signal": 2.667,
+        "evidence_coherence": 4.0,
+        "no_false_confidence": 2.667
+      }
+    },
+    {
+      "name": "outlet_120d",
+      "suite": "120d",
+      "n_cases": 272,
+      "n_tp": 190,
+      "n_fp": 82,
+      "tp_mean": 3.1,
+      "fp_mean": 2.712,
+      "dim_tp_means": {
+        "type_identifiability": 2.789,
+        "magnitude_fidelity": 4.305,
+        "temporal_fidelity": 2.574,
+        "detector_evidence_usefulness": 2.0,
+        "no_misleading_content": 3.832
+      },
+      "dim_fp_means": {
+        "self_weakness_signal": 2.11,
+        "evidence_coherence": 4.0,
+        "no_false_confidence": 2.024
+      }
+    },
+    {
+      "name": "waterleak_120d",
+      "suite": "120d",
+      "n_cases": 135,
+      "n_tp": 110,
+      "n_fp": 25,
+      "tp_mean": 2.74,
+      "fp_mean": 2.96,
+      "dim_tp_means": {
+        "type_identifiability": 2.609,
+        "magnitude_fidelity": 3.036,
+        "temporal_fidelity": 2.436,
+        "detector_evidence_usefulness": 2.0,
+        "no_misleading_content": 3.618
+      },
+      "dim_fp_means": {
+        "self_weakness_signal": 2.4,
+        "evidence_coherence": 3.76,
+        "no_false_confidence": 2.72
+      }
+    }
+  ],
+  "aggregate": {
+    "all": {
+      "n": 7,
+      "mean_tp_mean": 3.024,
+      "mean_fp_mean": 2.847,
+      "worst_tp_mean": 2.74,
+      "worst_fp_mean": 2.667
+    },
+    "60d": {
+      "n": 5,
+      "mean_tp_mean": 3.065,
+      "mean_fp_mean": 2.852,
+      "worst_tp_mean": 2.81,
+      "worst_fp_mean": 2.667
+    },
+    "120d": {
+      "n": 2,
+      "mean_tp_mean": 2.92,
+      "mean_fp_mean": 2.836,
+      "worst_tp_mean": 2.74,
+      "worst_fp_mean": 2.712
+    }
+  },
+  "missing_scores": []
+}

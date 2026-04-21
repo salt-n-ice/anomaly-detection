@@ -1,0 +1,78 @@
+{
+  "timestamp": "20260421T182646Z",
+  "git_hash": "61a06ba",
+  "git_dirty": true,
+  "suite_filter": "all",
+  "scenarios": [
+    {
+      "name": "outlet_60d",
+      "suite": "60d",
+      "skipped": false,
+      "n_cases": 117,
+      "n_tp": 98,
+      "n_fp": 19,
+      "cases_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_60d_cases.jsonl",
+      "prompts_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_60d_prompts.md"
+    },
+    {
+      "name": "outlet_tv_60d",
+      "suite": "60d",
+      "skipped": false,
+      "n_cases": 120,
+      "n_tp": 98,
+      "n_fp": 22,
+      "cases_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_tv_60d_cases.jsonl",
+      "prompts_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_tv_60d_prompts.md"
+    },
+    {
+      "name": "outlet_kettle_60d",
+      "suite": "60d",
+      "skipped": false,
+      "n_cases": 88,
+      "n_tp": 84,
+      "n_fp": 4,
+      "cases_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_kettle_60d_cases.jsonl",
+      "prompts_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_kettle_60d_prompts.md"
+    },
+    {
+      "name": "waterleak_60d",
+      "suite": "60d",
+      "skipped": false,
+      "n_cases": 43,
+      "n_tp": 27,
+      "n_fp": 16,
+      "cases_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\waterleak_60d_cases.jsonl",
+      "prompts_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\waterleak_60d_prompts.md"
+    },
+    {
+      "name": "outlet_short_60d",
+      "suite": "60d",
+      "skipped": false,
+      "n_cases": 94,
+      "n_tp": 91,
+      "n_fp": 3,
+      "cases_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_short_60d_cases.jsonl",
+      "prompts_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_short_60d_prompts.md"
+    },
+    {
+      "name": "outlet_120d",
+      "suite": "120d",
+      "skipped": false,
+      "n_cases": 272,
+      "n_tp": 190,
+      "n_fp": 82,
+      "cases_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_120d_cases.jsonl",
+      "prompts_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\outlet_120d_prompts.md"
+    },
+    {
+      "name": "waterleak_120d",
+      "suite": "120d",
+      "skipped": false,
+      "n_cases": 135,
+      "n_tp": 110,
+      "n_fp": 25,
+      "cases_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\waterleak_120d_cases.jsonl",
+      "prompts_path": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\research\\explain\\runs\\20260421T182646Z\\waterleak_120d_prompts.md"
+    }
+  ]
+}
