@@ -102,3 +102,87 @@ def _render_prompts_md(scenario: str, ts: str, cases: list[dict]) -> str:
             "",
         ]
     return "\n".join(lines)
+
+
+def _produce_bundles(events_csv: Path, dets_csv: Path,
+                     tmp_jsonl: Path) -> list[dict]:
+    """Run the explainer and load the resulting bundles back from JSONL."""
+    explain_detections_csv(events_csv, dets_csv, tmp_jsonl)
+    lines = tmp_jsonl.read_text(encoding="utf-8").splitlines()
+    return [json.loads(ln) for ln in lines if ln.strip()]
+
+
+def _load_labels(labels_csv: Path) -> pd.DataFrame:
+    df = pd.read_csv(labels_csv)
+    df["start"] = pd.to_datetime(df["start"], utc=True, format="ISO8601")
+    df["end"]   = pd.to_datetime(df["end"],   utc=True, format="ISO8601")
+    return df
+
+
+def run_scenario(scenario: str, suite: str, events_dir: str,
+                 out_dir: Path) -> dict:
+    events_csv = GEN / events_dir / "events.csv"
+    labels_csv = GEN / events_dir / "labels.csv"
+    dets_csv   = OUT / f"{scenario}_detections.csv"
+    missing = [str(p) for p in (events_csv, labels_csv, dets_csv) if not p.exists()]
+    if missing:
+        print(f"  [skip] {scenario}: missing {missing}")
+        return {"name": scenario, "suite": suite, "skipped": True,
+                "missing": missing}
+
+    tmp_jsonl = out_dir / f"{scenario}_bundles.jsonl"
+    bundles = _produce_bundles(events_csv, dets_csv, tmp_jsonl)
+    labels  = _load_labels(labels_csv)
+    cases   = build_cases(scenario, suite, bundles, labels)
+
+    cases_path = out_dir / f"{scenario}_cases.jsonl"
+    with cases_path.open("w", encoding="utf-8") as f:
+        for c in cases:
+            f.write(json.dumps(c, default=str) + "\n")
+
+    prompts_path = out_dir / f"{scenario}_prompts.md"
+    prompts_path.write_text(
+        _render_prompts_md(scenario, out_dir.name, cases), encoding="utf-8")
+
+    n_tp = sum(1 for c in cases if c["is_tp"])
+    n_fp = len(cases) - n_tp
+    print(f"  {scenario:<22} cases={len(cases):>4}  tp={n_tp:>4}  fp={n_fp:>4}")
+    return {"name": scenario, "suite": suite, "skipped": False,
+            "n_cases": len(cases), "n_tp": n_tp, "n_fp": n_fp,
+            "cases_path": str(cases_path), "prompts_path": str(prompts_path)}
+
+
+def filter_suite(suite: str):
+    if suite == "all":
+        return SCENARIOS
+    return [s for s in SCENARIOS if s[0] == suite]
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--suite", choices=["all", "60d", "120d"], default="all")
+    args = ap.parse_args(argv)
+
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_dir = RUNS / ts
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    rows = []
+    for suite_tag, scen, ev_dir, _cfg, _boot in filter_suite(args.suite):
+        rows.append(run_scenario(scen, suite_tag, ev_dir, out_dir))
+
+    manifest = {
+        "timestamp": ts,
+        "git_hash": git_hash(),
+        "git_dirty": git_dirty(),
+        "suite_filter": args.suite,
+        "scenarios": rows,
+    }
+    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    (RUNS / "latest.txt").write_text(ts)
+    print(f"\nwrote {out_dir}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

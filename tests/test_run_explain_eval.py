@@ -182,3 +182,73 @@ def test_prompts_md_multiple_gt_labels_joined_by_comma():
     cases = build_cases("outlet_60d", "60d", _bundles_two()[:1], labels)
     md = _render_prompts_md("outlet_60d", "ts", cases)
     assert "GT: spike, dip" in md
+
+
+def test_run_scenario_end_to_end(tmp_path, monkeypatch):
+    """Tmp-dir smoke: tiny events + labels + detections CSVs -> cases + prompts."""
+    import run_explain_eval as mod  # noqa: F401 — module under test
+
+    # Synthetic inputs: 2 detections on sensor s1/v, 1 label overlapping.
+    events = pd.DataFrame([
+        {"timestamp": "2026-03-05T09:00:00Z", "sensor_id": "s1",
+         "capability": "v", "value": 120.0, "unit": "V"},
+        {"timestamp": "2026-03-05T10:00:00Z", "sensor_id": "s1",
+         "capability": "v", "value": 180.0, "unit": "V"},
+    ])
+    labels = pd.DataFrame([{
+        "sensor_id": "s1", "capability": "v",
+        "start": "2026-03-05T10:00:00Z", "end": "2026-03-05T10:05:00Z",
+        "anomaly_type": "spike", "detector_hint": "pca",
+        "params_json": "{}",
+    }])
+    dets = pd.DataFrame([
+        {"sensor_id": "s1", "capability": "v",
+         "start": "2026-03-05T10:00:00Z", "end": "2026-03-05T10:05:00Z",
+         "anomaly_type": "out_of_range", "detector": "data_quality_gate",
+         "score": 1.0},
+        {"sensor_id": "s1", "capability": "v",
+         "start": "2026-03-05T20:00:00Z", "end": "2026-03-05T20:05:00Z",
+         "anomaly_type": "cusum", "detector": "cusum",
+         "score": 1.0},
+    ])
+    scen_dir = tmp_path / "gen" / "my_scen"
+    scen_dir.mkdir(parents=True)
+    events.to_csv(scen_dir / "events.csv", index=False)
+    labels.to_csv(scen_dir / "labels.csv", index=False)
+    out_dir = tmp_path / "out"; out_dir.mkdir()
+    dets.to_csv(out_dir / "scen_test_detections.csv", index=False)
+    run_dir = tmp_path / "run_ts"; run_dir.mkdir()
+
+    # Point module globals at tmp.
+    monkeypatch.setattr(mod, "GEN", tmp_path / "gen")
+    monkeypatch.setattr(mod, "OUT", out_dir)
+
+    row = mod.run_scenario("scen_test", "60d", "my_scen", run_dir)
+    assert row["skipped"] is False
+    assert row["n_cases"] == 2
+    assert row["n_tp"] == 1
+    assert row["n_fp"] == 1
+
+    cases_path = run_dir / "scen_test_cases.jsonl"
+    prompts_path = run_dir / "scen_test_prompts.md"
+    assert cases_path.exists()
+    assert prompts_path.exists()
+
+    import json as _json
+    lines = cases_path.read_text().splitlines()
+    assert len(lines) == 2
+    c0 = _json.loads(lines[0])
+    assert c0["case_id"] == "scen_test#000"
+    assert c0["is_tp"] is True
+    assert c0["gt_labels"][0]["anomaly_type"] == "spike"
+    c1 = _json.loads(lines[1])
+    assert c1["is_tp"] is False
+
+
+def test_run_scenario_skipped_when_inputs_missing(tmp_path, monkeypatch):
+    import run_explain_eval as mod
+    monkeypatch.setattr(mod, "GEN", tmp_path / "nope")
+    monkeypatch.setattr(mod, "OUT", tmp_path / "also_nope")
+    row = mod.run_scenario("scen_test", "60d", "missing_dir", tmp_path)
+    assert row["skipped"] is True
+    assert row["missing"]
