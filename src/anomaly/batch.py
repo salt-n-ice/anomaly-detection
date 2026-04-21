@@ -30,9 +30,12 @@ _MAX_MP_POINTS = 15_000  # ~10.4 days at 1-min granularity; caps gram matrix at 
 
 
 def matrix_profile_discords(config: SensorConfig, series: list[tuple[pd.Timestamp, float]],
-                             window: int = 360, top_k: int = 3) -> list[Alert]:
+                             window_sec: int = 21600, top_k: int = 3) -> list[Alert]:
+    # Wall-clock window: 21600s ≈ 6h (= 360 ticks at 60s granularity, matching the
+    # pre-refactor constant). Convert to point count using the sensor's tick rate.
     if config.archetype == Archetype.BINARY:
         return []
+    window = max(1, window_sec // config.granularity_sec)
     ts_arr = [t for t, _ in series]
     vals = np.asarray([v for _, v in series], dtype=float)
     vals = np.where(np.isnan(vals), np.nanmean(vals) if np.isfinite(np.nanmean(vals)) else 0.0, vals)

@@ -296,10 +296,14 @@ def _pca_error(x: np.ndarray, mu: np.ndarray, P: np.ndarray) -> float:
 class SubPCA:
     name = "sub_pca"
 
-    def __init__(self, config: SensorConfig, window: int = 125, feature: str = "value",
+    def __init__(self, config: SensorConfig, window_sec: int = 7500, feature: str = "value",
                  warmup_seconds: float = 0.0):
+        # Wall-clock-defined window keeps behavior stable across granularity_sec
+        # changes. Default 7500s ≈ 2h (= 125 ticks at 60s granularity, matching the
+        # pre-refactor constant). Convert to point count using the sensor's tick rate.
         self.config = config
-        self.window = window
+        self.window_sec = window_sec
+        self.window = max(1, window_sec // config.granularity_sec)
         self.feature = feature
         self.warmup_seconds = warmup_seconds
         self.live = False

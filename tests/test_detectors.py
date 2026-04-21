@@ -115,7 +115,7 @@ from anomaly.detectors import SubPCA
 
 def test_subpca_flags_spike():
     cfg = _cfg()
-    det = SubPCA(cfg, window=40, feature="value")
+    det = SubPCA(cfg, window_sec=40*60, feature="value")  # 40 ticks at 60s tick rate
     rng = np.random.default_rng(7)
     base = ts("2026-02-01T00:00:00Z")
     # bootstrap: clean sine
@@ -224,7 +224,7 @@ def test_cusum_context_populated_on_fire():
 
 def test_sub_pca_context_populated_on_fire():
     cfg = _cfg(expected_interval_sec=60)
-    p = SubPCA(cfg, window=10)
+    p = SubPCA(cfg, window_sec=10*60)  # 10 ticks at 60s tick rate
     rows = [(ts(f"2026-02-01T00:{i:02d}:00Z"), {"value": 10.0 + ((i % 2) - 0.5) * 0.01})
             for i in range(60)]
     p.fit(rows)

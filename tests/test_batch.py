@@ -12,7 +12,7 @@ def test_matrix_profile_finds_injected_discord():
     y[200:240] = 3.0
     base = ts("2026-02-01T00:00:00Z")
     series = [(base + pd.Timedelta(seconds=60*i), float(y[i])) for i in range(500)]
-    alerts = matrix_profile_discords(cfg, series, window=40)
+    alerts = matrix_profile_discords(cfg, series, window_sec=40*60)  # 40 ticks at 60s tick rate
     assert alerts, "expected at least one discord"
     # discord should span around index 200..240
     hits = [a for a in alerts if 200 <= ((a.window_start - base).total_seconds()/60) <= 250]
