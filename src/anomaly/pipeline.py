@@ -9,7 +9,8 @@ import yaml
 from .core import Event, Alert, Archetype, SensorConfig
 from .adapter import make_adapter, Adapter
 from .features import FeatureEngineer
-from .detectors import DataQualityGate, CUSUM, SubPCA, MultivariatePCA, TemporalProfile
+from .detectors import (DataQualityGate, CUSUM, SubPCA, MultivariatePCA,
+                         TemporalProfile, StateTransition)
 from .fusion import DefaultAlertFuser, make_fuser
 from .batch import matrix_profile_discords
 from .metrics import compute_metrics
@@ -73,6 +74,10 @@ class Pipeline:
         for cfg in configs:
             feats = _features_for_detectors(cfg)
             detectors = []
+            # BINARY: deterministic trigger detector runs first so emit order
+            # matches the previous inline-trigger-then-statistical-detectors sequence.
+            if cfg.archetype == Archetype.BINARY:
+                detectors.append(StateTransition(cfg))
             if DETECTOR_ENABLED.get((cfg.archetype, "cusum"), False):
                 # Continuous-archetype CUSUM gets a 5-day post-fit warmup to
                 # silence diurnal-driven warm-up FPs (bootstrap mu averages over
@@ -149,13 +154,6 @@ class Pipeline:
                 continue
             enriched = st.engineer.enrich(tick, feat)
             st.recent_rows.append((tick, enriched))
-            if feat.get("trigger"):
-                alerts.append(Alert(st.cfg.sensor_id, st.cfg.capability, tick,
-                                    "state_transition", 1.0, 1.0,
-                                    "water_leak_sustained", 1.0, feat.get("state"),
-                                    tick, tick,
-                                    [{"detector": "state_transition",
-                                      "state": feat.get("state")}]))
             for d in st.detectors:
                 alerts.extend(d.update(tick, enriched))
         self._maybe_fit(st, ev.timestamp)

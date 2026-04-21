@@ -580,3 +580,24 @@ class TemporalProfile:
                 v = f.get(k)
                 if v is None or (isinstance(v, float) and math.isnan(v)): continue
                 self._update_bucket(b, k, float(v))
+
+
+class StateTransition:
+    """Tick-level trigger for deterministic binary events (e.g. water leak
+    sustain). Emits a `state_transition` alert when `feat['trigger']` is
+    truthy. Extracted from inline code in pipeline.py."""
+    name = "state_transition"
+    live = True
+
+    def __init__(self, config: SensorConfig):
+        self.config = config
+
+    def fit(self, rows): pass
+
+    def update(self, ts, feat):
+        if not feat.get("trigger"):
+            return []
+        return [Alert(self.config.sensor_id, self.config.capability, ts,
+                      self.name, 1.0, 1.0, "water_leak_sustained", 1.0,
+                      feat.get("state"), ts, ts,
+                      [{"detector": self.name, "state": feat.get("state")}])]

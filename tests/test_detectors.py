@@ -268,3 +268,30 @@ def test_temporal_profile_context_populated_on_fire():
     assert ctx["bucket"] == [0, 0, 6]  # [state, hour, dow]
     assert abs(ctx["observed_z"]) > 2.0
     assert "expected_mean" in ctx and "expected_sd" in ctx
+
+
+from anomaly.detectors import StateTransition
+
+
+def test_state_transition_fires_on_trigger():
+    cfg = SensorConfig("leak", "contact", Archetype.BINARY,
+                       expected_interval_sec=3600, deterministic_trigger=True)
+    d = StateTransition(cfg)
+    d.fit([])
+    assert d.live is True
+    t = ts("2026-02-01T00:00:00Z")
+    out = d.update(t, {"trigger": True, "state": 1})
+    assert len(out) == 1
+    assert out[0].detector == "state_transition"
+    assert out[0].anomaly_type == "water_leak_sustained"
+    assert out[0].state == 1
+
+
+def test_state_transition_silent_without_trigger():
+    cfg = SensorConfig("leak", "contact", Archetype.BINARY,
+                       expected_interval_sec=3600)
+    d = StateTransition(cfg)
+    d.fit([])
+    t = ts("2026-02-01T00:00:00Z")
+    assert d.update(t, {"state": 0}) == []
+    assert d.update(t, {"trigger": False, "state": 1}) == []
