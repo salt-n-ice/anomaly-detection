@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Protocol
 import pandas as pd
-from .core import Alert, SensorConfig, Archetype
+from .core import Alert, SensorConfig
 
 
 class CorroborationRule(Protocol):
@@ -115,15 +115,3 @@ class DefaultAlertFuser:
 
     def finalize(self) -> list[Alert]:
         return self._flush()
-
-
-def make_fuser(cfg: SensorConfig) -> DefaultAlertFuser:
-    """Temporary factory — matches current pipeline.py hardcoded per-archetype
-    parameters. Replaced by PROFILES-driven wiring in Task 5."""
-    if cfg.archetype == Archetype.CONTINUOUS:
-        return DefaultAlertFuser(cfg, gap=15*60, max_span=96*3600,
-                                  anchor_on_non_cusum=True,
-                                  corroboration=ContinuousCorroboration())
-    return DefaultAlertFuser(cfg, gap=60*60, max_span=96*3600,
-                              anchor_on_non_cusum=False,
-                              corroboration=PassThroughCorroboration())

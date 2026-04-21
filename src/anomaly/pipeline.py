@@ -3,13 +3,12 @@ from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 import argparse, sys
-import numpy as np
 import pandas as pd
 import yaml
 from .core import Event, Alert, Archetype, SensorConfig
 from .adapter import make_adapter, Adapter
 from .features import FeatureEngineer
-from .fusion import DefaultAlertFuser, make_fuser
+from .fusion import DefaultAlertFuser
 from .profiles import PROFILES
 from .batch import matrix_profile_discords
 from .metrics import compute_metrics
