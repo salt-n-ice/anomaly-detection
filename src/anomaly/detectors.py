@@ -14,6 +14,14 @@ class Detector(Protocol):
     def update(self, ts: pd.Timestamp, feat: dict) -> list[Alert]: ...
 
 
+class EventDetector(Protocol):
+    """SHORT-band pre-adapter raw-event detector. DataQualityGate is the
+    canonical impl — out_of_range, saturation, duplicate_stale, clock_drift,
+    dropout, batch_arrival per raw event."""
+    name: str
+    def check(self, ev: Event) -> list[Alert]: ...
+
+
 def _alert(cfg: SensorConfig, ts, detector, score, threshold, atype, raw, state=None,
            w0=None, w1=None, context=None) -> Alert:
     return Alert(cfg.sensor_id, cfg.capability, ts, detector, float(score),
