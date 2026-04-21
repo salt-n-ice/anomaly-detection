@@ -3,5 +3,8 @@
 out
 *.zip
 .stackdump
+*.stackdump
+__pycache__/
+*.pyc
 docs
 *egg-info
