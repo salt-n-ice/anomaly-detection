@@ -73,6 +73,33 @@ no change on 60d outlet_short."
 
 <!-- Research session appends iterations above this line. Keep the template above unchanged. -->
 
+## Iter 006 — mvpca singleton margin filter on CONTINUOUS                  2026-04-21
+
+**Hypothesis:** Adding `{multivariate_pca}` singleton branch with the same
+`score ≥ 1.2 × threshold` margin rule to `ContinuousCorroboration.accepts`
+will drop the outlet_short_60d Feb 19 voltage mvpca singleton (score 0.056),
+the sole remaining `{multivariate_pca}`-only CONTINUOUS chain in the suite.
+**Reasoning:** Mirrors iter 003's temporal_profile pattern.
+**Change:** `src/anomaly/fusion.py` — added `{multivariate_pca}` margin branch
+before the fall-through.
+
+**Result (research/runs/20260421T160147Z.json):** Identical to iter-005 run
+on every metric. Null result.
+
+**Verdict:** REJECT (null).
+**Reason:** The Feb 19 mvpca singleton's score (0.056) divided by its
+detector-computed threshold gives a ratio ≥ 1.2, so the filter doesn't trip.
+The alert is "only marginal" in absolute magnitude but not in threshold-ratio
+terms — MvPCA's bootstrap quantile for outlet_voltage is small enough that
+0.056 is still >20% above threshold.
+**Follow-ups:** To catch this one FP we'd need a different signature (absolute
+score floor is unsafe across sensors with different scales; an "at least one
+alert above 2×threshold" rule would reject it but would also reject the
+outlet_fridge_power TPs at threshold ≈20000 with actual scores just above 20000).
+Not worth the risk for 1 FP. Deferred.
+
+---
+
 ## Iter 005 — C1': score ceiling on {cusum, multivariate_pca} CONTINUOUS     2026-04-21
 
 **Hypothesis:** Tightening the `{cusum, multivariate_pca}` branch in
