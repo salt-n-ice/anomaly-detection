@@ -158,6 +158,59 @@ distinct batch events. Look for 120d batch_arrival labels that miss.
 
 ---
 
+## L. Long-anomaly coverage (120d time_f1 targets)
+
+The research gate now enforces `time_f1 drop > 0.02` as a REGRESSION floor
+(see `BASELINE.md`), because evt_f1 treats a 4h detection on a 30d GT as a
+perfect TP. These hypotheses specifically target coverage / fragmentation on
+sustained anomalies — improving `time_f1` without regressing `evt_f1`.
+
+**L1 — `[120d][hot] P0 L2`** Fuser `max_span=96h` fragments any GT longer
+than 4 days into chunks separated by silence (whenever detectors go quiet
+between re-fires). On `outlet_120d`, this shows up as multi-day FN bands
+inside `calibration_drift` / `month_shift` labels where the fused chain
+closed and nothing reopened it. Hypothesis: raise `max_span` to 192h (8d)
+on CONTINUOUS only; long FP strips would lengthen too, but
+ContinuousCorroboration already filters single-detector-combo chains, so
+genuine sustained multi-detector TPs gain coverage while stationary
+voltage FPs stay gated. **Measure:** Δ time_f1 on outlet_120d and
+waterleak_120d (expect ↑); Δ fp_h/d (watch carefully — this is where the
+risk is).
+`Band:` LONG. `Edit:` `src/anomaly/profiles.py` — in `_continuous_fuser`,
+change `max_span=96*3600` to `max_span=192*3600`.
+
+**L2 — `[120d] P1 L2`** Chain re-open: when a fused chain closes and the
+*same* detector combo fires again on the *same* sensor within one fusion
+`gap`, reopen the chain rather than starting a new one. This bridges
+brief silences during sustained anomalies (detectors momentarily stop
+crossing threshold) without extending FP chains, because the re-open
+requires the same combo (FPs tend to have drifting combos). **Measure:**
+Δ time_f1 on both 120d scenarios (expect ↑); Δ events_per_incident
+(expect ↓ — fragmentation reduces).
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — add to `DefaultAlertFuser`
+a `_last_closed: tuple[frozenset[str], pd.Timestamp] | None` field; in
+`ingest`, before pushing a fresh alert onto `self._pending`, check if
+`_last_closed` exists, has matching detector set, and is within `self.gap`
+— if so, restore it as the new `self._pending` head.
+
+**L3 — `[120d] P2 L3`** During sustained drift, CUSUM-only re-fires during
+chain-silence are currently rejected by `ContinuousCorroboration`
+(`dets == {"cusum"}` only accepted at ≥90h duration). But on an already-
+corroborated multi-detector TP chain, a CUSUM-only continuation is
+legitimate bridging. Hypothesis: if the *immediately preceding* fused
+emission for this sensor had non-CUSUM corroboration within the last 48h,
+accept a CUSUM-only chain as a continuation regardless of the 90h rule.
+Requires state that crosses fused-chain boundaries (same sensor's last
+emit), so it's more than a local corroboration rule. **Measure:** Δ time_f1
+on outlet_120d (voltage-drift tail); Δ evt_f1 ≥ 0 on all 60d.
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — `ContinuousCorroboration`
+needs a "last non-CUSUM emission timestamp" held by `DefaultAlertFuser`
+and passed into `accepts`; this breaks the stateless-rule contract
+slightly, so consider refactoring `CorroborationRule` to receive a
+context object rather than just the alerts list.
+
+---
+
 ## F. Meta-research
 
 **F1 — `P0 L0`** After any ACCEPT, run the 60d suite again to confirm there are

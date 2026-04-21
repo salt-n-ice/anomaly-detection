@@ -237,8 +237,16 @@ def _flatten(snapshot: dict) -> dict[str, dict]:
     return {r["name"]: r for r in snapshot["scenarios"]}
 
 
-def diff(old: dict, new: dict, tol: float = 0.005) -> dict:
+def diff(old: dict, new: dict, tol: float = 0.005,
+         time_tol: float = 0.02) -> dict:
     """Per-scenario delta on evt_f1, time_f1, incident_recall, fp_h_per_day.
+
+    A scenario is a REGRESSION if any of:
+      - evt_f1 drops by more than `tol`   (default 0.005)
+      - incident_recall drops by more than `tol`
+      - time_f1 drops by more than `time_tol` (default 0.02 — noisier metric,
+        protects against long-horizon coverage / FP-bleed degradation that
+        evt_f1 hides)
 
     Returns a structured summary with regressions / improvements / neutral lists.
     """
@@ -266,7 +274,9 @@ def diff(old: dict, new: dict, tol: float = 0.005) -> dict:
             "fp_h_d_old": o["fp_h_per_day"], "fp_h_d_new": n["fp_h_per_day"],
             "d_fp_h_d": round(n["fp_h_per_day"] - o["fp_h_per_day"], 3),
         }
-        if row["d_evt_f1"] < -tol or row["d_incR"] < -tol:
+        if (row["d_evt_f1"] < -tol
+                or row["d_incR"] < -tol
+                or row["d_time_f1"] < -time_tol):
             regressions.append(row)
         elif row["d_evt_f1"] > tol or row["d_time_f1"] > tol:
             improvements.append(row)
@@ -311,7 +321,10 @@ def main(argv=None) -> int:
     ap.add_argument("--diff-baseline", action="store_true",
                     help="After running, diff against research/BASELINE.json and exit 1 if any regression.")
     ap.add_argument("--tol", type=float, default=0.005,
-                    help="Tolerance for classifying a metric as 'regressed' (default 0.005).")
+                    help="Tolerance for evt_f1 and incident_recall regressions (default 0.005).")
+    ap.add_argument("--time-tol", type=float, default=0.02,
+                    help="Tolerance for time_f1 regressions (default 0.02 — looser "
+                         "because seconds-based F1 is noisier than event F1).")
     args = ap.parse_args(argv)
 
     snap = run_suite(args.suite)
@@ -328,7 +341,7 @@ def main(argv=None) -> int:
             print("no BASELINE.json yet — run with --save-baseline first", file=sys.stderr)
             return 2
         old = json.loads(BASELINE_PATH.read_text())
-        d = diff(old, snap, tol=args.tol)
+        d = diff(old, snap, tol=args.tol, time_tol=args.time_tol)
         print_diff(d)
         return 1 if d["regressions"] else 0
     return 0

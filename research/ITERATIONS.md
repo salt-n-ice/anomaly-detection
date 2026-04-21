@@ -5,11 +5,15 @@ records the metric delta on every scenario in both the 60d and 120d suites,
 and ends with a binary verdict (ACCEPT / REJECT / PARTIAL).
 
 - **Primary metric:** event F1, averaged across the whole suite.
-- **Hard floors (any single scenario):** incident_recall must not drop more than
-  `0.01` below its BASELINE.json value, and no scenario's event F1 may drop more
-  than `0.02`. A change that crosses either floor is auto-REJECT regardless of
-  aggregate gain.
-- **Secondary metrics:** time F1, fp_h_per_day, events_per_incident — treated
+- **Hard floors (any single scenario, enforced by `run_research_eval.py --diff-baseline`):**
+  - `evt_f1` drop > 0.005 → REGRESSION.
+  - `incident_recall` drop > 0.005 → REGRESSION.
+  - `time_f1` drop > 0.02 → REGRESSION. *Long-horizon guardrail*: evt_f1
+    treats a 4h detection on a 30d GT as a perfect TP, so without a time-based
+    floor, hypotheses that improve event count while sacrificing long-anomaly
+    coverage would silently pass.
+  Any single floor crossed is auto-REJECT regardless of aggregate gain.
+- **Secondary metrics:** fp_h_per_day, events_per_incident — treated
   as tiebreakers when primary moves within ±0.002.
 
 Every entry uses the template below. Do not squash iterations; keep a full record

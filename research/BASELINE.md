@@ -32,9 +32,16 @@ python research/run_research_eval.py --suite all --diff-baseline
 # exit code 0 = no regression; 1 = at least one scenario regressed
 ```
 
-The diff applies two floors per scenario:
-- **evt F1:** drop > 0.02 is a regression.
-- **incident_recall:** drop > 0.005 is a regression.
+The diff applies three floors per scenario:
+- **evt F1:** drop > `--tol` (default 0.005) is a regression.
+- **incident_recall:** drop > `--tol` (default 0.005) is a regression.
+- **time F1:** drop > `--time-tol` (default 0.02) is a regression. *This is
+  the long-horizon guardrail*: evt_f1 treats a 4h detection on a 30d GT as a
+  perfect TP, so without a time-based floor, hypotheses that improve event
+  count while sacrificing long-anomaly coverage or generating multi-day FP
+  strips would silently pass. time_f1 is duration-weighted, so it catches
+  both failure modes; the 0.02 floor is looser than evt_f1's because
+  seconds-based F1 is intrinsically noisier.
 
 These floors are intentionally tighter than the aggregate "mean improvement"
 target — they catch regressions that the aggregate average would hide.

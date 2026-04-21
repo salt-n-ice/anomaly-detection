@@ -219,9 +219,13 @@ python research/run_research_eval.py --suite all --diff-baseline
 
 Apply the decision tree:
 
-1. **Any scenario crosses a floor** (evt F1 drops more than 0.02, or
-   incident_recall drops more than 0.005 from baseline)? → **REJECT**.
-   No exceptions. Revert the change (`git checkout -- <file>`).
+1. **Any scenario crosses a floor** (evt F1 or incident_recall drops more
+   than `--tol` (default 0.005), or time F1 drops more than `--time-tol`
+   (default 0.02), from baseline)? → **REJECT**. No exceptions. Revert the
+   change (`git checkout -- <file>`). The time F1 floor is the long-horizon
+   guardrail — evt F1 alone treats a 4h touch on a 30d GT as a perfect TP,
+   so without it a hypothesis that improves event count while sacrificing
+   long-anomaly coverage (or bleeding multi-day FP strips) passes silently.
 2. **Aggregate 60d-mean evt F1 rises AND aggregate 120d-mean evt F1 rises,
    neither suite's incident_recall drops, and fp_h/day does not rise by more
    than +10% relative** on any single scenario? → **ACCEPT**. Commit the
