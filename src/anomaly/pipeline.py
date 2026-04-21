@@ -9,27 +9,10 @@ import yaml
 from .core import Event, Alert, Archetype, SensorConfig
 from .adapter import make_adapter, Adapter
 from .features import FeatureEngineer
-from .detectors import (DataQualityGate, CUSUM, SubPCA, MultivariatePCA,
-                         TemporalProfile, StateTransition)
 from .fusion import DefaultAlertFuser, make_fuser
+from .profiles import PROFILES
 from .batch import matrix_profile_discords
 from .metrics import compute_metrics
-
-
-DETECTOR_ENABLED = {
-    (Archetype.CONTINUOUS, "sub_pca"): True,
-    (Archetype.CONTINUOUS, "multivariate_pca"): True,
-    (Archetype.CONTINUOUS, "cusum"): True,
-    (Archetype.CONTINUOUS, "temporal_profile"): True,
-    (Archetype.BURSTY, "sub_pca"): True,
-    (Archetype.BURSTY, "multivariate_pca"): True,
-    (Archetype.BURSTY, "cusum"): True,
-    (Archetype.BURSTY, "temporal_profile"): True,
-    (Archetype.BINARY, "sub_pca"): False,
-    (Archetype.BINARY, "multivariate_pca"): True,
-    (Archetype.BINARY, "cusum"): True,
-    (Archetype.BINARY, "temporal_profile"): True,
-}
 
 
 _ADAPT_BUFFER_TICKS = 96 * 60  # rolling buffer for coordinated adaptation: last 96h at 1-min granularity
@@ -40,9 +23,11 @@ class _SensorState:
     cfg: SensorConfig
     adapter: Adapter
     engineer: FeatureEngineer
-    dqg: DataQualityGate
-    detectors: list
-    fuser: DefaultAlertFuser = None
+    short_event: list                   # pre-adapter EventDetectors (DQG)
+    short_tick: list                    # post-adapter immediate triggers (StateTransition or [])
+    medium: list                        # sliding-window Detectors (CUSUM, SubPCA, MvPCA)
+    long_tick: list                     # calendar Detectors (TemporalProfile)
+    fuser: DefaultAlertFuser
     bootstrap_raw: list = field(default_factory=list)   # (tick, adapter_features)
     bootstrap_rows: list = field(default_factory=list)  # (tick, enriched)
     raw_series: list = field(default_factory=list)
@@ -50,21 +35,9 @@ class _SensorState:
     fit_done: bool = False
     recent_rows: deque = field(default_factory=lambda: deque(maxlen=_ADAPT_BUFFER_TICKS))  # for adaptation
 
-
-def _features_for_detectors(cfg: SensorConfig) -> dict[str, list[str]]:
-    if cfg.archetype == Archetype.BINARY:
-        base = ["duty_cycle_1h", "duty_cycle_24h", "transitions_per_hour"]
-        return {"cusum": ["duty_cycle_24h", "transitions_per_hour"],
-                "mvpca": base + [f"{b}_diff" for b in base],
-                "temporal": base}
-    if cfg.archetype == Archetype.BURSTY:
-        return {"cusum": ["value"],
-                "mvpca": ["value", "time_in_state", "value_diff",
-                          "value_roll_1h", "value_roll_24h"],
-                "temporal": ["value"]}
-    return {"cusum": ["value"],
-            "mvpca": ["value", "value_diff", "value_roll_1h", "value_roll_24h"],
-            "temporal": ["value"]}
+    def tick_detectors(self) -> list:
+        """All post-adapter detectors in emit order (short_tick -> medium -> long_tick)."""
+        return self.short_tick + self.medium + self.long_tick
 
 
 class Pipeline:
@@ -72,42 +45,21 @@ class Pipeline:
         self.bootstrap_days = bootstrap_days
         self._states: dict[tuple[str, str], _SensorState] = {}
         for cfg in configs:
-            feats = _features_for_detectors(cfg)
-            detectors = []
-            # BINARY: deterministic trigger detector runs first so emit order
-            # matches the previous inline-trigger-then-statistical-detectors sequence.
-            if cfg.archetype == Archetype.BINARY:
-                detectors.append(StateTransition(cfg))
-            if DETECTOR_ENABLED.get((cfg.archetype, "cusum"), False):
-                # Continuous-archetype CUSUM gets a 5-day post-fit warmup to
-                # silence diurnal-driven warm-up FPs (bootstrap mu averages over
-                # a diurnal period; first post-fit peak trips lam reliably).
-                # Bursty/Binary don't need it — per-state CUSUM + state=0 idle
-                # centers the distribution without diurnal structure. 5d is the
-                # max that preserves outlet_voltage trend (Feb 19-21 label);
-                # 7d would regress trend to FN.
-                wu_cusum = 5 * 86400.0 if cfg.archetype == Archetype.CONTINUOUS else 0.0
-                detectors.append(CUSUM(cfg, feats["cusum"], warmup_seconds=wu_cusum))
-            if DETECTOR_ENABLED.get((cfg.archetype, "sub_pca"), False):
-                # 3-day PCA warmup for Continuous: silences warm-up noise FPs
-                # (e.g., voltage Feb 16 04-08 exposed once CUSUM went silent).
-                # Preserves calibration_drift Feb 17-18 (PCA fires from Feb 17
-                # post-warmup overlap the label).
-                wu_pca = 3 * 86400.0 if cfg.archetype == Archetype.CONTINUOUS else 0.0
-                detectors.append(SubPCA(cfg, warmup_seconds=wu_pca))
-            if DETECTOR_ENABLED.get((cfg.archetype, "multivariate_pca"), False):
-                wu_pca = 3 * 86400.0 if cfg.archetype == Archetype.CONTINUOUS else 0.0
-                detectors.append(MultivariatePCA(cfg, feats["mvpca"], warmup_seconds=wu_pca))
-            if DETECTOR_ENABLED.get((cfg.archetype, "temporal_profile"), False):
-                detectors.append(TemporalProfile(cfg, feats["temporal"]))
-            self._states[cfg.key] = _SensorState(cfg, make_adapter(cfg),
-                                                 FeatureEngineer(cfg),
-                                                 DataQualityGate(cfg), detectors,
-                                                 fuser=make_fuser(cfg))
+            p = PROFILES[cfg.archetype]
+            self._states[cfg.key] = _SensorState(
+                cfg=cfg,
+                adapter=make_adapter(cfg),
+                engineer=FeatureEngineer(cfg),
+                short_event=[f(cfg) for f in p.short_event],
+                short_tick=[f(cfg) for f in p.short_tick],
+                medium=[f(cfg) for f in p.medium],
+                long_tick=[f(cfg) for f in p.long_tick],
+                fuser=p.long_fuser(cfg),
+            )
 
     def is_live(self, key) -> bool:
         st = self._states.get(key)
-        return bool(st and st.fit_done and any(d.live for d in st.detectors))
+        return bool(st and st.fit_done and any(d.live for d in st.tick_detectors()))
 
     def _maybe_fit(self, st: _SensorState, now: pd.Timestamp) -> None:
         if st.fit_done or st.start_ts is None: return
@@ -133,19 +85,19 @@ class Pipeline:
                     state_entered = ts
                 g["time_in_state"] = (ts - state_entered).total_seconds()
             st.bootstrap_rows.append((ts, st.engineer.enrich(ts, g)))
-        for d in st.detectors:
+        for d in st.tick_detectors():
             d.fit(st.bootstrap_rows)
         st.fit_done = True
-
-    def _fuse(self, st: _SensorState, fresh: list[Alert]) -> list[Alert]:
-        return st.fuser.ingest(fresh)
 
     def ingest(self, ev: Event) -> list[Alert]:
         st = self._states.get((ev.sensor_id, ev.capability))
         if st is None: return []
         if st.start_ts is None: st.start_ts = ev.timestamp
         alerts: list[Alert] = []
-        alerts.extend(st.dqg.check(ev))
+        # SHORT band — pre-adapter event checks (always, independent of bootstrap).
+        for d in st.short_event:
+            alerts.extend(d.check(ev))
+        # Adapter band — normalize to uniform ticks.
         st.adapter.ingest(ev)
         for tick, feat in st.adapter.emit_ready(ev.timestamp):
             st.raw_series.append((tick, feat.get("value", float("nan"))))
@@ -154,10 +106,12 @@ class Pipeline:
                 continue
             enriched = st.engineer.enrich(tick, feat)
             st.recent_rows.append((tick, enriched))
-            for d in st.detectors:
+            # SHORT tick -> MEDIUM -> LONG tick (emit order preserved).
+            for d in st.tick_detectors():
                 alerts.extend(d.update(tick, enriched))
         self._maybe_fit(st, ev.timestamp)
-        return self._fuse(st, alerts)
+        # LONG fuser — chain-level aggregation + corroboration.
+        return st.fuser.ingest(alerts)
 
     def finalize(self) -> list[Alert]:
         out = []
