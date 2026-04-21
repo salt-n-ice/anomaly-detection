@@ -84,3 +84,21 @@ def build_cases(scenario: str, suite: str, bundles: list[dict],
             "gt_labels": _serialize_labels(overlaps),
         })
     return cases
+
+
+def _render_prompts_md(scenario: str, ts: str, cases: list[dict]) -> str:
+    """Produce a human-skim markdown of all cases with their GT tags."""
+    lines: list[str] = [f"# {scenario} — explain cases (run {ts})", ""]
+    for c in cases:
+        gt_str = (", ".join(L["anomaly_type"] for L in c["gt_labels"])
+                  if c["gt_labels"] else "(none)")
+        tag = "TP" if c["is_tp"] else "FP"
+        lines += [
+            f"## Case {c['case_id']}  —  {tag}  —  GT: {gt_str}",
+            "",
+            c["prompt"],
+            "",
+            "---",
+            "",
+        ]
+    return "\n".join(lines)

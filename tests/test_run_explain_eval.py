@@ -146,3 +146,39 @@ def test_build_cases_includes_prompt_and_scenario_metadata():
     assert cases[0]["suite"] == "60d"
     assert isinstance(cases[0]["prompt"], str)
     assert "sensor s1" in cases[0]["prompt"]
+
+
+from run_explain_eval import _render_prompts_md  # noqa: E402
+
+
+def test_prompts_md_header_includes_scenario_and_ts():
+    cases = build_cases("outlet_60d", "60d", _bundles_two(), _labels_df([]))
+    md = _render_prompts_md("outlet_60d", "20260421T170000Z", cases)
+    assert "# outlet_60d" in md
+    assert "20260421T170000Z" in md
+
+
+def test_prompts_md_tags_tp_and_fp_per_case():
+    labels = _labels_df([{
+        "sensor_id": "s1", "capability": "v",
+        "start": "2026-03-05T10:15:00Z", "end": "2026-03-05T10:20:00Z",
+        "anomaly_type": "spike", "detector_hint": "pca", "params_json": "{}",
+    }])
+    cases = build_cases("outlet_60d", "60d", _bundles_two(), labels)
+    md = _render_prompts_md("outlet_60d", "ts", cases)
+    assert "—  TP  —  GT: spike" in md
+    assert "—  FP  —  GT: (none)" in md
+
+
+def test_prompts_md_multiple_gt_labels_joined_by_comma():
+    labels = _labels_df([
+        {"sensor_id": "s1", "capability": "v",
+         "start": "2026-03-05T10:05:00Z", "end": "2026-03-05T10:10:00Z",
+         "anomaly_type": "spike", "detector_hint": "pca", "params_json": "{}"},
+        {"sensor_id": "s1", "capability": "v",
+         "start": "2026-03-05T10:20:00Z", "end": "2026-03-05T10:25:00Z",
+         "anomaly_type": "dip", "detector_hint": "pca", "params_json": "{}"},
+    ])
+    cases = build_cases("outlet_60d", "60d", _bundles_two()[:1], labels)
+    md = _render_prompts_md("outlet_60d", "ts", cases)
+    assert "GT: spike, dip" in md
