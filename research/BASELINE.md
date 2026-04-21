@@ -58,7 +58,7 @@ target — they catch regressions that the aggregate average would hide.
 | 120d  | outlet_120d      | synthetic-generator/out/outlet_120d          |    120d |
 | 120d  | waterleak_120d   | synthetic-generator/out/waterleak_120d       |    120d |
 
-## Baseline values (as of 2026-04-20, both suites)
+## Baseline values (as of 2026-04-21, both suites — ratcheted after Iters 003-005)
 
 | Scenario         | evt F1 | time F1 | incR  | fp_h/d | ev/inc |
 |------------------|:------:|:-------:|:-----:|:------:|:------:|
@@ -67,29 +67,41 @@ target — they catch regressions that the aggregate average would hide.
 | outlet_tv_60d    | 0.753  | 0.769   | 0.909 | 12.40  | 0.64   |
 | outlet_kettle_60d| 0.952  | 0.767   | 0.909 | 12.73  | 0.27   |
 | waterleak_60d    | 0.824  | 0.324   | 0.700 | 26.73  | 0.70   |
-| outlet_short_60d | 0.763  | 0.622   | 0.850 |  0.66  | 1.30   |
-| **60d mean**     | 0.844  | 0.648   | 0.846 | 13.05  | —      |
+| outlet_short_60d | 0.874  | 0.629   | 0.850 |  0.63  | 1.00   |
+| **60d mean**     | 0.866  | 0.649   | 0.846 | 13.05  | —      |
 | **120d suite**   |        |         |       |        |        |
 | outlet_120d      | 0.960  | 0.559   | 0.923 | 24.61  | 0.49   |
-| waterleak_120d   | 0.838  | 0.225   | 0.842 | 22.50  | 4.74   |
-| **120d mean**    | 0.899  | 0.392   | 0.882 | 23.56  | —      |
+| waterleak_120d   | 0.896  | 0.225   | 0.842 | 22.42  | 3.74   |
+| **120d mean**    | 0.928  | 0.392   | 0.882 | 23.52  | —      |
 
 Authoritative values live in `BASELINE.json`. This table is a snapshot of
 the state captured at baseline-freeze time; it will drift if the baseline is
 ratcheted. Don't rely on the markdown table for diffs — always run the
 script.
 
-### First-look notes on the 120d baseline
+### Ratchet history
 
-- **outlet_120d evt F1 (0.960) > outlet_60d (0.927)** because the second
-  60-day wave adds more "easy" short-event labels that dilute the 3
-  pre-bootstrap FNs. Event F1 here is a weak signal — the time F1 drop
-  (0.758 → 0.559) tells the honest story: sustained FP bands on stationary
-  voltage and post-shift wind-down accumulate linearly with scenario length.
-- **waterleak_120d events_per_incident = 4.74** — 90 detector events for
-  19 labels — is the single worst alert-burden number in the suite. The
-  second `trend` on battery is probably triggering fresh CUSUM chains
-  beyond the existing 90h drop threshold. High-leverage 120d-only target.
-- **Both 120d scenarios worst-incident-recall ≥ 0.842**, better than the
-  60d waterleak (0.700) — indicating recall scales fine, it's the
-  precision / fp_h/d side where 120d adds pain.
+- **2026-04-20** — initial freeze (all mean evt F1 = 0.860).
+- **2026-04-21** — ratcheted after session `research/evt-f1-round-2` iters
+  003-005 (margin filter on `{temporal_profile}` singletons in both
+  corroboration classes + score ceiling on `{cusum, multivariate_pca}`).
+  outlet_short_60d +0.111, waterleak_120d +0.058, others unchanged.
+  60d-mean evt F1 0.844 → 0.866, 120d-mean 0.899 → 0.928.
+
+### Remaining structural gaps (as of 2026-04-21 ratchet)
+
+- **outlet_tv_60d evt F1 = 0.753** stays the weakest. All 5 evt_FPs are
+  post-weekend_anomaly wind-down on `outlet_tv_power` (BURSTY). Same det-sets
+  are TPs on other scenarios. Fix needs cross-chain fuser state or adaptation.
+- **waterleak_120d time F1 = 0.225** — coverage, not fragmentation. 3 evt_FPs
+  are `{cusum, mvpca, sub_pca}` chains on leak_battery *between* the two
+  trend labels; same shape as outlet_tv's wind-down problem (event-merge gap
+  isolates them from bridging TPs).
+- **waterleak_60d time F1 = 0.324** — post-cal-drift tail on leak_temperature.
+  Coverage is 99% but time_precision is 19% because detection windows extend
+  past permanent-shift labels with no reset. Adaptation-flavored problem.
+- **outlet_120d time_precision = 0.391** — same post-shift-tail mechanism
+  as waterleak_60d time F1; all 36 evt_TPs at 100% precision, but time-weighted
+  the tails dominate.
+- Pre-bootstrap FNs (fridge_power spike/dip/saturation Feb 5-13) persist on
+  outlet_60d / outlet_short_60d / outlet_120d. Backlog item B1.

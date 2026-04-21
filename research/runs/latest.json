@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-04-21T16:01:47+00:00",
-  "git_hash": "dca3726",
+  "timestamp": "2026-04-21T16:29:12+00:00",
+  "git_hash": "f8c1bcd",
   "git_dirty": true,
   "suite_filter": "all",
   "scenarios": [
     {
       "name": "outlet_60d",
-      "elapsed_s": 24.23,
+      "elapsed_s": 24.45,
       "n_labels": 22,
       "n_detections": 117,
       "n_events": 17,
@@ -35,7 +35,7 @@
     },
     {
       "name": "outlet_tv_60d",
-      "elapsed_s": 24.28,
+      "elapsed_s": 24.24,
       "n_labels": 22,
       "n_detections": 120,
       "n_events": 14,
@@ -64,7 +64,7 @@
     },
     {
       "name": "outlet_kettle_60d",
-      "elapsed_s": 24.69,
+      "elapsed_s": 24.6,
       "n_labels": 22,
       "n_detections": 88,
       "n_events": 6,
@@ -93,7 +93,7 @@
     },
     {
       "name": "waterleak_60d",
-      "elapsed_s": 30.47,
+      "elapsed_s": 30.61,
       "n_labels": 10,
       "n_detections": 43,
       "n_events": 7,
@@ -122,7 +122,7 @@
     },
     {
       "name": "outlet_short_60d",
-      "elapsed_s": 15.42,
+      "elapsed_s": 15.3,
       "n_labels": 20,
       "n_detections": 94,
       "n_events": 20,
@@ -151,7 +151,7 @@
     },
     {
       "name": "outlet_120d",
-      "elapsed_s": 51.28,
+      "elapsed_s": 51.44,
       "n_labels": 39,
       "n_detections": 272,
       "n_events": 19,
@@ -180,7 +180,7 @@
     },
     {
       "name": "waterleak_120d",
-      "elapsed_s": 67.12,
+      "elapsed_s": 67.5,
       "n_labels": 19,
       "n_detections": 135,
       "n_events": 71,
