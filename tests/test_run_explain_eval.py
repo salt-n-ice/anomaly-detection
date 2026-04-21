@@ -78,3 +78,71 @@ def test_overlap_multiple_labels_all_included():
 
 def test_overlap_empty_labels_returns_empty():
     assert compute_overlap(_bundle(), _labels_df([])) == []
+
+
+from run_explain_eval import build_cases, _serialize_labels  # noqa: E402
+
+
+def test_serialize_labels_converts_timestamps_to_iso():
+    labels_in = [{
+        "sensor_id": "s1", "capability": "v",
+        "start": pd.Timestamp("2026-03-05T10:00:00Z"),
+        "end":   pd.Timestamp("2026-03-05T10:30:00Z"),
+        "anomaly_type": "spike", "detector_hint": "pca",
+        "params_json": "{\"magnitude\": 600}",
+    }]
+    out = _serialize_labels(labels_in)
+    assert out[0]["start"] == "2026-03-05T10:00:00+00:00"
+    assert out[0]["end"]   == "2026-03-05T10:30:00+00:00"
+    assert out[0]["anomaly_type"] == "spike"
+    assert out[0]["detector_hint"] == "pca"
+
+
+def test_serialize_labels_missing_optional_fields_defaults_none():
+    labels_in = [{
+        "sensor_id": "s1", "capability": "v",
+        "start": pd.Timestamp("2026-03-05T10:00:00Z"),
+        "end":   pd.Timestamp("2026-03-05T10:30:00Z"),
+        "anomaly_type": "spike",
+    }]
+    out = _serialize_labels(labels_in)
+    assert out[0]["detector_hint"] is None
+    assert out[0]["params_json"] is None
+
+
+def _bundles_two() -> list[dict]:
+    return [
+        {**_bundle(sensor="s1"),
+         "detectors": ["cusum"], "inferred_type": "spike"},
+        {**_bundle(sensor="s2", ws="2026-03-05T12:00:00Z",
+                   we="2026-03-05T12:30:00Z"),
+         "detectors": ["sub_pca"], "inferred_type": "frequency_change"},
+    ]
+
+
+def test_build_cases_tags_tp_when_overlap_exists():
+    labels = _labels_df([{
+        "sensor_id": "s1", "capability": "v",
+        "start": "2026-03-05T10:15:00Z", "end": "2026-03-05T10:20:00Z",
+        "anomaly_type": "spike", "detector_hint": "pca", "params_json": "{}",
+    }])
+    cases = build_cases("outlet_60d", "60d", _bundles_two(), labels)
+    assert len(cases) == 2
+    assert cases[0]["is_tp"] is True
+    assert cases[0]["gt_labels"][0]["anomaly_type"] == "spike"
+    assert cases[1]["is_tp"] is False
+    assert cases[1]["gt_labels"] == []
+
+
+def test_build_cases_case_ids_zero_padded():
+    cases = build_cases("outlet_60d", "60d", _bundles_two(), _labels_df([]))
+    assert cases[0]["case_id"] == "outlet_60d#000"
+    assert cases[1]["case_id"] == "outlet_60d#001"
+
+
+def test_build_cases_includes_prompt_and_scenario_metadata():
+    cases = build_cases("outlet_60d", "60d", _bundles_two(), _labels_df([]))
+    assert cases[0]["scenario"] == "outlet_60d"
+    assert cases[0]["suite"] == "60d"
+    assert isinstance(cases[0]["prompt"], str)
+    assert "sensor s1" in cases[0]["prompt"]

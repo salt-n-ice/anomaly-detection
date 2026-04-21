@@ -50,3 +50,37 @@ def compute_overlap(bundle: dict, labels: pd.DataFrame) -> list[dict]:
         & (labels["end"] >= ws)
     )
     return labels[mask].to_dict(orient="records")
+
+
+def _serialize_labels(labels: list[dict]) -> list[dict]:
+    """Convert timestamp-bearing label rows to a JSON-safe shape."""
+    out = []
+    for L in labels:
+        out.append({
+            "sensor_id": L["sensor_id"],
+            "capability": L["capability"],
+            "start": pd.Timestamp(L["start"]).isoformat(),
+            "end":   pd.Timestamp(L["end"]).isoformat(),
+            "anomaly_type": L["anomaly_type"],
+            "detector_hint": L.get("detector_hint"),
+            "params_json":  L.get("params_json"),
+        })
+    return out
+
+
+def build_cases(scenario: str, suite: str, bundles: list[dict],
+                labels: pd.DataFrame) -> list[dict]:
+    """Pair each bundle with overlapping labels + rendered prompt."""
+    cases = []
+    for i, b in enumerate(bundles):
+        overlaps = compute_overlap(b, labels)
+        cases.append({
+            "case_id": f"{scenario}#{i:03d}",
+            "scenario": scenario,
+            "suite": suite,
+            "is_tp": bool(overlaps),
+            "bundle": b,
+            "prompt": build_prompt(b),
+            "gt_labels": _serialize_labels(overlaps),
+        })
+    return cases
