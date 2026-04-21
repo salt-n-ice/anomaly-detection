@@ -127,15 +127,43 @@ on outlet_short_60d and waterleak_120d; no regression anywhere else.~~
 _(Resolved Iter 004 — ACCEPT. outlet_short_60d 0.780 → 0.815 (+0.052 from
 original baseline), waterleak_120d 0.838 → 0.897 (+0.059). No regression.)_
 
-**C5 — `[60d] P0 L2`** outlet_tv_60d is now the weakest scenario at
-evt_f1 = 0.753 (5 evt_FP, precision 0.643). Open question: are the 5 FPs
-a single detector-combo bucket amenable to a local ContinuousCorroboration
-rule, or a mix? Next action: grep `out/outlet_tv_60d_detections.csv` by
-detector field, then cross-reference timestamps with
-`../synthetic-generator/out/outlet_tv/labels.csv`. This is a
-*diagnostic* hypothesis — the concrete rule comes from the data.
-`Band:` LONG. `Edit:` `src/anomaly/fusion.py` if the bucket pattern is
-clean; otherwise escalate.
+**C5 — `[60d] P2 L3`** outlet_tv_60d remains the weakest scenario at
+evt_f1 = 0.753 (5 evt_FPs). Session 2026-04-21 audit (via
+`research/event_audit.py outlet_tv_60d`) shows all 5 FP events are on
+outlet_tv_power (BURSTY) after the weekend_anomaly ends 2026-03-16:
+four `{cusum, sub_pca}`-only chains (12h / 52h / 63h / 220h / 21h) and one
+`{cusum, sub_pca, temporal_profile}` (12h). **Structural:** this is
+post-shift wind-down on a permanent level_shift — detectors keep firing
+against the old baseline, and the same det-sets appear as TPs on other
+scenarios (outlet_60d & outlet_120d fridge_power and outlet_kettle_60d
+kettle_power have many `{cusum, sub_pca}`-only chains event-merged into TPs).
+No clean local-corroboration signal separates them. Fix requires either
+adaptation (prior session memory: all coordinated-adaptation attempts
+regressed other scenarios) or a cross-chain bridge rule in `DefaultAlertFuser`
+(tracking "did a non-cusum chain close within N days on this sensor"),
+which is multi-file and needs its own session.
+`Band:` orchestration / cross-chain state. Deferred.
+
+**L4 — `[120d] P2 L3`** waterleak_120d has 3 remaining evt_FPs, all on
+leak_battery with `{cusum, mvpca, sub_pca}` combo, all between the Mar 5-15
+and May 15-29 trend labels (Apr 6-7, Apr 13-15, May 3-7). Same combo
+produces TPs inside both trend windows, and event-merges aren't bridging the
+between-trend chains with trend-chain events (gaps > 1h). Score/duration
+signatures overlap between TPs and FPs — no local rule separates them.
+Fix likely needs "last non-cusum emission on this sensor within 14 days"
+state in the fuser. Deferred; note this is the **same structural shape** as
+C5 (the event-merge gap isolates legitimately "between-event" FPs).
+`Band:` orchestration. Deferred alongside C5.
+
+**C6 — `[outlet_short] P3 L2`** 2 remaining FPs on outlet_short_60d voltage
+survive all session 2026-04-21 filters: (a) mvpca singleton Feb 19 03:01
+score 0.056 (ratio above 1.2×threshold, so margin filter doesn't trip —
+iter 006 rejected); (b) Mar 10 11:51 `{cusum, mvpca, temporal_profile}` 22min
+score 4.83. Both sit in early-post-bootstrap territory where MvPCA
+reconstruction is still noisy. Could address via longer MvPCA warmup
+(5d instead of 3d) as a targeted profile change, but risk is masking real
+early-scenario anomalies; measure against outlet_60d's Feb 20+ TP chain
+first. P3 because outlet_short_60d is already at 0.874.
 
 ---
 
