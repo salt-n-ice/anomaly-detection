@@ -31,6 +31,8 @@ class ContinuousCorroboration:
             starts = [a.window_start or a.timestamp for a in alerts]
             ends = [a.window_end or a.timestamp for a in alerts]
             return (max(ends) - min(starts)) <= pd.Timedelta(hours=1)
+        if dets == {"temporal_profile"}:
+            return any(a.score >= 1.2 * a.threshold for a in alerts)
         return True
 
 

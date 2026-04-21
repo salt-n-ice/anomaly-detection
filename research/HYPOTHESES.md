@@ -24,15 +24,16 @@ Conventions:
 
 ## A. Long-horizon FPs (primary 120d-suite targets)
 
-**A1 — `[120d][hot] P0 L2`** Stationary voltage CUSUM+SubPCA/MvPCA chains grow
+~~**A1 — `[120d][hot] P0 L2`** Stationary voltage CUSUM+SubPCA/MvPCA chains grow
 across the extra 60 days because the `{cusum, sub_pca}`/`{cusum, temporal_profile}`
 4-hour drop threshold in `ContinuousCorroboration.accepts` was tuned on 60-day data.
 Hypothesis: tightening the drop threshold to 6h (or 8h) on CONTINUOUS sensors will reduce
 120d fp_h/day on voltage without dropping any TP on the committed 60d baseline
 (all TP voltage chains ≥ 6h already, per CHANGES.md). **Measure:** Δ fp_h/d on
-outlet_120d voltage; Δ evt_F1 on every 60d scenario ≥ −0.005.
-`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — in `ContinuousCorroboration.accepts`,
-change `pd.Timedelta(hours=4)` to `pd.Timedelta(hours=6)`.
+outlet_120d voltage; Δ evt_F1 on every 60d scenario ≥ −0.005.~~
+_(Resolved Iter 001 — null result: no chain exists in the 4-6h bucket with
+these det-sets on any of the 7 scenarios; FPs ride the 4-det fall-through instead.
+Spawned C3 in its place.)_
 
 **A2 — `[120d] P1 L2`** Long-horizon CUSUM-only chain threshold (currently 90h)
 may accept multi-day random-walk drifts that never had a real TP in 60 days.
@@ -107,12 +108,24 @@ noise_floor, reject). **Measure:** `{cusum, mvpca}` FP count on outlet_short_60d
 to inspect `alert.context` entries for per-sample value deltas and reject when
 |range| below a noise-floor constant.
 
-**C2 — `[both] P2 L1`** Single `{temporal_profile}` 0-min fires (3 FPs on
+~~**C2 — `[both] P2 L1`** Single `{temporal_profile}` 0-min fires (3 FPs on
 outlet_short) — drop chains whose `dets == {"temporal_profile"}` and
 duration = 0 and whose raw |z| is only marginally above threshold (< 1.2 ×
-z_thresh). **Measure:** Δ fp_h/d on outlet_short_60d + TP preservation elsewhere.
-`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — add a new `dets == {"temporal_profile"}`
-branch in `ContinuousCorroboration.accepts`.
+z_thresh). **Measure:** Δ fp_h/d on outlet_short_60d + TP preservation elsewhere.~~
+_(Resolved Iter 003 — ACCEPT. Implemented as `score >= 1.2 * threshold` margin
+check on `{temporal_profile}` only in ContinuousCorroboration. outlet_short_60d
+evt_f1 0.763 → 0.780 (+0.017). Only the CONTINUOUS (voltage) singleton was
+affected; the BURSTY (fridge_power) singletons remain — handed off to Iter 004
+follow-up C4 below.)_
+
+**C4 — `[both] P1 L1`** Extend the `{temporal_profile}` 1.2×threshold margin
+filter to `PassThroughCorroboration` (BURSTY + BINARY). Pre-audit shows
+2 FP singletons on outlet_short_60d fridge_power (scores 4.29/4.78) and
+10 identical-score (4.272) FP singletons on waterleak_120d leak_basement;
+no BURSTY/BINARY singleton TPs in any detection CSV. **Measure:** Δ evt_f1
+on outlet_short_60d and waterleak_120d; no regression anywhere else.
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — add the same branch to
+`PassThroughCorroboration.accepts`.
 
 ---
 
@@ -165,7 +178,7 @@ The research gate now enforces `time_f1 drop > 0.02` as a REGRESSION floor
 perfect TP. These hypotheses specifically target coverage / fragmentation on
 sustained anomalies — improving `time_f1` without regressing `evt_f1`.
 
-**L1 — `[120d][hot] P0 L2`** Fuser `max_span=96h` fragments any GT longer
+~~**L1 — `[120d][hot] P0 L2`** Fuser `max_span=96h` fragments any GT longer
 than 4 days into chunks separated by silence (whenever detectors go quiet
 between re-fires). On `outlet_120d`, this shows up as multi-day FN bands
 inside `calibration_drift` / `month_shift` labels where the fused chain
@@ -175,9 +188,14 @@ ContinuousCorroboration already filters single-detector-combo chains, so
 genuine sustained multi-detector TPs gain coverage while stationary
 voltage FPs stay gated. **Measure:** Δ time_f1 on outlet_120d and
 waterleak_120d (expect ↑); Δ fp_h/d (watch carefully — this is where the
-risk is).
-`Band:` LONG. `Edit:` `src/anomaly/profiles.py` — in `_continuous_fuser`,
-change `max_span=96*3600` to `max_span=192*3600`.
+risk is).~~
+_(Resolved Iter 002 — REJECT. time_f1 did improve (+0.035 waterleak_120d,
++0.002 outlet_120d) but evt_f1 regressed on waterleak_120d (−0.013) via the
+metric artifact `evt_precision = 1 − evt_fp/n_events`: TP-event consolidation
+mechanically lowers precision whenever FPs don't collapse at the same rate.
+outlet_120d saw essentially zero movement, disconfirming the "fragmentation
+is the bottleneck" framing — outlet_120d's time_f1 deficit is a precision
+problem (post-shift wind-down tails), not a recall problem.)_
 
 **L2 — `[120d] P1 L2`** Chain re-open: when a fused chain closes and the
 *same* detector combo fires again on the *same* sensor within one fusion
