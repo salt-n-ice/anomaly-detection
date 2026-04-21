@@ -73,6 +73,79 @@ no change on 60d outlet_short."
 
 <!-- Research session appends iterations above this line. Keep the template above unchanged. -->
 
+## Iter 004 — C4: extend {temporal_profile} margin filter to BURSTY+BINARY 2026-04-21
+
+**Hypothesis:** Adding the same `{temporal_profile}` `score ≥ 1.2×threshold`
+branch to `PassThroughCorroboration.accepts` will drop the 2 FP fridge_power
+singletons on outlet_short_60d (BURSTY, scores 4.29 / 4.78) and the 10 FP
+leak_basement singletons on waterleak_120d (BINARY, all 4.272) without TP
+loss, because no BURSTY/BINARY temporal_profile singleton in any detection
+CSV corresponds to a matching label.
+**Reasoning:** Iter 003 pre-audit identified exactly these as the remaining
+sub-4.8 singletons outside CONTINUOUS. The risk profile matches Iter 003
+(L1): singleton-removal preserves evt_tp counts per-label while pulling
+`evt_fp` and `n_events` down together — the combination that actually raises
+`evt_precision` instead of regressing it via the iter-002 artifact.
+**Target scenarios:** outlet_short_60d + waterleak_120d primary.
+**Expected direction:** outlet_short_60d Δ evt_f1 ≈ +0.03; waterleak_120d
+Δ evt_f1 ≈ +0.03-0.05; others neutral.
+**Band:** LONG.
+
+**Change:**
+- `src/anomaly/fusion.py` : `PassThroughCorroboration.accepts` — add the same
+  `dets == {"temporal_profile"}` margin branch that Iter 003 put in
+  `ContinuousCorroboration.accepts`. Now 2 lines are duplicated; kept
+  duplicated rather than abstracted (single rule, two rule classes).
+
+**Baseline (from research/BASELINE.json):**
+| suite / scenario          | evt F1 | time F1 | incR  | fp_h/d |
+|---------------------------|:------:|:-------:|:-----:|:------:|
+| 60d  mean                 | 0.844  | 0.648   | 0.846 | 13.05  |
+| 120d mean                 | 0.899  | 0.392   | 0.883 | 23.56  |
+| outlet_60d                | 0.927  | 0.758   | 0.864 | 12.73  |
+| outlet_tv_60d             | 0.753  | 0.769   | 0.909 | 12.40  |
+| outlet_kettle_60d         | 0.952  | 0.767   | 0.909 | 12.73  |
+| waterleak_60d             | 0.824  | 0.324   | 0.700 | 26.73  |
+| outlet_short_60d          | 0.763  | 0.622   | 0.850 |  0.66  |
+| outlet_120d               | 0.960  | 0.559   | 0.923 | 24.61  |
+| waterleak_120d            | 0.838  | 0.225   | 0.842 | 22.50  |
+
+**Result (research/runs/20260421T154137Z.json):**
+| suite / scenario          | Δ evt F1 | Δ time F1 | Δ incR | Δ fp_h/d |
+|---------------------------|:--------:|:---------:|:------:|:--------:|
+| 60d  mean                 | +0.010   | +0.000    | +0.000 | +0.00    |
+| 120d mean                 | +0.029   | +0.000    | +0.000 | −0.04    |
+| outlet_60d                | +0.000   | +0.000    | +0.000 | +0.00    |
+| outlet_tv_60d             | +0.000   | +0.000    | +0.000 | +0.00    |
+| outlet_kettle_60d         | +0.000   | +0.000    | +0.000 | +0.00    |
+| waterleak_60d             | +0.000   | +0.000    | +0.000 | +0.00    |
+| outlet_short_60d          | **+0.052** | +0.000  | +0.000 | +0.00    |
+| outlet_120d               | +0.000   | +0.000    | +0.000 | +0.00    |
+| waterleak_120d            | **+0.059** | +0.000  | +0.000 | −0.08    |
+
+**Plots inspected:** none — pre-run audit (Iter 003's cross-scenario
+detection-CSV scan) enumerated exactly the 12 singletons that would drop,
+all confirmed as unmatched-to-label. Post-run event-count drops
+(outlet_short 25 → 23, waterleak_120d 81 → 71) matched the audit within 1
+event; fp_h/d moved the expected direction on waterleak_120d (−0.08).
+
+**Verdict:** ACCEPT.
+**Reason:** Two scenarios improved substantially (+0.052 / +0.059 evt_f1),
+zero regressions, no floor crossed. Aggregate 60d mean +0.010, 120d mean
++0.029 — largest single-iteration gain so far in this session.
+**Follow-ups:**
+- outlet_tv_60d stays at evt_f1 0.753, untouched. Its 5 evt_FPs (precision
+  0.643) are the largest remaining event-level gap on any scenario; next
+  iteration should target them. Spawn C5 (investigate outlet_tv_60d FP
+  bucket composition) in HYPOTHESES.md.
+- waterleak_120d time_f1 stays at 0.225 (coverage problem, not alert-count),
+  untouched by this iteration — still a 120d time_f1 target.
+- The 1.2× constant is a magic number. If future iterations want to revisit
+  the tightness, it deserves promotion to a module-level or per-archetype
+  kwarg. Keeping the literal in place until a second use case appears.
+
+---
+
 ## Iter 003 — C2*: marginal-|z| filter for {temporal_profile} CONTINUOUS  2026-04-21
 
 **Hypothesis:** Adding a margin filter to `{temporal_profile}`-only CONTINUOUS

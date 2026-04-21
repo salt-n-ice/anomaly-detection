@@ -118,14 +118,24 @@ evt_f1 0.763 → 0.780 (+0.017). Only the CONTINUOUS (voltage) singleton was
 affected; the BURSTY (fridge_power) singletons remain — handed off to Iter 004
 follow-up C4 below.)_
 
-**C4 — `[both] P1 L1`** Extend the `{temporal_profile}` 1.2×threshold margin
+~~**C4 — `[both] P1 L1`** Extend the `{temporal_profile}` 1.2×threshold margin
 filter to `PassThroughCorroboration` (BURSTY + BINARY). Pre-audit shows
 2 FP singletons on outlet_short_60d fridge_power (scores 4.29/4.78) and
 10 identical-score (4.272) FP singletons on waterleak_120d leak_basement;
 no BURSTY/BINARY singleton TPs in any detection CSV. **Measure:** Δ evt_f1
-on outlet_short_60d and waterleak_120d; no regression anywhere else.
-`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — add the same branch to
-`PassThroughCorroboration.accepts`.
+on outlet_short_60d and waterleak_120d; no regression anywhere else.~~
+_(Resolved Iter 004 — ACCEPT. outlet_short_60d 0.780 → 0.815 (+0.052 from
+original baseline), waterleak_120d 0.838 → 0.897 (+0.059). No regression.)_
+
+**C5 — `[60d] P0 L2`** outlet_tv_60d is now the weakest scenario at
+evt_f1 = 0.753 (5 evt_FP, precision 0.643). Open question: are the 5 FPs
+a single detector-combo bucket amenable to a local ContinuousCorroboration
+rule, or a mix? Next action: grep `out/outlet_tv_60d_detections.csv` by
+detector field, then cross-reference timestamps with
+`../synthetic-generator/out/outlet_tv/labels.csv`. This is a
+*diagnostic* hypothesis — the concrete rule comes from the data.
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` if the bucket pattern is
+clean; otherwise escalate.
 
 ---
 

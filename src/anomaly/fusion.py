@@ -9,8 +9,12 @@ class CorroborationRule(Protocol):
 
 
 class PassThroughCorroboration:
-    """BURSTY / BINARY — no post-fusion filtering."""
+    """BURSTY / BINARY — only filters marginal single-detector `temporal_profile`
+    singletons (|z| within 20% of threshold); everything else passes through."""
     def accepts(self, alerts: list[Alert]) -> bool:
+        dets = {a.detector for a in alerts}
+        if dets == {"temporal_profile"}:
+            return any(a.score >= 1.2 * a.threshold for a in alerts)
         return True
 
 
