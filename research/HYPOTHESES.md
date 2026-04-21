@@ -16,6 +16,8 @@ Conventions:
 - `P<n>` = priority (P0 highest). `L<n>` = estimated risk of regression (L0 lowest).
 - `[60d]`, `[120d]`, `[both]` mark which suite(s) a change most directly targets.
 - `[hot]` = known non-trivial problem documented in memory; worth ultrathinking.
+- `Band:` = which of SHORT / MEDIUM / LONG the change lives in (see `README.md` architecture section).
+- `Edit:` = concrete file + symbol to touch. Most hypotheses are now a one- or two-line edit in `profiles.py` or `fusion.py` — the refactor made band-level changes trivial.
 - Strike with `~~...~~` and note the iteration that resolved it once tested.
 
 ---
@@ -24,17 +26,21 @@ Conventions:
 
 **A1 — `[120d][hot] P0 L2`** Stationary voltage CUSUM+SubPCA/MvPCA chains grow
 across the extra 60 days because the `{cusum, sub_pca}`/`{cusum, temporal_profile}`
-4-hour drop threshold in `_chain_corroborated` was tuned on 60-day data. Hypothesis:
-tightening the drop threshold to 6h (or 8h) on CONTINUOUS sensors will reduce
+4-hour drop threshold in `ContinuousCorroboration.accepts` was tuned on 60-day data.
+Hypothesis: tightening the drop threshold to 6h (or 8h) on CONTINUOUS sensors will reduce
 120d fp_h/day on voltage without dropping any TP on the committed 60d baseline
 (all TP voltage chains ≥ 6h already, per CHANGES.md). **Measure:** Δ fp_h/d on
 outlet_120d voltage; Δ evt_F1 on every 60d scenario ≥ −0.005.
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — in `ContinuousCorroboration.accepts`,
+change `pd.Timedelta(hours=4)` to `pd.Timedelta(hours=6)`.
 
 **A2 — `[120d] P1 L2`** Long-horizon CUSUM-only chain threshold (currently 90h)
 may accept multi-day random-walk drifts that never had a real TP in 60 days.
 Try 120h on CONTINUOUS; expect 120d FP reduction, leak_battery trend (real, 10d)
 still accepted. **Measure:** Δ fp_h/d on outlet_120d & waterleak_120d; preserve
 waterleak_60d battery-trend TP.
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — in `ContinuousCorroboration.accepts`,
+change `pd.Timedelta(hours=90)` in the `dets == {"cusum"}` branch to `hours=120`.
 
 **A3 — `[120d] P1 L3`** Post-shift wind-down after a calibration_drift /
 level_shift currently creates multi-day FP strips because detectors don't
@@ -45,6 +51,11 @@ regressed outlet_demo F1 (see memory `project_iter_gains_2026_04`), but the
 120d suite may tip the cost/benefit — the post-shift tail is 60+ days. Run
 only the 120d suite first to confirm the gain, then re-run the 60d suite to
 confirm it doesn't regress.
+`Band:` LONG. `Edit:` cross-module — `src/anomaly/fusion.py` (`DefaultAlertFuser._flush`
+needs to signal back to the pipeline state with the closed chain) + `src/anomaly/pipeline.py`
+(wire `st.recent_rows` into each tick detector's `adapt_to_recent`). This is the
+rare multi-file hypothesis; consider whether adding an optional `on_flush` callback
+to `DefaultAlertFuser.__init__` (profile-wired) keeps the pipeline dispatcher thin.
 
 **A4 — `[120d] P2 L2`** SubPCA threshold (99.9th percentile of sliding-window
 bootstrap errors) was tuned against a 14-day bootstrap. For 120d scenarios where
@@ -52,6 +63,9 @@ sustained drift dominates, consider evaluating whether 99.95 or 99.99 on the
 sliding distribution removes solo-SubPCA chains in the second 60 days without
 losing TP spike/dip detection. **Measure:** FP count for `{sub_pca}`-only chains
 on outlet_120d voltage.
+`Band:` MEDIUM. `Edit:` `src/anomaly/detectors.py` — in `SubPCA.fit`, change the
+`np.quantile(errs, 0.999)` literal (or promote it to a constructor kwarg and set
+per-archetype in `profiles.py`).
 
 ---
 
@@ -64,28 +78,41 @@ enough data; (b) add a minimal MAD-based rolling detector that activates from
 ingest 1 (short buffer, wider thresholds, no CUSUM/PCA interaction).
 **Measure:** pre-bootstrap labels on outlet_60d and outlet_short_60d; ensure
 post-bootstrap F1 is preserved on every scenario.
+`Band:` (a) orchestration — `Pipeline(configs, bootstrap_days=7.0)` at construction
+sites (tests / CLI) or change the default in `src/anomaly/pipeline.py`.
+(b) SHORT — new class in `src/anomaly/detectors.py` implementing `Detector`
+(fit=pass, update=MAD-based threshold), register in `short_tick` for CONTINUOUS
++ BURSTY profiles in `src/anomaly/profiles.py`.
 
 **B2 — `[both] P2 L2`** DQG saturation currently requires 10 consecutive
 at-max readings. Shortening to 5 may catch the Feb 11 10-min saturation TP
 that currently misses (fridge heartbeat is 5min, so 10 consecutive = 50 min).
 **Measure:** whether saturation is now TP on outlet_60d; side-effect check on
 waterleak (leak_battery at 100%).
+`Band:` SHORT. `Edit:` `src/anomaly/detectors.py` — in `DataQualityGate.check`,
+change the `self._sat_run == 10` literal to `== 5`.
 
 ---
 
 ## C. Short-cluster FPs on voltage (60d + 120d)
 
 **C1 — `[both][hot] P0 L1`** Short `{cusum, mvpca}` chains on voltage (4 events
-at 18/31/47/22 min on outlet_short). These currently pass `_chain_corroborated`
-because the combo is tuned to accept duplicate_stale. Idea: require a same-sign
-persistence in the raw value series during the chain (compute cum-min and
-cum-max of Δvalue; if |range| < noise_floor, reject). Needs prototyping in
-a helper. **Measure:** `{cusum, mvpca}` FP count on outlet_short_60d.
+at 18/31/47/22 min on outlet_short). These currently pass
+`ContinuousCorroboration.accepts` because the combo is tuned to accept
+duplicate_stale. Idea: require a same-sign persistence in the raw value series
+during the chain (compute cum-min and cum-max of Δvalue; if |range| <
+noise_floor, reject). **Measure:** `{cusum, mvpca}` FP count on outlet_short_60d.
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — extend the
+`dets == {"cusum", "multivariate_pca"}` branch in `ContinuousCorroboration.accepts`
+to inspect `alert.context` entries for per-sample value deltas and reject when
+|range| below a noise-floor constant.
 
 **C2 — `[both] P2 L1`** Single `{temporal_profile}` 0-min fires (3 FPs on
 outlet_short) — drop chains whose `dets == {"temporal_profile"}` and
 duration = 0 and whose raw |z| is only marginally above threshold (< 1.2 ×
 z_thresh). **Measure:** Δ fp_h/d on outlet_short_60d + TP preservation elsewhere.
+`Band:` LONG. `Edit:` `src/anomaly/fusion.py` — add a new `dets == {"temporal_profile"}`
+branch in `ContinuousCorroboration.accepts`.
 
 ---
 
@@ -98,12 +125,18 @@ raising `z_thresh` to 5.0 on CONTINUOUS sensors reduces solo temporal_profile
 FPs without masking real seasonal anomalies (those are caught by PCA/CUSUM
 anyway). Prior attempt regressed outlet_60d — but worth re-checking in the
 120d suite context.
+`Band:` LONG. `Edit:` `src/anomaly/profiles.py` — in CONTINUOUS profile,
+change `partial(TemporalProfile, features=_CONT_FEATS["temporal"])` to
+`partial(TemporalProfile, features=_CONT_FEATS["temporal"], z_thresh=5.0)`.
 
 **D2 — `[120d] P3 L2`** Monthly bucket refinement (×12 buckets) becomes usable
 once ≥90d of history exists. The pipeline.md mentions this as "Month 3+".
 Currently unimplemented. Adding it may cut false seasonality alerts in the
 second 60-day wave of 120d scenarios. Non-trivial change; defer until simpler
 wins are exhausted.
+`Band:` LONG. `Edit:` `src/anomaly/detectors.py` — extend `TemporalProfile._bucket`
+to add `ts.month` when sample count justifies it; thread through `fit` and `update`.
+No `profiles.py` change needed (same Protocol).
 
 ---
 
@@ -114,10 +147,14 @@ heartbeat voltage, 3 consecutive drifted ticks = 30 minutes before the alert
 fires. For 120d scenarios with a long post-drift tail, this is fine; confirm
 via viz that the Mar 10 clock_drift on outlet_60d voltage still fires within
 the 6h window. If marginally late, bump to 2. Low leverage but clean.
+`Band:` SHORT. `Edit:` `src/anomaly/detectors.py` — change the
+`_CLOCK_DRIFT_PERSISTENCE = 3` class constant in `DataQualityGate`.
 
 **E2 — `[both] P3 L1`** DQG batch cooldown currently 30 min. If a generator
 batches many events within a single 10-min window, the cooldown may suppress
 distinct batch events. Look for 120d batch_arrival labels that miss.
+`Band:` SHORT. `Edit:` `src/anomaly/detectors.py` — change the
+`_BATCH_COOLDOWN = pd.Timedelta(minutes=30)` class constant in `DataQualityGate`.
 
 ---
 

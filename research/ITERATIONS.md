@@ -28,6 +28,7 @@ note, or iteration) motivated it.
 **Target scenarios:** e.g. "outlet_120d + waterleak_120d (long-horizon drift)"
 **Expected direction:** e.g. "evt F1 ↑ on 120d outlet; fp_h/d ↓ on long voltage bands;
 no change on 60d outlet_short."
+**Band:** SHORT / MEDIUM / LONG / orchestration — where the change lives (see README.md).
 
 **Change:**
 - `src/anomaly/<file>.py` : <one-line description of edit>

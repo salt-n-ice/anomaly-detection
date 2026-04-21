@@ -43,11 +43,44 @@ Do these reads **before** proposing anything. Do not skip.
    `feedback_tuning_workflow.md`) — these document past traps.
 6. `pipeline.md` — the intended design, for when a tuning decision would
    contradict the baseline architecture.
-7. `src/anomaly/pipeline.py` and `src/anomaly/detectors.py` — the files you
-   will most often edit. Re-read them every session; they change.
+7. `src/anomaly/profiles.py` — per-archetype PROFILES dict. **This is where
+   most hypotheses now land** — warmups, feature lists, fuser params, and
+   enable/disable-per-archetype are all one-line edits here.
+8. `src/anomaly/detectors.py` — detector internals. Edit the class body only
+   when the hypothesis is about the detector's algorithm itself (CUSUM math,
+   PCA residual logic, DQG cooldown behavior).
+9. `src/anomaly/fusion.py` — `DefaultAlertFuser` + `ContinuousCorroboration`
+   / `PassThroughCorroboration`. Edit when the hypothesis is about
+   chain-level corroboration or adding a new corroboration rule.
+10. `src/anomaly/pipeline.py` — thin band dispatcher. **Don't edit unless**
+    the hypothesis is about cross-band orchestration (bootstrap timing,
+    adapter wiring, fit sequencing).
 
 State (one line) in your first response what the current `BASELINE.json` says
 for the 60d-mean and 120d-mean event F1, so the user knows you've grounded.
+
+---
+
+## 1.5 · Hypothesis → file map (post-refactor)
+
+The pipeline is now organized into SHORT/MEDIUM/LONG detection bands.
+Every hypothesis should map to exactly one edit surface below:
+
+| Hypothesis flavor                                            | File                                                 | Edit shape                                                    |
+|--------------------------------------------------------------|------------------------------------------------------|---------------------------------------------------------------|
+| "Retune a detector's threshold / warmup / window / features"| `src/anomaly/profiles.py`                            | change a `partial(...)` kwarg                                 |
+| "Disable detector X for archetype Y"                         | `src/anomaly/profiles.py`                            | remove from `medium=[...]` / `long_tick=[...]`                |
+| "Add a new detector"                                         | `src/anomaly/detectors.py` + `profiles.py`           | new class (Detector protocol) + register in profile band      |
+| "Change CUSUM / PCA / TemporalProfile internal logic"        | `src/anomaly/detectors.py`                           | edit the class body                                           |
+| "Change DQG cooldown / persistence / OOR behavior"           | `src/anomaly/detectors.py` (`DataQualityGate`)       | edit the class body                                           |
+| "Change fusion gap / max_span / anchor rule"                 | `src/anomaly/profiles.py`                            | edit `_continuous_fuser` or `_default_fuser`                  |
+| "Add or tighten a corroboration rule"                        | `src/anomaly/fusion.py`                              | edit `ContinuousCorroboration.accepts` or add new rule class  |
+| "Add a new fuser strategy (not DefaultAlertFuser)"           | `src/anomaly/fusion.py` + `profiles.py`              | new class implementing `AlertFuser` Protocol + wire in        |
+
+When writing the hypothesis-pre-implementation plan in §3.1, name the exact
+file and the exact function / class / dict-entry you'll touch. If the diff
+spans more than 2 files under this map, the hypothesis is probably two
+hypotheses — split it.
 
 ---
 
@@ -258,7 +291,9 @@ These are hard rules — violating any is a bug, not a style choice.
 
 Stop the loop and report to the user when any of the following occurs:
 
-- You need to add or rename a detector (larger than a tuning step).
+- You need to add a *new band* (beyond SHORT/MEDIUM/LONG) or change how
+  bands compose — that's an architecture change, not tuning. (Adding a new
+  detector or corroboration rule inside an existing band is fine — see §1.5.)
 - You need to change metrics or the evaluation script itself — the research
   loop depends on metric continuity.
 - Three consecutive iterations REJECT with no new hypothesis spawned; the

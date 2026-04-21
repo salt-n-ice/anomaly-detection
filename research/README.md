@@ -7,6 +7,34 @@ The loop is: pick one hypothesis → implement the minimum change → run the fu
 eval → inspect the plots → ACCEPT or REJECT against hard metric floors → append
 to the iteration log. `ultrathink` every step.
 
+## Architecture (post-2026-04-21 refactor)
+
+The pipeline is organized by **anomaly time-horizon band**. Most hypotheses
+touch exactly one of the following edit surfaces — smaller diffs, sharper
+cause-and-effect.
+
+| Band    | Horizon       | Detectors                                 | Edit surface                                              |
+|---------|---------------|-------------------------------------------|-----------------------------------------------------------|
+| SHORT   | seconds–min   | `DataQualityGate`, `StateTransition`      | `detectors.py` class body, or add/remove in `profiles.py` |
+| MEDIUM  | min–hours     | `CUSUM`, `SubPCA`, `MultivariatePCA`      | `detectors.py` class body, or tune kwargs in `profiles.py`|
+| LONG    | hours–days    | `TemporalProfile`, `DefaultAlertFuser`    | `detectors.py` / `fusion.py`, or profile params           |
+
+**File map — where to edit for what:**
+
+| Hypothesis target                                        | File to edit                                            |
+|----------------------------------------------------------|---------------------------------------------------------|
+| Detector threshold, warmup, window length, feature list  | `src/anomaly/profiles.py` (change `partial(...)` kwargs)|
+| Enable / disable a detector for an archetype             | `src/anomaly/profiles.py` (add/remove from band list)   |
+| Detector internal algorithm (CUSUM math, PCA logic)      | `src/anomaly/detectors.py` (class body)                 |
+| DQG cooldown, persistence, OOR behavior                  | `src/anomaly/detectors.py` (`DataQualityGate`)          |
+| Fusion gap, max_span, CUSUM-anchor rule                  | `src/anomaly/profiles.py` (`_continuous_fuser` etc.)    |
+| Corroboration filter (CONTINUOUS FP rejection rules)     | `src/anomaly/fusion.py` (`ContinuousCorroboration`)     |
+| Add a new detector                                       | `src/anomaly/detectors.py` + register in `profiles.py`  |
+| Add a new corroboration rule                             | `src/anomaly/fusion.py` + wire via profile              |
+
+`pipeline.py` is now a thin dispatcher — **don't edit it** unless the
+hypothesis is about cross-band orchestration (bootstrap timing, adapter wiring).
+
 ## Files
 
 | File               | Purpose                                                                                |
