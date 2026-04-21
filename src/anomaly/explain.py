@@ -95,14 +95,19 @@ def extract_magnitude(alert: Alert, events: pd.DataFrame) -> dict:
         source = "prewindow_median"
 
     during = sub[(sub["timestamp"] >= w0) & (sub["timestamp"] <= w1)]
-    if len(during) == 0:
+    # baseline != baseline is the standard NaN check — happens when the 2h
+    # pre-window has no events and the median fallback resolves to NaN.
+    if len(during) == 0 or baseline != baseline:
         peak = float("nan"); delta = float("nan")
     else:
-        deltas = during["value"].astype(float) - baseline
-        # The "peak" is the value with the largest |delta| during the window.
-        peak_idx = deltas.abs().idxmax()
-        peak = float(during.loc[peak_idx, "value"])
-        delta = float(peak - baseline)
+        deltas = (during["value"].astype(float) - baseline).dropna()
+        if len(deltas) == 0:
+            peak = float("nan"); delta = float("nan")
+        else:
+            # The "peak" is the value with the largest |delta| during the window.
+            peak_idx = deltas.abs().idxmax()
+            peak = float(during.loc[peak_idx, "value"])
+            delta = float(peak - baseline)
 
     pct = (delta / baseline * 100.0) if baseline and baseline != 0 else float("nan")
     return {

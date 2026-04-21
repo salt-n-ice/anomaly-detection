@@ -115,6 +115,25 @@ def test_extract_magnitude_falls_back_to_prewindow_median():
     assert m["baseline_source"] == "prewindow_median"
 
 
+def test_extract_magnitude_nan_baseline_when_no_prewindow():
+    """Alert window at t0 with no prior events -> baseline is NaN; peak/delta
+    must be NaN without raising (regression: .idxmax() on all-NaN deltas)."""
+    t0 = pd.Timestamp("2026-03-05T10:00:00Z")
+    df = pd.DataFrame([
+        {"timestamp": t0, "sensor_id": "s",
+         "capability": "v", "value": 42.0},
+    ])
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+    alert = Alert(sensor_id="s", capability="v", timestamp=t0,
+                  detector="sub_pca", score=1.0, threshold=0.5,
+                  window_start=t0, window_end=t0 + pd.Timedelta(minutes=1),
+                  context=None)
+    m = extract_magnitude(alert, df)
+    assert m["baseline"] != m["baseline"]  # NaN
+    assert m["peak"] != m["peak"]
+    assert m["delta"] != m["delta"]
+
+
 def test_temporal_framing_emits_calendar_fields():
     ts0 = pd.Timestamp("2026-03-07T14:00:00Z")  # Saturday afternoon
     alert = Alert(sensor_id="s", capability="v", timestamp=ts0,
