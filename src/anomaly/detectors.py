@@ -40,7 +40,8 @@ class DataQualityGate:
     _CLOCK_DRIFT_TICK_RATIO = 0.005   # per-tick delta threshold as fraction of expected_interval (floor 3s)
     _CLOCK_DRIFT_PERSISTENCE = 3      # consecutive drifted ticks required before firing
     _EXTREME_CAL_SAMPLES = 100        # events to observe before the extreme_value branch arms
-    _EXTREME_RATIO = 3.0              # fire when value > ref_max_seen * ratio (catches pre-bootstrap spikes without tripping on natural burst-ON peaks)
+    _EXTREME_RATIO_BURSTY = 3.0       # BURSTY cycles ON/OFF with natural peaks ~2x OFF-state median, so anything lower than 3x tripped during normal ON windows
+    _EXTREME_RATIO_CONT = 1.7         # CONTINUOUS sensors have narrow natural variance around a stable mean, so a tighter ratio is safe and catches leak_temperature's 1.78x spike
     _EXTREME_COOLDOWN = pd.Timedelta(hours=1)
 
     def __init__(self, config: SensorConfig):
@@ -58,6 +59,9 @@ class DataQualityGate:
         self._extreme_seen = 0             # calibration-phase sample counter
         self._extreme_ref_max: float = -math.inf  # expanding max; updates on every event and on every fire
         self._last_extreme_fire: pd.Timestamp | None = None
+        self._extreme_ratio = (self._EXTREME_RATIO_CONT
+                               if config.archetype == Archetype.CONTINUOUS
+                               else self._EXTREME_RATIO_BURSTY)
 
     def fit(self, rows): pass
     def update(self, ts, feat): return []
@@ -90,7 +94,7 @@ class DataQualityGate:
                 self._extreme_ref_max = ev.value
             self._extreme_seen += 1
         elif self._extreme_ref_max > 0:
-            thr = self._extreme_ref_max * self._EXTREME_RATIO
+            thr = self._extreme_ref_max * self._extreme_ratio
             if ev.value > thr:
                 if (self._last_extreme_fire is None
                         or (ev.timestamp - self._last_extreme_fire) >= self._EXTREME_COOLDOWN):
@@ -98,7 +102,7 @@ class DataQualityGate:
                                       "extreme_value", ev.value,
                                       context={"detector": self.name, "reason": "extreme_value",
                                                "value": ev.value, "ref_max": self._extreme_ref_max,
-                                               "ratio": self._EXTREME_RATIO}))
+                                               "ratio": self._extreme_ratio}))
                     self._last_extreme_fire = ev.timestamp
                     self._extreme_ref_max = ev.value
         # saturation (10+ consecutive at max)
