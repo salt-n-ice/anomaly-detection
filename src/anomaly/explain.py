@@ -89,10 +89,21 @@ def extract_magnitude(alert: Alert, events: pd.DataFrame) -> dict:
         baseline = float(cusum["mu"])
         source = "cusum_mu"
     else:
-        pre = sub[(sub["timestamp"] >= w0 - pd.Timedelta(hours=2))
-                  & (sub["timestamp"] < w0)]
-        baseline = float(pre["value"].median()) if len(pre) else float("nan")
-        source = "prewindow_median"
+        # Sparse / event-driven sensors (battery, state-change) routinely
+        # have empty 2h pre-windows. Widen to 24h, then 7d before giving up —
+        # a sparse baseline beats a NaN one as long as the source label is
+        # surfaced so downstream consumers can weight it accordingly.
+        baseline = float("nan")
+        source = "prewindow_unavailable"
+        for hours, label in ((2, "prewindow_2h"),
+                             (24, "prewindow_24h"),
+                             (7 * 24, "prewindow_7d")):
+            pre = sub[(sub["timestamp"] >= w0 - pd.Timedelta(hours=hours))
+                      & (sub["timestamp"] < w0)]
+            if len(pre):
+                baseline = float(pre["value"].median())
+                source = label
+                break
 
     during = sub[(sub["timestamp"] >= w0) & (sub["timestamp"] <= w1)]
     # baseline != baseline is the standard NaN check — happens when the 2h
@@ -119,6 +130,100 @@ def extract_magnitude(alert: Alert, events: pd.DataFrame) -> dict:
     }
 
 
+def _synth_detector_context(alert: Alert, events: pd.DataFrame,
+                            mag: dict) -> list[dict]:
+    """Rebuild best-effort per-detector context when the live dicts are absent.
+
+    The batch/CSV path strips ``alert.context`` because the detections CSV
+    doesn't carry detector-native diagnostics — bundles end up with
+    ``detector_context = []`` and the prompt renders "(per-detector context
+    dicts unavailable)". This function derives the stats a reader actually
+    uses to interpret each detector (cusum direction + mu/sigma,
+    temporal_profile same-hour z, DQG raw value + anomaly_type) from the
+    events frame, so bundles from the batch path carry equivalent signal.
+    """
+    dets = sorted(alert.detector.split("+"))
+    w0 = alert.window_start or alert.timestamp
+    w1 = alert.window_end or alert.timestamp
+
+    if "timestamp" in events.columns and events["timestamp"].dtype != "datetime64[ns, UTC]":
+        events = events.copy()
+        events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
+    sub = events[events["sensor_id"] == alert.sensor_id]
+    pre = sub[(sub["timestamp"] >= w0 - pd.Timedelta(hours=2))
+              & (sub["timestamp"] < w0)]
+    pre_median = float(pre["value"].median()) if len(pre) else float("nan")
+    pre_std = float(pre["value"].std()) if len(pre) > 1 else float("nan")
+
+    peak = mag.get("peak")
+    delta = mag.get("delta")
+    delta_val = float(delta) if delta is not None and delta == delta else 0.0
+    if delta_val > 0:
+        direction = "+"
+    elif delta_val < 0:
+        direction = "-"
+    else:
+        direction = "0"
+
+    ctxs: list[dict] = []
+    for det in dets:
+        if det == "cusum":
+            ctxs.append({
+                "detector": "cusum",
+                "mu": pre_median,
+                "sigma": pre_std,
+                "direction": direction,
+                "delta": delta,
+                "source": "derived_from_prewindow",
+            })
+        elif det in ("sub_pca", "multivariate_pca"):
+            approx_z = (abs(delta_val) / pre_std
+                        if pre_std and pre_std > 0 and pre_std == pre_std
+                        else float("nan"))
+            ctxs.append({
+                "detector": det,
+                "approx_residual_z": approx_z,
+                "baseline": pre_median,
+                "source": "derived_from_prewindow",
+            })
+        elif det == "data_quality_gate":
+            ctxs.append({
+                "detector": "data_quality_gate",
+                "anomaly_type": alert.anomaly_type,
+                "value": peak,
+                "score": float(alert.score),
+            })
+        elif det == "temporal_profile":
+            hr = int(w0.hour)
+            hour_prior = sub[(sub["timestamp"] < w0)
+                             & (sub["timestamp"].dt.hour == hr)]
+            hour_median = (float(hour_prior["value"].median())
+                           if len(hour_prior) else float("nan"))
+            hour_std = (float(hour_prior["value"].std())
+                        if len(hour_prior) > 1 else float("nan"))
+            if (peak is not None and peak == peak
+                    and hour_std and hour_std > 0 and hour_std == hour_std):
+                approx_hour_z = (float(peak) - hour_median) / hour_std
+            else:
+                approx_hour_z = float("nan")
+            ctxs.append({
+                "detector": "temporal_profile",
+                "hour_of_day": hr,
+                "same_hour_median": hour_median,
+                "approx_hour_z": approx_hour_z,
+                "source": "derived_from_same_hour_history",
+            })
+        elif det == "state_transition":
+            ctxs.append({
+                "detector": "state_transition",
+                "anomaly_type": alert.anomaly_type,
+                "raw_value": peak,
+            })
+        else:
+            ctxs.append({"detector": det, "source": "derived_no_model"})
+    return ctxs
+
+
 def temporal_framing(alert: Alert) -> dict:
     ts = alert.timestamp
     bucket = next((name for lo, hi, name in _TIME_BUCKETS if lo <= ts.hour < hi),
@@ -133,10 +238,50 @@ def temporal_framing(alert: Alert) -> dict:
     }
 
 
+def _same_hour_weekday_stats(alert: Alert, events: pd.DataFrame,
+                             peak: float | None) -> dict:
+    """Compare the alert's peak against same-hour-of-weekday history.
+
+    A large |z| means the value is unusual for this sensor at this
+    hour-of-day on this day-of-week — positive evidence for calendar-family
+    anomalies (time_of_day, weekend_anomaly, temporal_pattern) even when the
+    firing detectors are statistical rather than `temporal_profile`.
+    Returns ``{}`` if there's too little peer history (< 4 points) or peak
+    is not finite.
+    """
+    if peak is None or peak != peak:
+        return {}
+    ts = alert.timestamp
+    w0 = alert.window_start or ts
+    if "timestamp" in events.columns and events["timestamp"].dtype != "datetime64[ns, UTC]":
+        events = events.copy()
+        events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
+    sub = events[events["sensor_id"] == alert.sensor_id]
+    peers = sub[(sub["timestamp"] < w0)
+                & (sub["timestamp"].dt.hour == ts.hour)
+                & (sub["timestamp"].dt.dayofweek == ts.dayofweek)]
+    if len(peers) < 4:
+        return {}
+    peer_median = float(peers["value"].median())
+    peer_std = float(peers["value"].std())
+    if not (peer_std and peer_std > 0 and peer_std == peer_std):
+        return {}
+    return {
+        "same_hour_weekday_median": peer_median,
+        "same_hour_weekday_std": peer_std,
+        "same_hour_weekday_n": int(len(peers)),
+        "same_hour_weekday_z": float((peak - peer_median) / peer_std),
+    }
+
+
 def explain(alert: Alert, events: pd.DataFrame) -> dict:
     """Top-level composer. Returns a structured bundle ready for an LLM prompt."""
     w0 = alert.window_start or alert.timestamp
     w1 = alert.window_end or alert.timestamp
+    mag = extract_magnitude(alert, events)
+    ctx = list(alert.context) if alert.context else _synth_detector_context(alert, events, mag)
+    temporal = temporal_framing(alert)
+    temporal.update(_same_hour_weekday_stats(alert, events, mag.get("peak")))
     return {
         "alert_id": f"{alert.sensor_id}|{alert.capability}|{w0.isoformat()}",
         "sensor": alert.sensor_id,
@@ -144,10 +289,10 @@ def explain(alert: Alert, events: pd.DataFrame) -> dict:
         "window": {"start": w0.isoformat(), "end": w1.isoformat(),
                    "duration_sec": float((w1 - w0).total_seconds())},
         "inferred_type": classify_type(alert),
-        "magnitude": extract_magnitude(alert, events),
-        "temporal": temporal_framing(alert),
+        "magnitude": mag,
+        "temporal": temporal,
         "detectors": sorted(alert.detector.split("+")),
-        "detector_context": list(alert.context) if alert.context else [],
+        "detector_context": ctx,
         "score": float(alert.score),
         "threshold": float(alert.threshold),
     }
@@ -243,6 +388,14 @@ def build_prompt(bundle: dict) -> str:
         f"{'weekend' if temp.get('is_weekend') else 'weekday'}, "
         f"{temp.get('month', '?')}."
     )
+    shwz = temp.get("same_hour_weekday_z")
+    if shwz is not None and shwz == shwz:
+        lines.append(
+            f"**Same-hour-of-weekday baseline:** peak is "
+            f"{shwz:+.2f}σ vs. the median of {temp.get('same_hour_weekday_n', 0)} "
+            f"prior {temp.get('weekday', '?')} {temp.get('hour', '?')}:00 samples "
+            f"(peer median {temp.get('same_hour_weekday_median'):.4g})."
+        )
     lines.append("")
 
     lines.append("**Detector evidence:**")

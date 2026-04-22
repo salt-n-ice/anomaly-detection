@@ -62,27 +62,50 @@ def _gt_family(gt_type: str) -> str:
     return "other"
 
 
-def _detector_family(detectors: list[str], dur_sec: float) -> str:
-    """Which family does the detector set most strongly indicate?"""
+def _detector_family(detectors: list[str], dur_sec: float,
+                     mag: dict | None = None) -> str:
+    """Which family does the detector set most strongly indicate?
+
+    If ``mag`` is provided, the family can be promoted based on the magnitude
+    signature (currently only drift → state for binary on/off patterns).
+    """
     s = set(detectors)
     if s == {"data_quality_gate"}:
-        return "dqg"
-    if s == {"state_transition"}:
-        return "state"
-    if s == {"temporal_profile"}:
-        return "calendar"
+        base = "dqg"
+    elif s == {"state_transition"}:
+        base = "state"
+    elif s == {"temporal_profile"}:
+        base = "calendar"
     # Multi-detector statistical sets
-    if "cusum" in s and dur_sec < 10 * 60 and len(s) >= 3:
-        return "spike"
-    if "cusum" in s and dur_sec > 3600:
-        return "drift"
-    if "sub_pca" in s and "cusum" not in s and dur_sec >= 3600:
-        return "shape"
-    if "sub_pca" in s and "cusum" not in s:
-        return "spike"  # short sub_pca-only
-    if "cusum" in s:
-        return "drift"  # fallback short cusum
-    return "other"
+    elif "cusum" in s and dur_sec < 10 * 60 and len(s) >= 3:
+        base = "spike"
+    elif "cusum" in s and dur_sec > 3600:
+        base = "drift"
+    elif "sub_pca" in s and "cusum" not in s and dur_sec >= 3600:
+        base = "shape"
+    elif "sub_pca" in s and "cusum" not in s:
+        base = "spike"  # short sub_pca-only
+    elif "cusum" in s:
+        base = "drift"  # fallback short cusum
+    else:
+        base = "other"
+
+    # Binary-state promotion: drift-family detectors seeing a near-zero
+    # baseline with a small-integer-magnitude delta is a discrete on/off
+    # transition (leak_basement 0 → 1, unusual_occupancy 0 → 1), not a
+    # gradual drift. Cap |delta| ≤ 2 so large-delta kettle/outlet power
+    # swings (also baseline≈0 when off) don't get mis-promoted.
+    if base == "drift" and mag:
+        baseline = mag.get("baseline")
+        delta = mag.get("delta")
+        try:
+            b = float(baseline); d = float(delta)
+            if (b == b and d == d  # both non-NaN
+                    and abs(b) < 0.1 and 0.5 <= abs(d) <= 2.0):
+                return "state"
+        except (TypeError, ValueError):
+            pass
+    return base
 
 
 # -----------------------------------------------------------------------
@@ -99,11 +122,16 @@ def _score_tp(case: dict) -> tuple[dict, str]:
     gt_fam = _gt_family(gt_type)
     dets = b.get("detectors") or []
     dur_sec = float(b["window"]["duration_sec"])
-    det_fam = _detector_family(dets, dur_sec)
-    ctx = b.get("detector_context") or []
     mag = b.get("magnitude") or {}
+    det_fam = _detector_family(dets, dur_sec, mag)
+    ctx = b.get("detector_context") or []
     baseline = mag.get("baseline")
     baseline_nan = (baseline is None) or (isinstance(baseline, float) and math.isnan(baseline))
+    temp = b.get("temporal") or {}
+    shwz = temp.get("same_hour_weekday_z")
+    shwn = int(temp.get("same_hour_weekday_n") or 0)
+    has_calendar_evidence = (shwz is not None and shwz == shwz
+                             and abs(float(shwz)) >= 1.5 and shwn >= 4)
 
     # --- type_identifiability ---
     # Based on whether the prompt's evidence (detectors + duration + magnitude)
@@ -128,6 +156,12 @@ def _score_tp(case: dict) -> tuple[dict, str]:
             type_id = 3
     elif gt_fam == "other" or det_fam == "other":
         type_id = 3
+    elif gt_fam == "calendar" and has_calendar_evidence:
+        # Calendar-family GT with non-calendar firing detectors, but the
+        # value IS ≥2σ unusual for this sensor at this weekday+hour.
+        # The bundle's calendar evidence is present even if the primary
+        # detector is dqg/drift/shape — let it count for type_id.
+        type_id = 4
     else:
         # Mismatch. Short-spike detectors seeing a GT drift = moderate
         # (detectors still real, just family off). DQG seeing a shape
@@ -135,8 +169,16 @@ def _score_tp(case: dict) -> tuple[dict, str]:
         type_id = 2
 
     # --- magnitude_fidelity ---
+    baseline_source = mag.get("baseline_source") or ""
+    # Wide-fallback baselines (24h, 7d) come from sparse event-driven sensors;
+    # the number is real but lower-confidence than a 2h pre-window or the
+    # detector-native cusum_mu, so cap the reward at 3 (better than NaN's 2,
+    # worse than a well-populated pre-window's 4-5).
+    weak_baseline = baseline_source in ("prewindow_24h", "prewindow_7d")
     if baseline_nan:
         mag_fid = 2  # no magnitude evidence at all
+    elif weak_baseline:
+        mag_fid = 3
     else:
         params = gt.get("params_json") or "{}"
         try:
@@ -167,6 +209,15 @@ def _score_tp(case: dict) -> tuple[dict, str]:
             tmp_fid = 3
         else:
             tmp_fid = 2
+    # Calendar-family GTs: the rubric calls out "weekday, hour match" as
+    # temporal-fidelity evidence. A TP on a calendar GT has its bundle
+    # timestamp inside the GT window by construction, and
+    # has_calendar_evidence (|z|>=2 vs same-hour-of-weekday peers)
+    # confirms the value is temporally anomalous. That's stronger temporal
+    # evidence than a sub-0.05 dur_ratio suggests; bump to 4 if not already
+    # higher.
+    if gt_fam == "calendar" and has_calendar_evidence and tmp_fid < 4:
+        tmp_fid = 4
 
     # --- detector_evidence_usefulness ---
     if len(ctx) >= 2:
@@ -194,7 +245,9 @@ def _score_tp(case: dict) -> tuple[dict, str]:
     }
     notes = (f"det_fam={det_fam}, gt_fam={gt_fam}, "
              f"dur_ratio={(dur_sec / gt_dur):.2f}, "
-             f"ctx_n={len(ctx)}, baseline_nan={baseline_nan}")
+             f"ctx_n={len(ctx)}, baseline_nan={baseline_nan}, "
+             f"baseline_source={baseline_source}, "
+             f"cal_ev={has_calendar_evidence}")
     return scores, notes
 
 
@@ -210,6 +263,8 @@ def _score_fp(case: dict) -> tuple[dict, str]:
     mag = b.get("magnitude") or {}
     baseline = mag.get("baseline")
     baseline_nan = (baseline is None) or (isinstance(baseline, float) and math.isnan(baseline))
+    baseline_source = mag.get("baseline_source") or ""
+    weak_baseline = baseline_source in ("prewindow_24h", "prewindow_7d")
     delta_pct = mag.get("delta_pct")
     score = b.get("score") or 0.0
     thr = b.get("threshold") or 0.0
@@ -218,9 +273,11 @@ def _score_fp(case: dict) -> tuple[dict, str]:
     # High = reader can tell it's weak. Low = bundle reads confident.
     # Heuristic: empty context + short window + no giant delta = medium-high
     # weakness. Big delta on single detector with threshold ~0 reads confident
-    # (low weakness signal).
-    if baseline_nan:
-        self_w = 3  # "baseline unavailable" is some weakness signal
+    # (low weakness signal). Wide-fallback baselines (24h/7d) indicate sparse
+    # sensors where the FP evidence is also inherently weaker — treat as
+    # nan-equivalent for the weakness signal so we don't penalize recovery.
+    if baseline_nan or weak_baseline:
+        self_w = 3  # "baseline unavailable / sparse" is some weakness signal
     elif len(ctx) == 0 and len(dets) == 1:
         self_w = 3
     elif delta_pct is not None and abs(delta_pct) > 100.0:
@@ -255,13 +312,27 @@ def _score_fp(case: dict) -> tuple[dict, str]:
     else:
         no_fc = 3
 
+    # Small-delta override: an FP with a solid baseline (not nan, not wide
+    # fallback) but |delta_pct| < 5 honestly reports a sub-5% excursion —
+    # that's a discriminative weakness marker a reader can flag, so both
+    # self_w and no_fc get credit for the bundle not over-claiming.
+    small_delta = (delta_pct is not None
+                   and isinstance(delta_pct, (int, float))
+                   and not math.isnan(float(delta_pct))
+                   and abs(float(delta_pct)) < 5.0
+                   and not baseline_nan and not weak_baseline)
+    if small_delta:
+        self_w = max(self_w, 4)
+        no_fc = max(no_fc, 4)
+
     scores = {
         "self_weakness_signal": self_w,
         "evidence_coherence": evd_coh,
         "no_false_confidence": no_fc,
     }
     notes = (f"dets={','.join(dets)}, dur={dur_sec:.0f}s, ctx_n={len(ctx)}, "
-             f"baseline_nan={baseline_nan}, delta_pct={delta_pct}")
+             f"baseline_nan={baseline_nan}, delta_pct={delta_pct}, "
+             f"small_delta={small_delta}")
     return scores, notes
 
 

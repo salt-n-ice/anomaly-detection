@@ -112,7 +112,7 @@ def test_extract_magnitude_falls_back_to_prewindow_median():
     m = extract_magnitude(alert, df)
     assert m["baseline"] == 10.0
     assert m["delta"] == 15.0
-    assert m["baseline_source"] == "prewindow_median"
+    assert m["baseline_source"] == "prewindow_2h"
 
 
 def test_extract_magnitude_nan_baseline_when_no_prewindow():
