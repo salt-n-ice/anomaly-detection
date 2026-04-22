@@ -92,6 +92,16 @@ class DefaultAlertFuser:
         # this 3-det signature have non-mvpca predecessors (they occur while
         # MvPCA hasn't yet fired for the active anomaly bout).
         self._last_emit_dets: frozenset[str] | None = None
+        # End timestamp of the most recently *attempted* fused chain (whether
+        # emitted or filtered). Distinct from `_newest_ts` (which is reset on
+        # every flush). The CONTINUOUS between-trend filter uses this to
+        # require >5d gap from the previous attempt: on leak_battery, Row 17
+        # (first FP after a cusum-only chain) is kept; Rows 18/19 (isolated
+        # 3-det chains 6d/18d apart) are dropped; Row 20 (trend2 boundary,
+        # 4d after Row 19) is preserved. outlet_voltage's late-May 3-det
+        # streak has consecutive chains with sub-1h gaps so it never trips
+        # the 5d threshold.
+        self._last_attempt_end_ts: pd.Timestamp | None = None
 
     @staticmethod
     def _is_immediate(a: Alert) -> bool:
@@ -103,10 +113,13 @@ class DefaultAlertFuser:
     def _flush(self) -> list[Alert]:
         if not self._pending:
             return []
+        chain_start = self._pending[0].timestamp
+        chain_end = self._pending[-1].timestamp
         emitted: list[Alert] = []
         if self.rule.accepts(self._pending):
             dets = {a.detector for a in self._pending}
             is_bursty = self.cfg.archetype == Archetype.BURSTY
+            is_continuous = self.cfg.archetype == Archetype.CONTINUOUS
             is_cs2 = is_bursty and dets == {"cusum", "sub_pca"}
             is_cstp3_post_mvpca = (
                 is_bursty
@@ -114,17 +127,30 @@ class DefaultAlertFuser:
                 and self._last_emit_dets is not None
                 and "multivariate_pca" in self._last_emit_dets
             )
+            is_cms3_continuous_between = (
+                is_continuous
+                and dets == {"cusum", "multivariate_pca", "sub_pca"}
+                and self._last_emit_dets is not None
+                and "multivariate_pca" in self._last_emit_dets
+                and self._last_attempt_end_ts is not None
+                and (chain_start - self._last_attempt_end_ts) > pd.Timedelta(days=5)
+            )
             if is_cs2:
                 self._consecutive_cs += 1
                 if self._consecutive_cs <= 2:
                     emitted.append(group_alerts(self._pending))
                     self._last_emit_dets = frozenset(dets)
-            elif is_cstp3_post_mvpca:
-                pass  # Iter 015: wind-down lead chain — drop
+            elif is_cstp3_post_mvpca or is_cms3_continuous_between:
+                pass  # Iter 015/016: cross-chain wind-down / between-trend filter
             else:
                 self._consecutive_cs = 0
                 emitted.append(group_alerts(self._pending))
                 self._last_emit_dets = frozenset(dets)
+            # Only chains that pass corroboration count as "attempts" for the
+            # cross-chain gap tracker — corroboration-rejected chains are noise
+            # (e.g., dense sub-90h cusum-only chains on long-cadence sensors)
+            # and would shrink the apparent gap to ~0.
+            self._last_attempt_end_ts = chain_end
         self._pending = []
         self._newest_ts = None
         self._newest_non_cusum_ts = None
