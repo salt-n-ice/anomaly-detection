@@ -39,6 +39,9 @@ class DataQualityGate:
     _CLOCK_DRIFT_COOLDOWN = pd.Timedelta(minutes=5)
     _CLOCK_DRIFT_TICK_RATIO = 0.005   # per-tick delta threshold as fraction of expected_interval (floor 3s)
     _CLOCK_DRIFT_PERSISTENCE = 3      # consecutive drifted ticks required before firing
+    _EXTREME_CAL_SAMPLES = 100        # events to observe before the extreme_value branch arms
+    _EXTREME_RATIO = 3.0              # fire when value > ref_max_seen * ratio (catches pre-bootstrap spikes without tripping on natural burst-ON peaks)
+    _EXTREME_COOLDOWN = pd.Timedelta(hours=1)
 
     def __init__(self, config: SensorConfig):
         self.config = config
@@ -52,6 +55,9 @@ class DataQualityGate:
         self._last_batch_fire: pd.Timestamp | None = None
         self._clock_drift_count: int = 0   # consecutive-tick counter; decays on normal-cadence ticks
         self._last_clock_drift_fire: pd.Timestamp | None = None
+        self._extreme_seen = 0             # calibration-phase sample counter
+        self._extreme_ref_max: float = -math.inf  # expanding max; updates on every event and on every fire
+        self._last_extreme_fire: pd.Timestamp | None = None
 
     def fit(self, rows): pass
     def update(self, ts, feat): return []
@@ -74,6 +80,27 @@ class DataQualityGate:
                                   context={"detector": self.name, "reason": "out_of_range",
                                            "side": "max", "value": ev.value, "limit": cfg.max_value}))
                 self._last_max_fire = ev.timestamp
+        # extreme_value: pre-bootstrap spike catcher. After N calibration events the
+        # running max is frozen-by-default; a new value > max * RATIO fires and updates
+        # the max so sustained high values re-calibrate upward (saturation/OOR
+        # regions don't produce a fire stream). Monotonic max update means natural
+        # post-bootstrap peaks reset the threshold to keep pace with level shifts.
+        if self._extreme_seen < self._EXTREME_CAL_SAMPLES:
+            if ev.value > self._extreme_ref_max:
+                self._extreme_ref_max = ev.value
+            self._extreme_seen += 1
+        elif self._extreme_ref_max > 0:
+            thr = self._extreme_ref_max * self._EXTREME_RATIO
+            if ev.value > thr:
+                if (self._last_extreme_fire is None
+                        or (ev.timestamp - self._last_extreme_fire) >= self._EXTREME_COOLDOWN):
+                    out.append(_alert(cfg, ev.timestamp, self.name, ev.value, thr,
+                                      "extreme_value", ev.value,
+                                      context={"detector": self.name, "reason": "extreme_value",
+                                               "value": ev.value, "ref_max": self._extreme_ref_max,
+                                               "ratio": self._EXTREME_RATIO}))
+                    self._last_extreme_fire = ev.timestamp
+                    self._extreme_ref_max = ev.value
         # saturation (10+ consecutive at max)
         if cfg.max_value is not None and ev.value >= cfg.max_value:
             self._sat_run += 1
