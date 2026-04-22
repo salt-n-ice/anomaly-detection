@@ -32,6 +32,8 @@ class ContinuousCorroboration:
         if dets == {"cusum", "multivariate_pca"}:
             return (duration <= pd.Timedelta(hours=1)
                     and max(a.score for a in alerts) < 2.0)
+        if dets == {"cusum", "multivariate_pca", "temporal_profile"}:
+            return duration >= pd.Timedelta(hours=1)
         if dets == {"sub_pca"}:
             starts = [a.window_start or a.timestamp for a in alerts]
             ends = [a.window_end or a.timestamp for a in alerts]
