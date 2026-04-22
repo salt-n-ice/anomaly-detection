@@ -1,5 +1,31 @@
 # Changes
 
+## Latency metric (2026-04-22)
+
+`src/anomaly/metrics.py` gains `compute_metrics_latency(gt_df, det_df)`.
+For each GT label covered by ≥1 overlapping detection, latency is
+`max(0, earliest_overlap_det.start - label.start)` in seconds; unmatched
+labels (FN) are excluded. Returns `mean / median / p95 / max` across
+matched labels plus `n_tp_labels`. Unlike `compute_metrics_event`,
+latency doesn't merge detections — the caller can pass a pre-filtered
+`det_df` (e.g. detector ≠ `data_quality_gate`) to isolate the stats-
+detector first-fire lag from the DQG fast-path.
+
+Motivation: the existing three metrics (`_event`, `_time`, `_pointwise`)
+all treat a detection the same regardless of *when* in the label window
+it first fires — a detection arriving 23h into a 24h label is a perfect
+TP under evt_f1. For an actionable alerting system, alert latency
+matters distinctly from coverage and precision.
+
+No floor enforcement yet; measurement-only until G-series backlog items
+accumulate enough data to pick a defensible tolerance. The research
+harness (`research/run_research_eval.py`, gitignored) calls this twice
+per scenario (all-detectors + nondqg) and reports into the snapshot
+JSON + print_table — see `research/BASELINE.md` for the current per-
+scenario numbers and outliers.
+
+---
+
 ## Explainer session (2026-04-21/22)
 
 `src/anomaly/explain.py` enriched to carry more evidence per bundle

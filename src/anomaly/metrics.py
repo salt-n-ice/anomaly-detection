@@ -158,6 +158,45 @@ def compute_metrics_time(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
             "per_sensor": per_sensor}
 
 
+def compute_metrics_latency(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
+    """Per-label first-alert latency, in seconds.
+
+    For each GT label matched by at least one overlapping detection, latency is
+    `max(0, earliest_overlap_det.start - label.start)`. Clamp-at-zero preserves
+    the "alert available at or before label start = zero latency" reading;
+    negative leading edges (detection fires slightly before label) aren't a
+    virtue we reward and they aren't a cost we penalize.
+
+    Unmatched GT labels (FN) are excluded — latency is undefined for misses, and
+    `incident_recall` / `evt_recall` already account for them.
+
+    The caller can restrict the detector set (e.g. to filter out DQG) by passing
+    a pre-filtered `det_df`. This keeps the function signature narrow and lets us
+    measure multiple latency breakdowns in the same evaluation pass without
+    coupling the function to detector-name taxonomy.
+    """
+    gt = _load(gt_df); det = _load(det_df)
+    lags: list[float] = []
+    for g in gt:
+        overlaps = [d for d in det if _overlaps(g, d)]
+        if not overlaps:
+            continue
+        first_start = min(d.start for d in overlaps)
+        lags.append(max(0.0, (first_start - g.start).total_seconds()))
+    if not lags:
+        return {"n_tp_labels": 0, "latency_mean_s": None,
+                "latency_median_s": None, "latency_p95_s": None,
+                "latency_max_s": None}
+    s = pd.Series(lags)
+    return {
+        "n_tp_labels": int(s.shape[0]),
+        "latency_mean_s": float(s.mean()),
+        "latency_median_s": float(s.median()),
+        "latency_p95_s": float(s.quantile(0.95)),
+        "latency_max_s": float(s.max()),
+    }
+
+
 def compute_metrics_event(gt_df: pd.DataFrame, det_df: pd.DataFrame,
                           merge_gap: pd.Timedelta = pd.Timedelta(hours=1)) -> dict:
     """Event-level F1: merge overlapping/near-adjacent detections into event clusters
