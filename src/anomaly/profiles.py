@@ -66,7 +66,7 @@ PROFILES: dict[Archetype, ArchetypeProfile] = {
         medium=[
             partial(CUSUM, features=_CONT_FEATS["cusum"], warmup_seconds=5*86400),
             partial(SubPCA, warmup_seconds=3*86400),
-            partial(MultivariatePCA, features=_CONT_FEATS["mvpca"], warmup_seconds=3*86400),
+            partial(MultivariatePCA, features=_CONT_FEATS["mvpca"], warmup_seconds=5*86400),
         ],
         long_tick=[partial(TemporalProfile, features=_CONT_FEATS["temporal"])],
         long_fuser=_continuous_fuser,
