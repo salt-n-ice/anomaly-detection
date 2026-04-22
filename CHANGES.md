@@ -1,5 +1,45 @@
 # Changes
 
+## Explainer session (2026-04-21/22)
+
+`src/anomaly/explain.py` enriched to carry more evidence per bundle
+without adding detector dependencies:
+
+1. **Per-detector synthetic context** — `_synth_detector_context`
+   rebuilds detector-native diagnostics (cusum `mu`/`sigma`/`direction`,
+   PCA `approx_residual_z`, DQG `anomaly_type` + `value`,
+   temporal-profile `hour_of_day` + `approx_hour_z`,
+   state_transition `anomaly_type`) from the events frame when
+   `alert.context` is empty on the CSV batch path. The live pipeline
+   path — where detectors attach their own context dicts — is
+   unchanged (synthesis activates only when `alert.context is None`).
+2. **Tiered baseline fallback** — `extract_magnitude` widens its
+   pre-window search 2h → 24h → 7d with per-tier `baseline_source`
+   label (`prewindow_2h` / `prewindow_24h` / `prewindow_7d` /
+   `prewindow_unavailable`). Recovers baselines on sparse event-driven
+   sensors (waterleak battery, waterleak temperature) where 2h windows
+   are routinely empty.
+3. **Same-hour-of-weekday evidence** — `explain()` attaches
+   `temporal.same_hour_weekday_{median, std, n, z}` via a new
+   `_same_hour_weekday_stats` helper, comparing the window peak
+   against same-hour-of-week historical peers. `build_prompt` renders
+   a "Same-hour-of-weekday baseline" line when the stats are
+   computable (peer_n ≥ 4, σ > 0).
+
+Design invariants preserved: bundle still omits `inferred_type` from
+the rendered prompt; all derived stats are tagged
+`source=derived_from_prewindow` (or similar) so downstream consumers
+can weight them vs detector-native values; NaN is still surfaced
+honestly when the 7d pre-window is truly empty.
+
+`tests/test_explain.py` — one baseline-source expectation renamed from
+`"prewindow_median"` to `"prewindow_2h"` to match the tiered label;
+all 21 explain tests pass.
+
+---
+
+## Detector-tuning session (2026-04-16/17)
+
 Brief log of the tuning session on 2026-04-16/17. Event F1 is the primary target; all four committed baselines are preserved, outlet_short improved substantially.
 
 ## Final metrics

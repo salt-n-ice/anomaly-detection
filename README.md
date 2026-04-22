@@ -168,6 +168,32 @@ python -m anomaly viz-long \
 
 Page 1 is a summary table of every label with duration, TP/FN, and detector mix. Each following page is one GT label whose duration ≥ `--min-hours`, showing the full 60-day signal with the label region highlighted, a zoomed signal with padded context (`max(1d, duration/3)`, capped at 14d), and aligned truth/detection strips.
 
+## Programmatic explainer (`anomaly.explain`)
+
+The pipeline emits `Alert` objects (see `core.Alert`). For LLM
+summarisation you can convert each alert into a structured bundle +
+markdown prompt:
+
+```python
+from anomaly.explain import explain, build_prompt, explain_detections_csv
+
+# Per-alert (live pipeline path — alert.context carries detector-native dicts)
+bundle = explain(alert, events_df)          # dict: window / magnitude / temporal / detectors / detector_context / ...
+prompt = build_prompt(bundle)               # markdown string the LLM reads
+
+# Batch (post-hoc from a detections CSV)
+explain_detections_csv(events_csv, detections_csv, out_jsonl)
+```
+
+The bundle carries derivable per-detector context (cusum
+mu/sigma/direction, PCA residual z, DQG anomaly_type + value,
+temporal-profile same-hour z), a tiered baseline (`prewindow_2h` /
+`prewindow_24h` / `prewindow_7d`), and same-hour-of-weekday peer
+statistics. `build_prompt` renders a human- and LLM-readable markdown
+block and deliberately omits the classifier's inferred type so the
+reader reasons from the evidence. See `CHANGES.md` for the evidence
+extensions and their rationale.
+
 ## Project structure
 
 ```
@@ -177,8 +203,11 @@ src/anomaly/
   features.py    calendar + rolling + first-diff enrichment
   detectors.py   DQG + CUSUM + SubPCA + MultivariatePCA + TemporalProfile
   batch.py       MatrixProfile (offline)
+  fusion.py      per-sensor alert fuser (chain + corroboration rules)
+  profiles.py    per-archetype detector/fuser factory registry
   pipeline.py    orchestrator, fusion, staggered bootstrap, CLI
-  metrics.py     interval-overlap + pointwise matching
+  metrics.py     interval-overlap + pointwise + event + time-weighted
+  explain.py     structured bundle + LLM-ready markdown prompt per alert
   viz.py         PDF visualization
 configs/                     sample sensor configurations (outlet / tv / kettle / waterleak)
 scripts/run_all_scenarios.py runs the pipeline on all 5 bundled scenarios, reports 1:1 / event / pointwise / time-weighted metrics
