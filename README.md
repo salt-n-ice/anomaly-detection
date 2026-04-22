@@ -172,27 +172,116 @@ Page 1 is a summary table of every label with duration, TP/FN, and detector mix.
 
 The pipeline emits `Alert` objects (see `core.Alert`). For LLM
 summarisation you can convert each alert into a structured bundle +
-markdown prompt:
+markdown prompt. `anomaly.explain` is a **library module — no CLI**;
+call it from Python once your detections CSV exists.
 
-```python
-from anomaly.explain import explain, build_prompt, explain_detections_csv
+### Batch: events CSV + detections CSV → bundles JSONL
 
-# Per-alert (live pipeline path — alert.context carries detector-native dicts)
-bundle = explain(alert, events_df)          # dict: window / magnitude / temporal / detectors / detector_context / ...
-prompt = build_prompt(bundle)               # markdown string the LLM reads
+After running `python -m anomaly run ...` to produce
+`out/outlet_detections.csv`, generate one bundle per detected alert:
 
-# Batch (post-hoc from a detections CSV)
-explain_detections_csv(events_csv, detections_csv, out_jsonl)
+```bash
+python -c "
+from anomaly.explain import explain_detections_csv
+n = explain_detections_csv(
+    events_csv     = '../synthetic-generator/out/outlet/events.csv',
+    detections_csv = 'out/outlet_detections.csv',
+    out_jsonl      = 'out/outlet_bundles.jsonl',
+)
+print(f'wrote {n} bundles')
+"
 ```
 
-The bundle carries derivable per-detector context (cusum
-mu/sigma/direction, PCA residual z, DQG anomaly_type + value,
-temporal-profile same-hour z), a tiered baseline (`prewindow_2h` /
-`prewindow_24h` / `prewindow_7d`), and same-hour-of-weekday peer
-statistics. `build_prompt` renders a human- and LLM-readable markdown
-block and deliberately omits the classifier's inferred type so the
-reader reasons from the evidence. See `CHANGES.md` for the evidence
-extensions and their rationale.
+`out/outlet_bundles.jsonl` is one JSON bundle per line:
+
+```json
+{
+  "alert_id": "outlet_fridge_power|power|2026-02-09T11:00:00+00:00",
+  "sensor": "outlet_fridge_power", "capability": "power",
+  "window": {"start": "...", "end": "...", "duration_sec": 60.0},
+  "inferred_type": "out_of_range",
+  "magnitude": {"baseline": 1.5, "baseline_source": "prewindow_2h",
+                "peak": 9999.0, "delta": 9997.5, "delta_pct": 666500.0},
+  "temporal": {"weekday": "Monday", "hour": 11, "is_weekend": false,
+               "same_hour_weekday_z": 3.2, "same_hour_weekday_n": 8, ...},
+  "detectors": ["data_quality_gate"],
+  "detector_context": [{"detector": "data_quality_gate",
+                        "anomaly_type": "out_of_range",
+                        "value": 9999.0, "score": 9999.0}],
+  "score": 9999.0, "threshold": 0.0
+}
+```
+
+### Analyze: render one bundle as markdown
+
+```bash
+python -c "
+import json
+from anomaly.explain import build_prompt
+with open('out/outlet_bundles.jsonl') as f:
+    bundle = json.loads(f.readline())    # first alert
+print(build_prompt(bundle))
+"
+```
+
+Produces an LLM-ready markdown block:
+
+```
+# Anomaly on sensor outlet_fridge_power (capability: power)
+
+**When:** Mon Feb 09 2026 11:00 UTC -> Mon Feb 09 2026 11:01 UTC (duration 1.0m).
+
+**Magnitude:** baseline 1.5 (source: prewindow_2h), peak 9999,
+               delta +9998 (+666500.00%).
+
+**Calendar context:** Monday, hour 11 (morning), weekday, February.
+**Same-hour-of-weekday baseline:** peak is +3.20σ vs. the median of
+  8 prior Monday 11:00 samples (peer median 1.4).
+
+**Detector evidence:**
+- data_quality_gate: anomaly_type=out_of_range, value=9999, score=9999
+
+**Detectors fired:** data_quality_gate.
+**Score:** 1e+04 (threshold 0).
+```
+
+### Per-alert (live pipeline path)
+
+If you're driving the pipeline directly in Python (`Pipeline.ingest`
+returns `Alert` objects), skip the CSV round-trip:
+
+```python
+from anomaly.explain import explain, build_prompt
+
+for alert in alerts:                         # Alert stream from the pipeline
+    bundle = explain(alert, events_df)       # events_df: pandas DataFrame
+    print(build_prompt(bundle))
+```
+
+The live path carries detector-native context on `alert.context`; the
+CSV batch path reconstructs it from the events frame
+(`_synth_detector_context`). Either way the bundle schema is the same.
+
+### What the bundle carries
+
+- **`window`** — start / end / duration_sec (from the alert's firing
+  window).
+- **`magnitude`** — baseline / peak / delta / delta_pct, with
+  `baseline_source` labeling the tier: `cusum_mu` (detector-native) >
+  `prewindow_2h` > `prewindow_24h` > `prewindow_7d` > `prewindow_unavailable`.
+- **`temporal`** — weekday, hour, is_weekend, month, time-of-day
+  bucket, plus same-hour-of-weekday z-score when ≥4 peer samples exist.
+- **`detectors`** — sorted list of firing detector names.
+- **`detector_context`** — per-detector diagnostic dict (`cusum`:
+  mu/sigma/direction, `sub_pca`/`multivariate_pca`: approx_residual_z,
+  `data_quality_gate`: anomaly_type + value, `temporal_profile`:
+  hour_of_day + approx_hour_z, `state_transition`: anomaly_type).
+- **`score`** / **`threshold`** — raw detector output.
+
+`build_prompt` deliberately **omits** the classifier's
+`inferred_type` — the LLM is expected to reason from the rendered
+evidence. See `CHANGES.md` for the evidence extensions and their
+rationale.
 
 ## Project structure
 
