@@ -85,6 +85,13 @@ class DefaultAlertFuser:
         # absorption keeps CUSUM+SubPCA cycling indefinitely on BURSTY power
         # sensors after the anomaly ends (outlet_tv weekend_anomaly wind-down).
         self._consecutive_cs: int = 0
+        # Last emission's detector-set on this sensor (immediate or fused). Used
+        # by the post-mvpca wind-down-lead filter: a {cusum, sub_pca,
+        # temporal_profile} 3-det BURSTY chain whose immediately preceding
+        # emission contained mvpca is the wind-down lead chain — TPs that share
+        # this 3-det signature have non-mvpca predecessors (they occur while
+        # MvPCA hasn't yet fired for the active anomaly bout).
+        self._last_emit_dets: frozenset[str] | None = None
 
     @staticmethod
     def _is_immediate(a: Alert) -> bool:
@@ -99,15 +106,25 @@ class DefaultAlertFuser:
         emitted: list[Alert] = []
         if self.rule.accepts(self._pending):
             dets = {a.detector for a in self._pending}
-            is_cs2 = (dets == {"cusum", "sub_pca"}
-                      and self.cfg.archetype == Archetype.BURSTY)
+            is_bursty = self.cfg.archetype == Archetype.BURSTY
+            is_cs2 = is_bursty and dets == {"cusum", "sub_pca"}
+            is_cstp3_post_mvpca = (
+                is_bursty
+                and dets == {"cusum", "sub_pca", "temporal_profile"}
+                and self._last_emit_dets is not None
+                and "multivariate_pca" in self._last_emit_dets
+            )
             if is_cs2:
                 self._consecutive_cs += 1
                 if self._consecutive_cs <= 2:
                     emitted.append(group_alerts(self._pending))
+                    self._last_emit_dets = frozenset(dets)
+            elif is_cstp3_post_mvpca:
+                pass  # Iter 015: wind-down lead chain — drop
             else:
                 self._consecutive_cs = 0
                 emitted.append(group_alerts(self._pending))
+                self._last_emit_dets = frozenset(dets)
         self._pending = []
         self._newest_ts = None
         self._newest_non_cusum_ts = None
@@ -119,6 +136,7 @@ class DefaultAlertFuser:
             if self._is_immediate(a):
                 out.append(a)
                 self._consecutive_cs = 0
+                self._last_emit_dets = frozenset({a.detector})
                 continue
             if self._pending:
                 gap_exceeded = (self._newest_ts is not None
