@@ -41,6 +41,15 @@ python -m anomaly viz-long \
   --detections out/outlet_detections.csv \
   --out out/outlet_viz_long.pdf \
   --min-hours 24
+
+# 5. Explain (one LLM-ready bundle per detected alert)
+python -m anomaly explain \
+  --events ../synthetic-generator/out/outlet/events.csv \
+  --detections out/outlet_detections.csv \
+  --out out/outlet_bundles.jsonl
+#   writes one JSON bundle per line; each bundle carries window /
+#   magnitude / temporal / detectors / detector_context / score,
+#   and can be rendered to markdown via anomaly.explain.build_prompt.
 ```
 
 To sweep all 5 bundled scenarios (outlet / outlet-tv / outlet-kettle / waterleak / outlet_short) and compare all metrics side-by-side:
@@ -168,28 +177,36 @@ python -m anomaly viz-long \
 
 Page 1 is a summary table of every label with duration, TP/FN, and detector mix. Each following page is one GT label whose duration ≥ `--min-hours`, showing the full 60-day signal with the label region highlighted, a zoomed signal with padded context (`max(1d, duration/3)`, capped at 14d), and aligned truth/detection strips.
 
-## Programmatic explainer (`anomaly.explain`)
+## Explain (`anomaly.explain`)
 
 The pipeline emits `Alert` objects (see `core.Alert`). For LLM
 summarisation you can convert each alert into a structured bundle +
-markdown prompt. `anomaly.explain` is a **library module — no CLI**;
-call it from Python once your detections CSV exists.
+markdown prompt. Available as a **CLI subcommand** for batch use, or
+as a **library** for in-process streaming.
 
-### Batch: events CSV + detections CSV → bundles JSONL
+### CLI: events CSV + detections CSV → bundles JSONL
 
 After running `python -m anomaly run ...` to produce
 `out/outlet_detections.csv`, generate one bundle per detected alert:
 
 ```bash
-python -c "
+python -m anomaly explain \
+  --events ../synthetic-generator/out/outlet/events.csv \
+  --detections out/outlet_detections.csv \
+  --out out/outlet_bundles.jsonl
+# -> wrote N bundles to out/outlet_bundles.jsonl
+```
+
+Equivalent from Python (useful if you want the return value or are
+driving this from another process):
+
+```python
 from anomaly.explain import explain_detections_csv
 n = explain_detections_csv(
     events_csv     = '../synthetic-generator/out/outlet/events.csv',
     detections_csv = 'out/outlet_detections.csv',
     out_jsonl      = 'out/outlet_bundles.jsonl',
 )
-print(f'wrote {n} bundles')
-"
 ```
 
 `out/outlet_bundles.jsonl` is one JSON bundle per line:
