@@ -1,0 +1,20 @@
+# leak_30d scenario: water leak focus + basement temp + utility motion
+sensors:
+  - id: basement_leak
+    capability: water
+    archetype: binary
+    expected_interval_sec: 7200
+    heartbeat_sec: 7200
+    deterministic_trigger: true
+  - id: basement_temp
+    capability: temperature
+    archetype: continuous
+    expected_interval_sec: 600
+    min_value: -40
+    max_value: 80
+  - id: utility_motion
+    capability: motion
+    archetype: binary
+    expected_interval_sec: 1800
+    heartbeat_sec: 1800
+    deterministic_trigger: true

@@ -1,0 +1,38 @@
+# household scenario: appliances + voltage + occupancy + basement leak
+sensors:
+  - id: outlet_fridge_power
+    capability: power
+    archetype: bursty
+    expected_interval_sec: 300
+    min_value: 0
+    max_value: 3000
+  - id: outlet_kettle_power
+    capability: power
+    archetype: bursty
+    expected_interval_sec: 600
+    min_value: 0
+    max_value: 3500
+  - id: outlet_tv_power
+    capability: power
+    archetype: bursty
+    expected_interval_sec: 300
+    min_value: 0
+    max_value: 500
+  - id: mains_voltage
+    capability: voltage
+    archetype: continuous
+    expected_interval_sec: 600
+    min_value: 80
+    max_value: 140
+  - id: basement_leak
+    capability: water
+    archetype: binary
+    expected_interval_sec: 7200
+    heartbeat_sec: 7200
+    deterministic_trigger: true
+  - id: bedroom_motion
+    capability: motion
+    archetype: binary
+    expected_interval_sec: 1800
+    heartbeat_sec: 1800
+    deterministic_trigger: true
