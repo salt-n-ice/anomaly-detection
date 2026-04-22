@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Protocol
 import pandas as pd
-from .core import Alert, SensorConfig
+from .core import Alert, Archetype, SensorConfig
 
 
 class CorroborationRule(Protocol):
@@ -78,6 +78,13 @@ class DefaultAlertFuser:
         self._pending: list[Alert] = []
         self._newest_ts: pd.Timestamp | None = None
         self._newest_non_cusum_ts: pd.Timestamp | None = None
+        # Cross-chain wind-down filter on BURSTY sensors: count consecutive
+        # {cusum, sub_pca} 2-det fused emissions since the last "richer" emission
+        # (immediate alert, or a fused chain whose det-set isn't {cusum, sub_pca}).
+        # The 3rd+ consecutive 2-det chain is dropped — without this, post-shift
+        # absorption keeps CUSUM+SubPCA cycling indefinitely on BURSTY power
+        # sensors after the anomaly ends (outlet_tv weekend_anomaly wind-down).
+        self._consecutive_cs: int = 0
 
     @staticmethod
     def _is_immediate(a: Alert) -> bool:
@@ -91,7 +98,16 @@ class DefaultAlertFuser:
             return []
         emitted: list[Alert] = []
         if self.rule.accepts(self._pending):
-            emitted.append(group_alerts(self._pending))
+            dets = {a.detector for a in self._pending}
+            is_cs2 = (dets == {"cusum", "sub_pca"}
+                      and self.cfg.archetype == Archetype.BURSTY)
+            if is_cs2:
+                self._consecutive_cs += 1
+                if self._consecutive_cs <= 2:
+                    emitted.append(group_alerts(self._pending))
+            else:
+                self._consecutive_cs = 0
+                emitted.append(group_alerts(self._pending))
         self._pending = []
         self._newest_ts = None
         self._newest_non_cusum_ts = None
@@ -102,6 +118,7 @@ class DefaultAlertFuser:
         for a in fresh:
             if self._is_immediate(a):
                 out.append(a)
+                self._consecutive_cs = 0
                 continue
             if self._pending:
                 gap_exceeded = (self._newest_ts is not None
