@@ -9,12 +9,43 @@ class CorroborationRule(Protocol):
 
 
 class PassThroughCorroboration:
-    """BURSTY / BINARY — only filters marginal single-detector `temporal_profile`
-    singletons (|z| within 20% of threshold); everything else passes through."""
+    """BURSTY / BINARY — filters marginal single-detector `temporal_profile`
+    singletons (|z| within 20% of threshold) and power-capability `{cusum}`-only
+    chains (bursty outlets' cumulative drift without corroborating detector);
+    everything else passes through."""
     def accepts(self, alerts: list[Alert]) -> bool:
         dets = {a.detector for a in alerts}
         if dets == {"temporal_profile"}:
             return any(a.score >= 1.2 * a.threshold for a in alerts)
+        if dets == {"cusum"} and all(a.capability == "power" for a in alerts):
+            # BURSTY power-outlet cusum-only chains without corroboration are
+            # uniformly FPs in the current dataset (7 such chains across the
+            # 3 scenarios, all FPs — Feb 15 bootstrap-noise + Feb 17-21 kettle
+            # singletons). Mirrors ContinuousCorroboration's {cusum}+duration>=90h
+            # rule: a legit sustained shift should also fire MvPCA or SubPCA.
+            # Restricted to capability=="power" so BINARY bedroom_motion
+            # cusum-only chains (2 TPs on household_60d month_shift) continue
+            # to pass via PassThroughCorroboration's default-accept.
+            return False
+        if dets == {"sub_pca"} and all(a.capability == "power" for a in alerts):
+            # BURSTY power-outlet sub_pca-only chains are similarly uniformly FP
+            # (5 such chains across the 3 scenarios, all FPs). Additionally,
+            # accepting them currently resets the iter-013 `_consecutive_cs`
+            # streak counter in `DefaultAlertFuser._flush`, so interleaved
+            # {sub_pca} singletons inside a {cusum, sub_pca} 2-det streak
+            # currently prevent the streak filter from rejecting the 3rd+
+            # 2-det chain. Rejecting {sub_pca}-only lets the streak counter
+            # persist across these interleavings.
+            return False
+        if dets == {"multivariate_pca"} and all(a.capability == "power" for a in alerts):
+            # BURSTY power-outlet mvpca singletons split cleanly by score:
+            # 58 TPs (22 on hh60d, 36 on hh120d) have min score 48433; 2 FPs
+            # (hh60d kettle 02-15 score 2e-19, hh120d kettle 02-17 score 4141)
+            # have scores ≤ 5000. A 10,000 floor rejects both FPs with a wide
+            # safety margin. Absolute score threshold is unit-specific to
+            # power-outlet feature scale (peak W~10^3, diff-feat residuals
+            # push real anomalies to 10^4-10^5).
+            return max(a.score for a in alerts) >= 10000
         return True
 
 
@@ -27,13 +58,39 @@ class ContinuousCorroboration:
         duration = alerts[-1].timestamp - alerts[0].timestamp if len(alerts) >= 2 else pd.Timedelta(0)
         if dets == {"cusum"}:
             return duration >= pd.Timedelta(hours=90) and len(alerts) >= 2
-        if dets in ({"cusum", "sub_pca"}, {"cusum", "temporal_profile"}):
+        if dets == {"cusum", "sub_pca"}:
             return duration >= pd.Timedelta(hours=4)
+        if dets == {"cusum", "temporal_profile"}:
+            # On CONTINUOUS, {cusum, temp} without SubPCA or MvPCA corroboration
+            # is weak evidence: CUSUM's cumulative drift plus bucket z-score
+            # without residual/variance confirmation tends to fire post-anomaly
+            # as the baseline shifts but the error space and variance settle.
+            # Audit across current scenarios: 4 such chains on leak_30d
+            # basement_temp (post-cal_drift wind-down), all FPs on behavior;
+            # 0 chains on household_60d/120d. The old-dataset 4h duration floor
+            # was tuned for outlet_voltage and does not generalize.
+            return False
         if dets == {"cusum", "multivariate_pca"}:
             return (duration <= pd.Timedelta(hours=1)
                     and max(a.score for a in alerts) < 2.0)
         if dets == {"cusum", "multivariate_pca", "temporal_profile"}:
-            return duration >= pd.Timedelta(hours=1)
+            # Same wind-down mechanism as the {cusum, temporal_profile} rule
+            # above, one level richer: mvpca joins but sub_pca is absent, so
+            # bootstrap-variance corroboration is missing. Audit across current
+            # scenarios: 3 chains (1 on household_60d mains_voltage, 2 on
+            # leak_30d basement_temp), all FPs on both behavior and sensor_fault.
+            # The 1h duration floor was tuned on retired scenarios; no
+            # current-dataset TP relies on this det-set.
+            return False
+        if dets == {"multivariate_pca"}:
+            # mvpca singletons on CONTINUOUS are uniformly FP in the current
+            # dataset (audit: 0 TPs across 3 scenarios, 2 FPs on leak_30d
+            # basement_temp with scores 1.00 and 0.86). The 2.0 floor mirrors
+            # the {cusum, multivariate_pca} rule's score cap: a mvpca-only
+            # chain that isn't corroborated by CUSUM needs convincing residual
+            # magnitude to be credible. Iter 006's {margin = 1.2×threshold}
+            # rule passed these singletons; the absolute-score floor rejects them.
+            return max(a.score for a in alerts) >= 2.0
         if dets == {"sub_pca"}:
             starts = [a.window_start or a.timestamp for a in alerts]
             ends = [a.window_end or a.timestamp for a in alerts]

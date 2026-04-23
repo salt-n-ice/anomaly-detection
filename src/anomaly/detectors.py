@@ -156,6 +156,12 @@ class DataQualityGate:
                                                    "threshold_sec": float(thr_tick),
                                                    "expected_interval_sec": cfg.expected_interval_sec}))
                         self._last_clock_drift_fire = ev.timestamp
+            else:
+                # Out-of-window gap: the sensor is not in its configured cadence regime
+                # (burst-mode, dropout-adjacent, or batch). Decay the counter so drift
+                # persistence only counts N-consecutive IN-WINDOW drifted ticks — not
+                # drift state carried indefinitely across non-cadence stretches.
+                self._clock_drift_count = max(0, self._clock_drift_count - 1)
         # dropout (cooldown mirrors OOR — reporting_rate_change floods with tiny-gap events)
         if self._last_ts is not None:
             gap = (ev.timestamp - self._last_ts).total_seconds()
@@ -552,6 +558,18 @@ class TemporalProfile:
         st[2] += dlt * (v - st[1])
 
     def fit(self, rows):
+        # BINARY water (water-leak) sensors have rare-event trigger semantics:
+        # most (state, hour, dayofweek) buckets observe zero-transition ticks
+        # all the time, so bucket sd collapses toward zero. A single non-zero
+        # tick in one of those hours then produces |z| that far exceeds
+        # z_thresh — the detector fires with score 5-7 at the sparse few
+        # hours when any heartbeat-adjacent transitions happen, periodically,
+        # for the rest of the scenario. The bucket model is unsound on this
+        # class of sensor; CUSUM + MultivariatePCA cover sustained-leak
+        # behavior and state_transition covers the deterministic trigger.
+        if (self.config.archetype == Archetype.BINARY
+                and self.config.capability == "water"):
+            return
         # Collect per-(bucket, feature) values so we can dedupe consecutive repeats
         # (ZOH tick artifacts collapse variance to zero inside buckets — see CUSUM.fit
         # for the same ZOH-collapse reasoning).
@@ -640,7 +658,12 @@ class StateTransition:
     def update(self, ts, feat):
         if not feat.get("trigger"):
             return []
+        # window_start/window_end left as None so `_write_detections` applies
+        # the default 1-minute window_end — a 0-duration alert at the label's
+        # exact start fails `_overlaps`' strict-less-than check (`ts < ts` is
+        # False) and would not count as overlapping a label that starts at
+        # the same tick. The 1-minute tail makes overlap semantically correct.
         return [Alert(self.config.sensor_id, self.config.capability, ts,
                       self.name, 1.0, 1.0, "water_leak_sustained", 1.0,
-                      feat.get("state"), ts, ts,
+                      feat.get("state"), None, None,
                       [{"detector": self.name, "state": feat.get("state")}])]
