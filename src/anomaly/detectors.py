@@ -287,10 +287,15 @@ class CUSUM:
         return out
 
     def adapt_to_recent(self, rows):
-        # Coordinated adaptation: when a fused chunk closes due to prolonged firing,
-        # absorb the recent baseline into mu so we stop firing on the new normal.
-        # Sigma is preserved (anomalous data inflates variance — keeping the bootstrap
-        # sigma maintains sensitivity for the next genuine deviation).
+        # Coordinated adaptation at K=3 max_span streak close: absorb the recent
+        # regime as the new normal. Iter 033: extend mu-only absorb to also grow
+        # sigma with a sensitivity floor (sigma = max(old_sigma, new_sigma)) so
+        # post-shift regimes with wider variance than bootstrap stop re-firing
+        # on in-regime noise. The floor means sigma can only GROW from adapt,
+        # never shrink — a quieter post-shift regime keeps bootstrap sigma, so
+        # in-regime noise post-adapt stays non-firing (no over-fire trap).
+        # A noisier post-shift regime widens the firing band, killing wind-down
+        # chains whose sp/sn re-accumulated against a tight bootstrap threshold.
         if not self.live or not rows: return
         by_state: dict[tuple[int, str], list[float]] = {}
         for ts, f in rows:
@@ -302,7 +307,13 @@ class CUSUM:
         for (s, k), vals in by_state.items():
             st = self._state.get((s, k))
             if st is None or len(vals) < 10: continue
+            arr = np.asarray(vals)
+            # Dedupe consecutive repeats to match fit-time ZOH handling.
+            keep = np.concatenate(([True], arr[1:] != arr[:-1]))
+            uniq = arr[keep]
+            new_sigma = float(uniq.std()) if uniq.size >= 10 else float(arr.std())
             st[0] = float(np.mean(vals))
+            st[1] = max(st[1], new_sigma)  # sigma can only grow
             st[2] = st[3] = 0.0
 
 
@@ -415,10 +426,16 @@ class SubPCA:
         return []
 
     def adapt_to_recent(self, rows):
-        # Shift mu (the window centroid) to the recent baseline, but KEEP the
-        # projection P and threshold from bootstrap. This recenters the model
-        # on the new normal without re-deriving sensitivity — refitting P/thr
-        # on narrow recent variance creates tight thresholds that over-fire.
+        # Iter 033: full re-fit with sensitivity floor. Re-derive mu/P/threshold
+        # from the recent 96h window so the projection aligns with the new
+        # regime's directions (kills post-level-shift wind-down where v is
+        # near-stable at a new baseline but bootstrap-P's residuals against
+        # that baseline stay above bootstrap-thr). Threshold is clamped to
+        # max(old_thr, new_thr): a narrow-variance post-shift regime would
+        # produce a tight new_thr that over-fires on normal-scale noise; the
+        # floor keeps threshold at bootstrap sensitivity (prior comment here
+        # called that out — the floor unblocks re-fit by removing the over-
+        # fire risk).
         if not self.live or not rows: return
         per_state: dict[int, list[float]] = {}
         for ts, f in rows:
@@ -427,12 +444,21 @@ class SubPCA:
             per_state.setdefault(self._state(f), []).append(float(v))
         for s, seq in per_state.items():
             if s not in self._models or len(seq) < self.window * 2: continue
-            _, P, thr = self._models[s]
+            old_mu, old_P, old_thr = self._models[s]
             arr = np.asarray(seq, dtype=float)
             n = arr.size // self.window
             X = arr[:n * self.window].reshape(n, self.window)
-            new_mu = X.mean(axis=0)
-            self._models[s] = (new_mu, P, thr)
+            new_mu, new_P = _fit_pca(X)
+            # Threshold derivation matches fit(): sliding for CONT, non-overlap
+            # for BURSTY per-state, to mirror live error distribution.
+            if self.config.archetype == Archetype.CONTINUOUS:
+                n_slide = arr.size - self.window + 1
+                errs = np.array([_pca_error(arr[i:i + self.window], new_mu, new_P)
+                                 for i in range(n_slide)])
+            else:
+                errs = np.array([_pca_error(X[i], new_mu, new_P) for i in range(n)])
+            new_thr = float(np.quantile(errs, 0.999))
+            self._models[s] = (new_mu, new_P, max(new_thr, old_thr))
 
 
 class MultivariatePCA:
@@ -506,8 +532,11 @@ class MultivariatePCA:
         return []
 
     def adapt_to_recent(self, rows):
-        # Shift centroid mu to the recent mean, but KEEP P and threshold —
-        # same rationale as SubPCA.adapt_to_recent above.
+        # Iter 033: full re-fit with sensitivity floor (same rationale as
+        # SubPCA.adapt_to_recent — see that method's comment). Re-derive
+        # mu/P/threshold from recent; threshold clamped to max(old, new) so
+        # sensitivity can't tighten below bootstrap even if the post-shift
+        # regime has very narrow variance.
         if not self.live or not rows: return
         per_state: dict[int, list[np.ndarray]] = {}
         for ts, f in rows:
@@ -516,9 +545,12 @@ class MultivariatePCA:
             per_state.setdefault(self._state(f), []).append(v)
         for s, vs in per_state.items():
             if s not in self._models or len(vs) < max(20, 3 * len(self.features)): continue
-            _, P, thr = self._models[s]
-            new_mu = np.mean(np.stack(vs), axis=0)
-            self._models[s] = (new_mu, P, thr)
+            old_mu, old_P, old_thr = self._models[s]
+            X = np.stack(vs)
+            new_mu, new_P = _fit_pca(X)
+            new_errs = np.array([_pca_error(X[i], new_mu, new_P) for i in range(len(X))])
+            new_thr = float(np.quantile(new_errs, 0.999))
+            self._models[s] = (new_mu, new_P, max(new_thr, old_thr))
 
 
 class TemporalProfile:
