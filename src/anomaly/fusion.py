@@ -149,6 +149,14 @@ class DefaultAlertFuser:
         # this 3-det signature have non-mvpca predecessors (they occur while
         # MvPCA hasn't yet fired for the active anomaly bout).
         self._last_emit_dets: frozenset[str] | None = None
+        # Last FUSED chain's detector-set on this sensor (excludes immediate
+        # alerts like state_transition). Distinct from `_last_emit_dets` which
+        # gets reset on every immediate alert; on BINARY motion with 856+
+        # state_transitions per scenario, `_last_emit_dets` is almost never
+        # a fused-chain det-set, so the BINARY-motion post-mvpca wind-down
+        # filter (iter 032) needs a tracker that survives interleaved immediate
+        # alerts. Only updated in `_flush` on successful fused emits.
+        self._last_fused_emit_dets: frozenset[str] | None = None
         # End timestamp of the most recently *attempted* fused chain (whether
         # emitted or filtered). Distinct from `_newest_ts` (which is reset on
         # every flush). The CONTINUOUS between-trend filter uses this to
@@ -177,6 +185,7 @@ class DefaultAlertFuser:
             dets = {a.detector for a in self._pending}
             is_bursty = self.cfg.archetype == Archetype.BURSTY
             is_continuous = self.cfg.archetype == Archetype.CONTINUOUS
+            is_binary = self.cfg.archetype == Archetype.BINARY
             is_cs2 = is_bursty and dets == {"cusum", "sub_pca"}
             is_cstp3_post_mvpca = (
                 is_bursty
@@ -192,17 +201,44 @@ class DefaultAlertFuser:
                 and self._last_attempt_end_ts is not None
                 and (chain_start - self._last_attempt_end_ts) > pd.Timedelta(days=5)
             )
+            # BINARY motion wind-down filter: {cusum, multivariate_pca} 2-det chains
+            # on motion sensors are wind-down when they immediately follow a richer
+            # chain that contained mvpca (the 3-det {cusum,mvpca,temp} chain that
+            # led the anomaly has closed; mvpca residual is still drifting while
+            # TP's bucket z-score has relaxed). Audit across scenarios:
+            # household_60d 3 × 2-det chains (Feb 19-21, Feb 24-28, Mar 16-20) all
+            # follow 3-det mvpca chains, all FP, 0 TPs; household_120d 4 × 2-det
+            # chains — 3 follow 3-det mvpca chains (Feb 23-26, Apr 6-8, May 13-17,
+            # all FP), 1 follows a non-mvpca cusum+temp TP chain (May 1-5, kept);
+            # leak_30d 2 × 2-det chains (Feb 16-20, Feb 24-28) both follow 3-det
+            # mvpca chains — Feb 16-20 was previously TP for utility_motion
+            # unusual_occupancy Feb 17-18 but state_transition at those label
+            # timestamps preserves incident_recall. Iter 029's global reject
+            # blew the hh120d latency floor (+1140s) because pre-iter-030 code
+            # included an onset-bridging 2-det chain for hh120d bedroom_motion;
+            # the post-mvpca gate protects onset chains (whose predecessor is an
+            # immediate state_transition or a non-mvpca chain, not a full 3-det
+            # wind-down lead).
+            is_cm2_binary_motion_post_mvpca = (
+                is_binary
+                and self.cfg.capability == "motion"
+                and dets == {"cusum", "multivariate_pca"}
+                and self._last_fused_emit_dets is not None
+                and "multivariate_pca" in self._last_fused_emit_dets
+            )
             if is_cs2:
                 self._consecutive_cs += 1
                 if self._consecutive_cs <= 2:
                     emitted.append(group_alerts(self._pending))
                     self._last_emit_dets = frozenset(dets)
-            elif is_cstp3_post_mvpca or is_cms3_continuous_between:
-                pass  # Iter 015/016: cross-chain wind-down / between-trend filter
+                    self._last_fused_emit_dets = frozenset(dets)
+            elif is_cstp3_post_mvpca or is_cms3_continuous_between or is_cm2_binary_motion_post_mvpca:
+                pass  # Iter 015/016/032: cross-chain wind-down / between-trend filter
             else:
                 self._consecutive_cs = 0
                 emitted.append(group_alerts(self._pending))
                 self._last_emit_dets = frozenset(dets)
+                self._last_fused_emit_dets = frozenset(dets)
             # Only chains that pass corroboration count as "attempts" for the
             # cross-chain gap tracker — corroboration-rejected chains are noise
             # (e.g., dense sub-90h cusum-only chains on long-cadence sensors)
