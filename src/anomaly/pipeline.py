@@ -9,7 +9,7 @@ from .core import Event, Alert, Archetype, SensorConfig
 from .adapter import make_adapter, Adapter
 from .features import FeatureEngineer
 from .fusion import DefaultAlertFuser
-from .profiles import PROFILES
+from .profiles import profile_for
 from .batch import matrix_profile_discords
 from .metrics import compute_metrics
 
@@ -53,7 +53,7 @@ class Pipeline:
         self.bootstrap_days = bootstrap_days
         self._states: dict[tuple[str, str], _SensorState] = {}
         for cfg in configs:
-            p = PROFILES[cfg.archetype]
+            p = profile_for(cfg)
             buffer_ticks = _ADAPT_BUFFER_TICKS_BY_ARCHETYPE.get(
                 cfg.archetype, _ADAPT_BUFFER_TICKS_DEFAULT)
             self._states[cfg.key] = _SensorState(

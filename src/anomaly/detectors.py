@@ -317,6 +317,67 @@ class CUSUM:
             st[2] = st[3] = 0.0
 
 
+class RecentShift:
+    name = "recent_shift"
+
+    def __init__(self, config: SensorConfig, short_feature: str = "value_roll_1h",
+                 baseline_features: tuple[str, ...] = ("value_roll_24h", "value_roll_7d"),
+                 quantile: float = 0.999):
+        self.config = config
+        self.short_feature = short_feature
+        self.baseline_features = baseline_features
+        self.quantile = quantile
+        self.live = False
+        self._thresholds: dict[str, float] = {}
+
+    def fit(self, rows):
+        by_feature = {k: [] for k in self.baseline_features}
+        for _, feat in rows:
+            short_v = feat.get(self.short_feature)
+            if short_v is None or (isinstance(short_v, float) and math.isnan(short_v)):
+                continue
+            short_v = float(short_v)
+            for base_k in self.baseline_features:
+                base_v = feat.get(base_k)
+                if base_v is None or (isinstance(base_v, float) and math.isnan(base_v)):
+                    continue
+                by_feature[base_k].append(abs(short_v - float(base_v)))
+        for base_k, vals in by_feature.items():
+            if len(vals) < 20:
+                continue
+            self._thresholds[base_k] = max(float(np.quantile(vals, self.quantile)), 1e-6)
+        self.live = bool(self._thresholds)
+
+    def update(self, ts, feat):
+        if not self.live:
+            return []
+        short_v = feat.get(self.short_feature)
+        if short_v is None or (isinstance(short_v, float) and math.isnan(short_v)):
+            return []
+        short_v = float(short_v)
+        best: tuple[str, float, float, float] | None = None
+        for base_k, thr in self._thresholds.items():
+            base_v = feat.get(base_k)
+            if base_v is None or (isinstance(base_v, float) and math.isnan(base_v)):
+                continue
+            delta = abs(short_v - float(base_v))
+            ratio = delta / thr if thr > 0 else 0.0
+            if best is None or ratio > best[1]:
+                best = (base_k, ratio, delta, thr)
+        if best is None or best[1] <= 1.0:
+            return []
+        base_k, ratio, delta, thr = best
+        return [_alert(self.config, ts, self.name, ratio, 1.0, None, short_v,
+                       w0=ts - pd.Timedelta(hours=1), w1=ts,
+                       context={"detector": self.name,
+                                "short_feature": self.short_feature,
+                                "baseline_feature": base_k,
+                                "delta": float(delta),
+                                "delta_threshold": float(thr),
+                                "short_value": float(short_v),
+                                "baseline_value": float(feat.get(base_k))})]
+
+
 def _fit_pca(X: np.ndarray, var_ratio: float = 0.95):
     mu = X.mean(axis=0)
     Xc = X - mu
@@ -681,9 +742,12 @@ class StateTransition:
     truthy. Extracted from inline code in pipeline.py."""
     name = "state_transition"
     live = True
+    _MOTION_IDLE_LOOKBACK_MIN_GAP = pd.Timedelta(minutes=20)
+    _MOTION_IDLE_LOOKBACK_CAP = pd.Timedelta(minutes=23)
 
     def __init__(self, config: SensorConfig):
         self.config = config
+        self._last_trigger_ts: pd.Timestamp | None = None
 
     def fit(self, rows): pass
 
@@ -695,7 +759,20 @@ class StateTransition:
         # exact start fails `_overlaps`' strict-less-than check (`ts < ts` is
         # False) and would not count as overlapping a label that starts at
         # the same tick. The 1-minute tail makes overlap semantically correct.
+        w0 = None
+        w1 = None
+        if (self.config.capability == "motion"
+                and self._last_trigger_ts is not None):
+            gap = ts - self._last_trigger_ts
+            if gap >= self._MOTION_IDLE_LOOKBACK_MIN_GAP:
+                # First trigger after a quiet spell: let the alert cover a
+                # bounded slice of the idle gap so midnight / regime-boundary
+                # motion labels don't require multi-day pre-label fused chains
+                # just to score near-zero onset latency.
+                w0 = max(self._last_trigger_ts, ts - self._MOTION_IDLE_LOOKBACK_CAP)
+                w1 = ts + pd.Timedelta(minutes=1)
+        self._last_trigger_ts = ts
         return [Alert(self.config.sensor_id, self.config.capability, ts,
                       self.name, 1.0, 1.0, "water_leak_sustained", 1.0,
-                      feat.get("state"), None, None,
+                      feat.get("state"), w0, w1,
                       [{"detector": self.name, "state": feat.get("state")}])]

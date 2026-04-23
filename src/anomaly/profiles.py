@@ -4,7 +4,7 @@ from functools import partial
 from typing import Callable
 from .core import Archetype, SensorConfig
 from .detectors import (Detector, EventDetector, DataQualityGate,
-                         CUSUM, SubPCA, MultivariatePCA,
+                         CUSUM, RecentShift, SubPCA, MultivariatePCA,
                          TemporalProfile, StateTransition)
 from .fusion import (DefaultAlertFuser, PassThroughCorroboration,
                       ContinuousCorroboration)
@@ -101,3 +101,22 @@ PROFILES: dict[Archetype, ArchetypeProfile] = {
         long_fuser=_default_fuser,
     ),
 }
+
+
+def profile_for(cfg: SensorConfig) -> ArchetypeProfile:
+    p = PROFILES[cfg.archetype]
+    if cfg.archetype == Archetype.BINARY and cfg.capability == "motion":
+        return ArchetypeProfile(
+            short_event=p.short_event,
+            short_tick=p.short_tick,
+            medium=[
+                partial(RecentShift,
+                        short_feature="duty_cycle_1h",
+                        baseline_features=("duty_cycle_24h",
+                                           "duty_cycle_24h_roll_7d")),
+                partial(MultivariatePCA, features=_BINARY_FEATS["mvpca"]),
+            ],
+            long_tick=p.long_tick,
+            long_fuser=p.long_fuser,
+        )
+    return p
