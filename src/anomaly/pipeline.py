@@ -114,16 +114,21 @@ class Pipeline:
         emitted = st.fuser.ingest(alerts)
         # Coordinated adaptation on consecutive max_span flushes. A single
         # max_span chain (~96h) is ambiguous — could be the legit start of a
-        # multi-day anomaly OR a wind-down tail. Two consecutive max_span
-        # flushes (~8d of continuous firing) is a much stronger wind-down
-        # signal: by 8d, any active anomaly that triggered chain 1 has had
-        # its onset captured (incident_recall preserved), and continued
-        # firing means the post-shift baseline is the new normal.
-        # Adapting once at the second flush absorbs the recent rolling
+        # multi-day anomaly OR a wind-down tail. Three consecutive max_span
+        # flushes (~12d of continuous firing) is a strong wind-down signal:
+        # by 12d, any active anomaly that triggered chain 1 has had its
+        # onset captured (incident_recall preserved), the 1st post-onset
+        # chain has had time to fire without adaptation (time_recall
+        # preserved on sustained anomalies), and continued firing past
+        # that is the post-shift baseline being treated as new normal.
+        # Adapting once at the third flush absorbs the recent rolling
         # window into each detector's mu/centroid; subsequent ticks see
         # small deviations and the chain stops re-forming. Counter resets
         # on any non-max-span emit (chain ended naturally → not wind-down)
         # and after each adapt (require fresh streak before next adapt).
+        # K=3 chosen over K=2 (iter 028) to preserve more of hh60d
+        # bedroom_motion month_shift tail coverage and reduce hh120d
+        # voltage month_shift latency pressure.
         span_threshold = 0.9 * st.fuser.max_span
         for em in emitted:
             if em.window_start is None or em.window_end is None:
@@ -132,7 +137,7 @@ class Pipeline:
                 st.consecutive_max_span += 1
             else:
                 st.consecutive_max_span = 0
-            if st.consecutive_max_span >= 2:
+            if st.consecutive_max_span >= 3:
                 rows = list(st.recent_rows)
                 for d in st.medium + st.long_tick:
                     if hasattr(d, "adapt_to_recent"):
