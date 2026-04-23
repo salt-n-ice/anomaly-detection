@@ -16,11 +16,12 @@ from .metrics import compute_metrics
 
 _ADAPT_BUFFER_TICKS_DEFAULT = 96 * 60  # 96h buffer for CONTINUOUS — a longer buffer
 # on CONT (mains_voltage month_shift) absorbs mid-anomaly regime and delays subsequent
-# label onset detection (tested at 120h: +4683s hh120d nondqg_lat_p95, blows +600s floor).
+# label onset detection (tested at 120h global: +4683s hh120d nondqg_lat_p95, blows
+# +600s floor). Per-archetype gate keeps CONT safe.
 _ADAPT_BUFFER_TICKS_BY_ARCHETYPE = {
     Archetype.CONTINUOUS: 96 * 60,   # keep latency safety for long sustained CONT anomalies
-    Archetype.BURSTY:     120 * 60,  # longer absorption window = bigger hh60d outlet_tv win
-    Archetype.BINARY:     120 * 60,  # same rationale; BINARY short-label latency handled by state_transition
+    Archetype.BURSTY:     144 * 60,  # iter 037: sweet spot for outlet wind-down absorption
+    Archetype.BINARY:     144 * 60,  # same; BINARY short-label latency is state_transition's job
 }
 
 
