@@ -75,9 +75,16 @@ PROFILES: dict[Archetype, ArchetypeProfile] = {
         short_event=[DataQualityGate],
         short_tick=[],
         medium=[
-            partial(CUSUM, features=_BURSTY_FEATS["cusum"]),
-            partial(SubPCA),
-            partial(MultivariatePCA, features=_BURSTY_FEATS["mvpca"]),
+            # 12h post-fit warmup: in fresh bootstrap data the BURSTY per-state
+            # PCA threshold (99.9% of bootstrap errors) and CUSUM sd are tuned
+            # to a too-narrow sample, causing Feb 15 bootstrap-end chains on
+            # outlet_fridge/outlet_tv (4 chains, up to 96h max_span) entirely
+            # before any labeled period. CUSUM also silently absorbs initial
+            # autocorrelation drift via fire-and-reset during warmup. CONT
+            # detectors already use 3-5d warmups for the same reason.
+            partial(CUSUM, features=_BURSTY_FEATS["cusum"], warmup_seconds=12*3600),
+            partial(SubPCA, warmup_seconds=12*3600),
+            partial(MultivariatePCA, features=_BURSTY_FEATS["mvpca"], warmup_seconds=12*3600),
         ],
         long_tick=[partial(TemporalProfile, features=_BURSTY_FEATS["temporal"])],
         long_fuser=_default_fuser,
