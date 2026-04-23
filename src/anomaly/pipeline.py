@@ -14,7 +14,14 @@ from .batch import matrix_profile_discords
 from .metrics import compute_metrics
 
 
-_ADAPT_BUFFER_TICKS = 96 * 60  # rolling buffer for coordinated adaptation: last 96h at 1-min granularity
+_ADAPT_BUFFER_TICKS_DEFAULT = 96 * 60  # 96h buffer for CONTINUOUS — a longer buffer
+# on CONT (mains_voltage month_shift) absorbs mid-anomaly regime and delays subsequent
+# label onset detection (tested at 120h: +4683s hh120d nondqg_lat_p95, blows +600s floor).
+_ADAPT_BUFFER_TICKS_BY_ARCHETYPE = {
+    Archetype.CONTINUOUS: 96 * 60,   # keep latency safety for long sustained CONT anomalies
+    Archetype.BURSTY:     120 * 60,  # longer absorption window = bigger hh60d outlet_tv win
+    Archetype.BINARY:     120 * 60,  # same rationale; BINARY short-label latency handled by state_transition
+}
 
 
 @dataclass
@@ -32,7 +39,7 @@ class _SensorState:
     raw_series: list = field(default_factory=list)
     start_ts: pd.Timestamp | None = None
     fit_done: bool = False
-    recent_rows: deque = field(default_factory=lambda: deque(maxlen=_ADAPT_BUFFER_TICKS))  # for adaptation
+    recent_rows: deque = field(default_factory=deque)  # size set in Pipeline.__init__ per-archetype
     consecutive_max_span: int = 0        # cross-chain streak counter for G1 adapt
 
     def tick_detectors(self) -> list:
@@ -46,6 +53,8 @@ class Pipeline:
         self._states: dict[tuple[str, str], _SensorState] = {}
         for cfg in configs:
             p = PROFILES[cfg.archetype]
+            buffer_ticks = _ADAPT_BUFFER_TICKS_BY_ARCHETYPE.get(
+                cfg.archetype, _ADAPT_BUFFER_TICKS_DEFAULT)
             self._states[cfg.key] = _SensorState(
                 cfg=cfg,
                 adapter=make_adapter(cfg),
@@ -55,6 +64,7 @@ class Pipeline:
                 medium=[f(cfg) for f in p.medium],
                 long_tick=[f(cfg) for f in p.long_tick],
                 fuser=p.long_fuser(cfg),
+                recent_rows=deque(maxlen=buffer_ticks),
             )
 
     def is_live(self, key) -> bool:
