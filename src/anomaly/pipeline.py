@@ -33,6 +33,7 @@ class _SensorState:
     start_ts: pd.Timestamp | None = None
     fit_done: bool = False
     recent_rows: deque = field(default_factory=lambda: deque(maxlen=_ADAPT_BUFFER_TICKS))  # for adaptation
+    consecutive_max_span: int = 0        # cross-chain streak counter for G1 adapt
 
     def tick_detectors(self) -> list:
         """All post-adapter detectors in emit order (short_tick -> medium -> long_tick)."""
@@ -110,7 +111,34 @@ class Pipeline:
                 alerts.extend(d.update(tick, enriched))
         self._maybe_fit(st, ev.timestamp)
         # LONG fuser — chain-level aggregation + corroboration.
-        return st.fuser.ingest(alerts)
+        emitted = st.fuser.ingest(alerts)
+        # Coordinated adaptation on consecutive max_span flushes. A single
+        # max_span chain (~96h) is ambiguous — could be the legit start of a
+        # multi-day anomaly OR a wind-down tail. Two consecutive max_span
+        # flushes (~8d of continuous firing) is a much stronger wind-down
+        # signal: by 8d, any active anomaly that triggered chain 1 has had
+        # its onset captured (incident_recall preserved), and continued
+        # firing means the post-shift baseline is the new normal.
+        # Adapting once at the second flush absorbs the recent rolling
+        # window into each detector's mu/centroid; subsequent ticks see
+        # small deviations and the chain stops re-forming. Counter resets
+        # on any non-max-span emit (chain ended naturally → not wind-down)
+        # and after each adapt (require fresh streak before next adapt).
+        span_threshold = 0.9 * st.fuser.max_span
+        for em in emitted:
+            if em.window_start is None or em.window_end is None:
+                continue
+            if (em.window_end - em.window_start) >= span_threshold:
+                st.consecutive_max_span += 1
+            else:
+                st.consecutive_max_span = 0
+            if st.consecutive_max_span >= 2:
+                rows = list(st.recent_rows)
+                for d in st.medium + st.long_tick:
+                    if hasattr(d, "adapt_to_recent"):
+                        d.adapt_to_recent(rows)
+                st.consecutive_max_span = 0
+        return emitted
 
     def finalize(self) -> list[Alert]:
         out = []
