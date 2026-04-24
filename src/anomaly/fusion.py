@@ -46,17 +46,6 @@ class PassThroughCorroboration:
             # power-outlet feature scale (peak W~10^3, diff-feat residuals
             # push real anomalies to 10^4-10^5).
             return max(a.score for a in alerts) >= 10000
-        if dets == {"multivariate_pca", "sub_pca"} and all(a.capability == "power" for a in alerts):
-            # BURSTY power mvpca+sub_pca 2-det chains are 85% FP across the
-            # suite: hh60d 4/0 TP (18h FP, all outlet_kettle Mar 19-29
-            # post-level_shift wind-down), hh120d 14/3 TP (62h FP / 12h TP).
-            # The 3 hh120d TPs are on weeks-long level_shift labels
-            # (outlet_fridge Feb 21-Mar 7 336h, outlet_kettle May 4-Jun 1
-            # 672h) already covered by 20+ other chains — incident_recall
-            # preserved. FPs cluster in Mar 14 - Apr 12 post-kettle-
-            # level_shift wind-down gap. Without cusum corroboration the
-            # mvpca residual + sub_pca variance pair is high-residual noise.
-            return False
         if dets == {"multivariate_pca"} and all(a.capability == "motion" for a in alerts):
             # BINARY motion mvpca singletons are 94% FP across the suite:
             # leak_30d 0/20 TP (9.8h FP), hh60d 0/24 TP (10.5h FP), hh120d
