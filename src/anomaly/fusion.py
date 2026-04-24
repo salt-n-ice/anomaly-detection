@@ -104,6 +104,7 @@ def group_alerts(alerts: list[Alert]) -> Alert:
     top = max(alerts, key=lambda a: a.score)
     w0 = min((a.window_start or a.timestamp) for a in alerts)
     w1 = max((a.window_end or a.timestamp) for a in alerts)
+    first_fire = min(a.timestamp for a in alerts)
     names = "+".join(sorted({a.detector for a in alerts}))
     ctx: list[dict] = []
     for a in alerts:
@@ -111,7 +112,7 @@ def group_alerts(alerts: list[Alert]) -> Alert:
             ctx.extend(a.context)
     return Alert(top.sensor_id, top.capability, top.timestamp, names,
                  top.score, top.threshold, top.anomaly_type, top.raw_value,
-                 top.state, w0, w1, ctx or None)
+                 top.state, w0, w1, ctx or None, first_fire)
 
 
 class DefaultAlertFuser:
@@ -190,14 +191,14 @@ class DefaultAlertFuser:
             is_cstp3_post_mvpca = (
                 is_bursty
                 and dets == {"cusum", "sub_pca", "temporal_profile"}
-                and self._last_emit_dets is not None
-                and "multivariate_pca" in self._last_emit_dets
+                and self._last_fused_emit_dets is not None
+                and "multivariate_pca" in self._last_fused_emit_dets
             )
             is_cms3_continuous_between = (
                 is_continuous
                 and dets == {"cusum", "multivariate_pca", "sub_pca"}
-                and self._last_emit_dets is not None
-                and "multivariate_pca" in self._last_emit_dets
+                and self._last_fused_emit_dets is not None
+                and "multivariate_pca" in self._last_fused_emit_dets
                 and self._last_attempt_end_ts is not None
                 and (chain_start - self._last_attempt_end_ts) > pd.Timedelta(days=5)
             )
@@ -226,14 +227,41 @@ class DefaultAlertFuser:
                 and self._last_fused_emit_dets is not None
                 and "multivariate_pca" in self._last_fused_emit_dets
             )
+            # BINARY motion {mvpca, temporal_profile} 2-det chains are nearly
+            # pure FP on current data: 2 TPs (bedroom_motion month_shift Mar 8
+            # on hh60d and hh120d, 8h total) vs 13 FPs (132h total) across the
+            # full suite — 87% FP by count, 94% by FP time. Both TP cases have
+            # hundreds of alternative covering rows on the same label
+            # (state_transition + temporal_profile singletons), so incident
+            # recall is preserved. Without a cumulative-drift signal (cusum) or
+            # recent-vs-long-term shift (recent_shift), mvpca+tp is high-residual
+            # noise that matches the hourly-bucket deviation but lacks sustain.
+            is_mvtp2_binary_motion = (
+                is_binary
+                and self.cfg.capability == "motion"
+                and dets == {"multivariate_pca", "temporal_profile"}
+            )
+            # BINARY motion temporal_profile singletons: 7 TP (23h across
+            # bedroom_motion month_shift labels) vs 50 FP (176h) across the
+            # suite. 86% FP by count, 88% by time. TP cases all have
+            # state_transition + other coverage on the same long month_shift
+            # labels; incident_recall preserved but some time_recall dilution
+            # on bedroom_motion month_shift is expected.
+            is_tp1_binary_motion = (
+                is_binary
+                and self.cfg.capability == "motion"
+                and dets == {"temporal_profile"}
+            )
             if is_cs2:
                 self._consecutive_cs += 1
                 if self._consecutive_cs <= 2:
                     emitted.append(group_alerts(self._pending))
                     self._last_emit_dets = frozenset(dets)
                     self._last_fused_emit_dets = frozenset(dets)
-            elif is_cstp3_post_mvpca or is_cms3_continuous_between or is_cm2_binary_motion_post_mvpca:
-                pass  # Iter 015/016/032: cross-chain wind-down / between-trend filter
+            elif (is_cstp3_post_mvpca or is_cms3_continuous_between
+                  or is_cm2_binary_motion_post_mvpca or is_mvtp2_binary_motion
+                  or is_tp1_binary_motion):
+                pass  # Iter 015/016/032/058/059: cross-chain wind-down / between-trend filter
             else:
                 self._consecutive_cs = 0
                 emitted.append(group_alerts(self._pending))

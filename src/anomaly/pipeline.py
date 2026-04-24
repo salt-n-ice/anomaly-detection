@@ -207,13 +207,20 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     for a in alerts:
         start = a.window_start or a.timestamp
         end = a.window_end or (a.timestamp + pd.Timedelta(minutes=1))
+        # first_fire_ts: earliest component tick in a fused chain; immediate
+        # (unfused) alerts fall back to a.timestamp. Latency/onset metrics
+        # read this column instead of `start` so sliding-window and cross-
+        # chain artifacts don't back-date the reported alert fire time.
+        first_fire = a.first_fire_ts or a.timestamp
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),
+                     "first_fire_ts": first_fire.isoformat(),
                      "anomaly_type": a.anomaly_type or a.detector,
                      "detector": a.detector, "score": a.score})
     path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows, columns=["sensor_id","capability","start","end",
-                                 "anomaly_type","detector","score"]).to_csv(path, index=False)
+                                 "first_fire_ts","anomaly_type","detector",
+                                 "score"]).to_csv(path, index=False)
 
 
 def evaluate(detections_csv: Path, labels_csv: Path) -> dict:
