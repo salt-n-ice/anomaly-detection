@@ -59,64 +59,40 @@ def _default_fuser(cfg):
                               corroboration=PassThroughCorroboration())
 
 
+# Stage 0: empty-pipeline anchor. Only DataQualityGate (sensor-fault events)
+# and StateTransition (BINARY immediate triggers) remain. Every statistical
+# detector (CUSUM / SubPCA / MultivariatePCA / RecentShift / TemporalProfile)
+# is disabled so the precision ceiling can be measured. Stage 2+ re-adds one
+# detector at a time and checks marginal contribution (PIPELINE_REDESIGN.md).
+# Imports and feature maps are kept in place so Stage-2 re-introduction is a
+# list-edit rather than a re-plumbing.
 PROFILES: dict[Archetype, ArchetypeProfile] = {
     Archetype.CONTINUOUS: ArchetypeProfile(
         short_event=[DataQualityGate],
         short_tick=[],
-        medium=[
-            partial(CUSUM, features=_CONT_FEATS["cusum"], warmup_seconds=5*86400),
-            partial(SubPCA, warmup_seconds=3*86400),
-            partial(MultivariatePCA, features=_CONT_FEATS["mvpca"], warmup_seconds=5*86400),
-        ],
-        long_tick=[partial(TemporalProfile, features=_CONT_FEATS["temporal"])],
+        medium=[],
+        long_tick=[],
         long_fuser=_continuous_fuser,
     ),
     Archetype.BURSTY: ArchetypeProfile(
         short_event=[DataQualityGate],
         short_tick=[],
-        medium=[
-            # 12h post-fit warmup: in fresh bootstrap data the BURSTY per-state
-            # PCA threshold (99.9% of bootstrap errors) and CUSUM sd are tuned
-            # to a too-narrow sample, causing Feb 15 bootstrap-end chains on
-            # outlet_fridge/outlet_tv (4 chains, up to 96h max_span) entirely
-            # before any labeled period. CUSUM also silently absorbs initial
-            # autocorrelation drift via fire-and-reset during warmup. CONT
-            # detectors already use 3-5d warmups for the same reason.
-            partial(CUSUM, features=_BURSTY_FEATS["cusum"], warmup_seconds=12*3600),
-            partial(SubPCA, warmup_seconds=12*3600),
-            partial(MultivariatePCA, features=_BURSTY_FEATS["mvpca"], warmup_seconds=12*3600),
-        ],
-        long_tick=[partial(TemporalProfile, features=_BURSTY_FEATS["temporal"])],
+        medium=[],
+        long_tick=[],
         long_fuser=_default_fuser,
     ),
     Archetype.BINARY: ArchetypeProfile(
         short_event=[DataQualityGate],
         short_tick=[StateTransition],
-        medium=[
-            partial(CUSUM, features=_BINARY_FEATS["cusum"]),
-            # SubPCA disabled for BINARY (matches old DETECTOR_ENABLED).
-            partial(MultivariatePCA, features=_BINARY_FEATS["mvpca"]),
-        ],
-        long_tick=[partial(TemporalProfile, features=_BINARY_FEATS["temporal"])],
+        medium=[],
+        long_tick=[],
         long_fuser=_default_fuser,
     ),
 }
 
 
 def profile_for(cfg: SensorConfig) -> ArchetypeProfile:
-    p = PROFILES[cfg.archetype]
-    if cfg.archetype == Archetype.BINARY and cfg.capability == "motion":
-        return ArchetypeProfile(
-            short_event=p.short_event,
-            short_tick=p.short_tick,
-            medium=[
-                partial(RecentShift,
-                        short_feature="duty_cycle_1h",
-                        baseline_features=("duty_cycle_24h",
-                                           "duty_cycle_24h_roll_7d")),
-                partial(MultivariatePCA, features=_BINARY_FEATS["mvpca"]),
-            ],
-            long_tick=p.long_tick,
-            long_fuser=p.long_fuser,
-        )
-    return p
+    # Stage 0: no motion-specific override (RecentShift + MvPCA are both
+    # statistical detectors, disabled at this stage). Re-introduce the
+    # override when Stage 2 adds a motion detector back.
+    return PROFILES[cfg.archetype]
