@@ -10,6 +10,40 @@ import pandas as pd
 from .core import Alert
 
 
+# Canonical label vocabulary (mirrors synthetic-generator/labels.py). Kept
+# local so the anomaly-detection package stays decoupled from sensorgen.
+USER_BEHAVIOR_TYPES: frozenset[str] = frozenset({
+    "spike", "dip", "level_shift", "trend", "degradation_trajectory",
+    "frequency_change", "seasonality_loss", "time_of_day",
+    "weekend_anomaly", "month_shift", "seasonal_mismatch",
+    "water_leak_sustained", "unusual_occupancy",
+})
+SENSOR_FAULT_TYPES: frozenset[str] = frozenset({
+    "out_of_range", "saturation", "noise_burst", "noise_floor_up",
+    "stuck_at", "calibration_drift", "dropout", "duplicate_stale",
+    "reporting_rate_change", "clock_drift", "batch_arrival",
+})
+
+
+def type_to_class(anomaly_type: str) -> str:
+    """Map an anomaly_type string to its label class.
+
+    Returns:
+        "user_behavior" — occupancy/routine/appliance-shift semantics
+        "sensor_fault"  — infrastructure signal-quality issues
+        "unknown"       — detector-combo string or unmapped type
+
+    Used by the eval harness to prevent a DQG `dropout` claim from
+    being counted as TP against a `water_leak_sustained` label on the
+    same sensor, and vice versa.
+    """
+    if anomaly_type in USER_BEHAVIOR_TYPES:
+        return "user_behavior"
+    if anomaly_type in SENSOR_FAULT_TYPES:
+        return "sensor_fault"
+    return "unknown"
+
+
 def _find_ctx(alert: Alert, detector: str) -> dict | None:
     """Return the first context dict for ``detector`` (or None)."""
     if not alert.context:

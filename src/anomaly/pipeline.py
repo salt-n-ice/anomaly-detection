@@ -12,6 +12,7 @@ from .fusion import DefaultAlertFuser
 from .profiles import profile_for
 from .batch import matrix_profile_discords
 from .metrics import compute_metrics
+from .explain import classify_type, type_to_class
 
 
 _ADAPT_BUFFER_TICKS_DEFAULT = 96 * 60  # 96h buffer for CONTINUOUS — a longer buffer
@@ -212,15 +213,27 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         # read this column instead of `start` so sliding-window and cross-
         # chain artifacts don't back-date the reported alert fire time.
         first_fire = a.first_fire_ts or a.timestamp
+        # inferred_type: explainer-derived canonical type (pre-typed alerts
+        # from DQG / state_transition pass through; detector-combo chains
+        # get a best-guess label via classify_type). inferred_class maps
+        # the type to {user_behavior, sensor_fault, unknown} so the eval
+        # harness can prevent a DQG `dropout` claim from being credited
+        # as TP against a `water_leak_sustained` GT label on the same
+        # sensor (and vice versa).
+        inferred_type = classify_type(a)
+        inferred_class = type_to_class(inferred_type)
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),
                      "first_fire_ts": first_fire.isoformat(),
                      "anomaly_type": a.anomaly_type or a.detector,
+                     "inferred_type": inferred_type,
+                     "inferred_class": inferred_class,
                      "detector": a.detector, "score": a.score})
     path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows, columns=["sensor_id","capability","start","end",
-                                 "first_fire_ts","anomaly_type","detector",
-                                 "score"]).to_csv(path, index=False)
+                                 "first_fire_ts","anomaly_type",
+                                 "inferred_type","inferred_class",
+                                 "detector","score"]).to_csv(path, index=False)
 
 
 def evaluate(detections_csv: Path, labels_csv: Path) -> dict:

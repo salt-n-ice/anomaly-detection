@@ -311,3 +311,120 @@ def compute_metrics_event(gt_df: pd.DataFrame, det_df: pd.DataFrame,
     return {"tp": ntp, "fp": nfp, "fn": nfn,
             "precision": prec, "recall": rec, "f1": f1,
             "n_events": n_events}
+
+
+# ----- Duration-stratified metrics ------------------------------------------
+#
+# Length-weighted aggregates (time_F1, latency_p95) bias toward long anomalies:
+# a 28-day level_shift contributes ~4000x more seconds than a 30-min water leak,
+# so the aggregate "rewards" any pipeline that covers long labels even if it
+# completely misses short ones. Flat latency floors (e.g. 600s) are lethal for
+# short labels (33% elapsed before alert) and trivial for long ones (<0.03%).
+#
+# These helpers bucket GT labels by duration and report metrics per bucket, so
+# a regression on any one band is visible instead of being averaged out.
+
+DURATION_BUCKETS: list[tuple[str, float, float]] = [
+    # (name, min_seconds_inclusive, max_seconds_exclusive)
+    ("short",  0.0,       3600.0),          # < 1h     — leaks, dips
+    ("medium", 3600.0,    86400.0),         # 1h–24h   — weekend anomaly, occupancy
+    ("long",   86400.0,   float("inf")),    # > 24h    — level_shift, WFH, month_shift
+]
+
+
+def _bucket_of(duration_s: float) -> str:
+    for name, lo, hi in DURATION_BUCKETS:
+        if lo <= duration_s < hi:
+            return name
+    return DURATION_BUCKETS[-1][0]
+
+
+def compute_metrics_by_bucket(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
+    """Per-bucket recall + fractional-latency, keyed by GT label duration.
+
+    Returned dict structure:
+        {
+          "short":  {"n_labels": N, "incident_recall": r, "time_recall": r,
+                     "lat_frac_p95": f, "lat_frac_max": f, "n_matched": m},
+          "medium": {...},
+          "long":   {...},
+        }
+
+    Precision-side metrics (time_precision, fp_h_per_day) are NOT bucketed
+    because an FP is by definition "detection outside any GT" and has no
+    natural bucket assignment. Those remain global in the caller.
+
+    `lat_frac` = latency_seconds / label_duration_seconds — fraction of the
+    GT label elapsed before first-fire. `lat_frac_p95 = 0.10` means "the 95th
+    percentile label had 10% of its duration pass before any alert". Flat-
+    seconds floors don't capture this; a 600s lag on a 30-min leak is 33%,
+    on a 28-day shift it's 0.025%.
+    """
+    gt = _load(gt_df)
+    det_pairs = _load_with_fire_ts(det_df)
+
+    out: dict[str, dict] = {}
+    for name, lo, hi in DURATION_BUCKETS:
+        bucket_gt = [g for g in gt
+                     if lo <= (g.end - g.start).total_seconds() < hi]
+        n_labels = len(bucket_gt)
+        if n_labels == 0:
+            out[name] = {"n_labels": 0, "incident_recall": None,
+                         "time_recall": None, "lat_frac_p95": None,
+                         "lat_frac_max": None, "n_matched": 0}
+            continue
+
+        # Incident recall: each GT in bucket is TP if ANY det overlaps.
+        n_matched = 0
+        fractional_lags: list[float] = []
+        tp_sec = 0.0
+        gt_sec = 0.0
+        for g in bucket_gt:
+            duration = (g.end - g.start).total_seconds()
+            gt_sec += duration
+            overlaps = [(d, fire) for d, fire in det_pairs if _overlaps(g, d)]
+            if not overlaps:
+                continue
+            n_matched += 1
+            first_fire = min(fire for _, fire in overlaps)
+            lag = max(0.0, (first_fire - g.start).total_seconds())
+            fractional_lags.append(lag / duration if duration > 0 else 0.0)
+
+            # TP-sec for this label: intersected seconds across all overlapping dets.
+            events: list[tuple[pd.Timestamp, int]] = []
+            events.append((g.start, +1)); events.append((g.end, -1))
+            for d, _ in overlaps:
+                events.append((max(d.start, g.start), +2))
+                events.append((min(d.end, g.end), -2))
+            events.sort(key=lambda x: (x[0], x[1]))
+            gt_open = det_open = 0
+            prev_ts = events[0][0]
+            for ts, delta in events:
+                dt = (ts - prev_ts).total_seconds()
+                if dt > 0 and gt_open > 0 and det_open > 0:
+                    tp_sec += dt
+                if abs(delta) == 1:
+                    gt_open += (1 if delta > 0 else -1)
+                else:
+                    det_open += (1 if delta > 0 else -1)
+                prev_ts = ts
+
+        incR = n_matched / n_labels
+        time_rec = tp_sec / gt_sec if gt_sec > 0 else 0.0
+
+        if fractional_lags:
+            s = pd.Series(fractional_lags)
+            lat_p95 = float(s.quantile(0.95))
+            lat_max = float(s.max())
+        else:
+            lat_p95 = lat_max = None
+
+        out[name] = {
+            "n_labels": int(n_labels),
+            "n_matched": int(n_matched),
+            "incident_recall": round(float(incR), 4),
+            "time_recall": round(float(time_rec), 4),
+            "lat_frac_p95": None if lat_p95 is None else round(lat_p95, 4),
+            "lat_frac_max": None if lat_max is None else round(lat_max, 4),
+        }
+    return out
