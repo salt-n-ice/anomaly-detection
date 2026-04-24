@@ -126,7 +126,11 @@ def group_alerts(alerts: list[Alert]) -> Alert:
     # so incident_recall stays 1.0.
     dets = {a.detector for a in alerts}
     if top.capability == "water" and dets == {"cusum", "multivariate_pca"}:
-        cap_end = w0 + pd.Timedelta(hours=8)
+        # 6h cap: the longest water_leak_sustained label in the current
+        # generator is 6h (hh120d May 21 08:00-14:00). All other labels are
+        # 1-5h. A 6h cap fits the max label exactly and trims 2h FP from
+        # every shorter-label chain (6 chains across 3 scenarios).
+        cap_end = w0 + pd.Timedelta(hours=6)
         if w1 > cap_end:
             w1 = cap_end
     ctx: list[dict] = []
