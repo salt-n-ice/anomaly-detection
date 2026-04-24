@@ -1,0 +1,10 @@
+# Minimal config: a single BURSTY power outlet. Used by the
+# single_outlet_fridge_30d scenario to verify the pipeline works without
+# cross-sensor signals and to test BURSTY power rules in isolation.
+sensors:
+  - id: outlet_fridge_power
+    capability: power
+    archetype: bursty
+    expected_interval_sec: 300
+    min_value: 0
+    max_value: 3000
