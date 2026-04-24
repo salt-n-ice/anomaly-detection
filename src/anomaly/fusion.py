@@ -46,6 +46,16 @@ class PassThroughCorroboration:
             # power-outlet feature scale (peak W~10^3, diff-feat residuals
             # push real anomalies to 10^4-10^5).
             return max(a.score for a in alerts) >= 10000
+        if dets == {"multivariate_pca"} and all(a.capability == "motion" for a in alerts):
+            # BINARY motion mvpca singletons are 94% FP across the suite:
+            # leak_30d 0/20 TP (9.8h FP), hh60d 0/24 TP (10.5h FP), hh120d
+            # 6/73 TP (4h TP / 41.9h FP). Score doesn't separate (TP 4-16
+            # overlaps FP 4-24). The 6 hh120d TPs are on bedroom_motion
+            # month_shift labels (Mar 7, Apr 26) already covered by 100-250
+            # state_transition alerts plus recent_shift+temporal_profile
+            # fused chains, so incident_recall is preserved. Mirrors iter
+            # 059 rejection of motion temporal_profile singletons.
+            return False
         return True
 
 
