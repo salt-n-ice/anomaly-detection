@@ -190,14 +190,14 @@ class DefaultAlertFuser:
             is_cstp3_post_mvpca = (
                 is_bursty
                 and dets == {"cusum", "sub_pca", "temporal_profile"}
-                and self._last_emit_dets is not None
-                and "multivariate_pca" in self._last_emit_dets
+                and self._last_fused_emit_dets is not None
+                and "multivariate_pca" in self._last_fused_emit_dets
             )
             is_cms3_continuous_between = (
                 is_continuous
                 and dets == {"cusum", "multivariate_pca", "sub_pca"}
-                and self._last_emit_dets is not None
-                and "multivariate_pca" in self._last_emit_dets
+                and self._last_fused_emit_dets is not None
+                and "multivariate_pca" in self._last_fused_emit_dets
                 and self._last_attempt_end_ts is not None
                 and (chain_start - self._last_attempt_end_ts) > pd.Timedelta(days=5)
             )
