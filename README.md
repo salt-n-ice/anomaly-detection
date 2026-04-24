@@ -4,67 +4,73 @@ Compact Python pipeline for detecting anomalies in smart-home sensor streams (po
 
 ## Quickstart (with the companion synthetic generator)
 
-End-to-end: YAML scenario → events CSV → detections CSV → metrics + PDFs.
+End-to-end on the canonical `household_60d` scenario (60-day smart-home
+timeline, 19 labeled anomalies). PowerShell shown below; bash/zsh users
+replace the trailing `` ` `` (PowerShell line-continuation) with `\`
+and `\` path separators with `/`.
 
-```bash
-# 1. Generate a labeled scenario from a YAML spec
-cd synthetic-generator
-sensorgen run scenarios/outlet_demo.yaml --out out/outlet
-#   writes out/outlet/events.csv  and  out/outlet/labels.csv
+```powershell
+# 1. Generate a labeled scenario (companion project)
+cd ..\synthetic-generator
+sensorgen run scenarios\household_60d.yaml --out out\household_60d
+#   writes out\household_60d\events.csv and out\household_60d\labels.csv
 
-# 2. Run the detection pipeline
-cd ../anomaly-detection
-python -m anomaly run \
-  --events ../synthetic-generator/out/outlet/events.csv \
-  --config configs/outlet.yaml \
-  --out out/outlet_detections.csv \
+# 2. Detection pipeline
+cd ..\anomaly-detection
+python -m anomaly run `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --config configs\household.yaml `
+  --out out\household_60d_detections.csv `
   --bootstrap-days 14
-#   writes out/outlet_detections.csv
+#   writes out\household_60d_detections.csv (with first_fire_ts column)
 
-# 3. Score against ground truth
-python -m anomaly eval \
-  --detections out/outlet_detections.csv \
-  --labels ../synthetic-generator/out/outlet/labels.csv
+# 3. Research eval — the full metrics suite the tuning loop uses
+python research\run_research_eval.py --suite 60d
+#   prints BEHAVIOR + FAULT blocks per scenario plus an onset-timing
+#   audit; also writes a JSON snapshot under research\runs\
 
-# 4a. Visualize (multi-page, 1-day windows — best for short/mixed anomalies)
-python -m anomaly viz \
-  --events ../synthetic-generator/out/outlet/events.csv \
-  --labels ../synthetic-generator/out/outlet/labels.csv \
-  --detections out/outlet_detections.csv \
-  --out out/outlet_viz.pdf \
+# 4a. Viz — per-day tiled PDF (best for short/mixed anomalies)
+python -m anomaly viz `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --labels ..\synthetic-generator\out\household_60d\labels.csv `
+  --detections out\household_60d_detections.csv `
+  --out out\household_60d_viz.pdf `
   --window 1d
 
-# 4b. Visualize long-duration anomalies (one page per label ≥ 24h, with signal curves)
-python -m anomaly viz-long \
-  --events ../synthetic-generator/out/outlet/events.csv \
-  --labels ../synthetic-generator/out/outlet/labels.csv \
-  --detections out/outlet_detections.csv \
-  --out out/outlet_viz_long.pdf \
+# 4b. Viz — one detail page per long (>=24h) label
+python -m anomaly viz-long `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --labels ..\synthetic-generator\out\household_60d\labels.csv `
+  --detections out\household_60d_detections.csv `
+  --out out\household_60d_viz_long.pdf `
   --min-hours 24
 
-# 5. Explain (one LLM-ready bundle per detected alert)
-python -m anomaly explain \
-  --events ../synthetic-generator/out/outlet/events.csv \
-  --detections out/outlet_detections.csv \
-  --out out/outlet_bundles.jsonl
-#   writes one JSON bundle per line; each bundle carries window /
-#   magnitude / temporal / detectors / detector_context / score,
-#   and can be rendered to markdown via anomaly.explain.build_prompt.
+# 5. Explain — one LLM-ready bundle per detection
+python -m anomaly explain `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --detections out\household_60d_detections.csv `
+  --out out\household_60d_bundles.jsonl
 ```
 
-To sweep all 5 bundled scenarios (outlet / outlet-tv / outlet-kettle / waterleak / outlet_short) and compare all metrics side-by-side:
-```bash
-python scripts/run_all_scenarios.py
+Run the full 3-scenario suite (`household_60d` + `household_120d` +
+`leak_30d`) through the research scorer:
+```powershell
+python research\run_research_eval.py --suite all
+python research\run_research_eval.py --suite all --diff-baseline   # regression check
+python research\run_research_eval.py --suite all --save-baseline   # freeze BASELINE.json
 ```
-(expects the generator's `out/` directory to be a sibling of this project — set `SENSORGEN_OUT` to override)
 
-A session-by-session tuning log lives in `CHANGES.md`.
+The scorer expects `synthetic-generator\` as a sibling of this project;
+override with the `SENSORGEN_OUT` env var.
+
+Session-by-session tuning log lives in `CHANGES.md`; the frozen baseline
+narrative + ratchet history is in `research\BASELINE.md`.
 
 ## Install
 
-```bash
+```powershell
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+.venv\Scripts\Activate.ps1         # macOS/Linux: source .venv/bin/activate
 pip install -e .[dev]
 ```
 
@@ -89,12 +95,10 @@ outlet_fridge_power,power,2026-02-05T14:00:00Z,2026-02-05T14:02:00Z,spike,pca,"{
 
 ## Sensor config
 
-Each sensor declares its archetype (`continuous` / `bursty` / `binary`) plus physical bounds. Sample configs:
+Each sensor declares its archetype (`continuous` / `bursty` / `binary`) plus physical bounds. Bundled configs:
 
-- `configs/outlet.yaml` — fridge (bursty) + voltage (continuous)
-- `configs/outlet_tv.yaml` — TV (bursty) + voltage
-- `configs/outlet_kettle.yaml` — kettle (bursty, high-wattage) + voltage
-- `configs/waterleak.yaml` — water leak (binary) + temperature + battery
+- `configs/household.yaml` — fridge + kettle + tv (bursty power) · mains_voltage (continuous) · basement_leak + bedroom_motion (binary). Used by the `household_60d` and `household_120d` scenarios.
+- `configs/leak_30d.yaml` — basement_leak (binary water) · basement_temp (continuous) · utility_motion (binary).
 
 ```yaml
 sensors:
@@ -115,41 +119,71 @@ sensors:
 ## CLI
 
 ### Run the pipeline
-```bash
-python -m anomaly run \
-  --events events.csv \
-  --config configs/outlet.yaml \
-  --out detections.csv \
+```powershell
+python -m anomaly run `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --config configs\household.yaml `
+  --out out\household_60d_detections.csv `
   --bootstrap-days 14
 ```
 
-Writes `detections.csv` with columns `sensor_id, capability, start, end, anomaly_type, detector, score`.
+Writes `detections.csv` with columns `sensor_id, capability, start, end, first_fire_ts, anomaly_type, detector, score`.
 
-`--bootstrap-days` is how long the pipeline learns the sensor's baseline before statistical detectors activate. Use ~2 days for a 7-day scenario, ~14 days for 60-day evaluations. Bootstrap data should be representative normal behavior — anomalies falling inside the bootstrap window will silently train the models against themselves and are unlikely to be detected.
+- `start` / `end` — the analysis-window extent of the fused chain (used by coverage metrics).
+- `first_fire_ts` — the earliest component tick in the chain (used by latency / onset metrics). Added 2026-04-24; see `research\BASELINE.md`.
+- `--bootstrap-days` — how long the pipeline learns the sensor's baseline before statistical detectors activate. Use 7 days for `leak_30d`, 14 days for household scenarios. Bootstrap data should be representative normal behavior; anomalies falling inside the bootstrap window silently train the models against themselves and are unlikely to be detected.
 
 ### Evaluate against ground truth
-```bash
-python -m anomaly eval \
-  --detections detections.csv \
-  --labels labels.csv
+
+Two eval paths:
+
+**Quick one-shot F1** — legacy 1:1 interval match, prints a single dict. Useful when you just want a number.
+
+```powershell
+python -m anomaly eval `
+  --detections out\household_60d_detections.csv `
+  --labels ..\synthetic-generator\out\household_60d\labels.csv
 ```
 
-Prints `{tp, fp, fn, precision, recall, f1}` using **1:1** interval-overlap matching. Four F1 flavors are implemented in `anomaly.metrics`:
+**Research eval (canonical)** — the scorer the tuning loop uses. Runs the pipeline, slices labels by `label_class` (`user_behavior` vs `sensor_fault`), and prints a BEHAVIOR block + FAULT block per scenario plus an onset-timing audit. Writes a JSON snapshot to `research\runs\<timestamp>.json`.
 
-- `compute_metrics` — **1:1** greedy matching (legacy). Penalizes multi-chunk detection of long labels.
-- `compute_metrics_pointwise` — any-overlap set semantics. Recall equals `incident_recall`.
-- `compute_metrics_event` — **event-level F1** (primary target). Detections within a 1h gap are merged into "events" before matching; one sustained alert is one event regardless of internal chunking.
-- `compute_metrics_time` — **duration-weighted**. TP/FP/FN in seconds via per-sensor interval sweep. Surfaces multi-day FP strips that event F1 collapses into a single event.
+```powershell
+python research\run_research_eval.py --suite all           # household_60d + household_120d + leak_30d
+python research\run_research_eval.py --suite 60d           # just household_60d
+python research\run_research_eval.py --suite all --diff-baseline    # regression check vs BASELINE.json
+python research\run_research_eval.py --suite all --save-baseline    # freeze current as BASELINE.json
+```
 
-To run on multiple scenarios and compare all metrics side-by-side, see `scripts/run_all_scenarios.py`. It also reports `incident_recall`, `fp_h_per_day`, and `events_per_incident` (alert burden).
+Per-scenario metrics tracked in research (BEHAVIOR block — the user-facing optimization target):
+
+| Metric                        | Role         | Semantics                                                                                           |
+|-------------------------------|:------------:|-----------------------------------------------------------------------------------------------------|
+| `time_f1`                     | **headline** | Duration-weighted F1 over label-seconds vs detection-seconds. Penalises over-claim AND missed coverage. |
+| `incident_recall`             | **floor**    | Fraction of labels covered by any detection. The tuning loop never allows this to drop.             |
+| `fp_h_per_day`                | secondary    | FP detection-hours per calendar day. Direct over-claim proxy.                                       |
+| `nondqg_latency_p95_s`        | secondary    | 95th-%ile delay from label start to first chain fire. Reads the `first_fire_ts` column.             |
+| `evt_f1`                      | visibility   | Event-level F1 with a 1h merge-gap. Reported but **not** a regression criterion (merge-gap artifact). |
+| `onset_early_labels` / `_late_labels` | diagnostic | How many labels had the first chain fire before / after label start.                          |
+| `onset_early_lead_p95_s` / `onset_late_start_p95_s` | diagnostic | Distribution of those leads / delays.                                              |
+
+Regression floors (`--diff-baseline` defaults): `incident_recall` drop >0.005, `time_f1` drop >0.02, `fp_h_per_day` rise >10% relative, `nondqg_latency_p95_s` rise >600s. Any scenario tripping any floor → REJECT.
+
+The `sensor_fault` block is reported for visibility only — infrastructure anomalies are not user-facing and we do not optimise for them. `label_class` slicing lives in `synthetic-generator/src/sensorgen/labels.py`.
+
+All F1 flavors live in `anomaly.metrics`:
+- `compute_metrics_time` — **primary**. TP/FP/FN in seconds via per-sensor interval sweep.
+- `compute_metrics_event` — event-level F1 (1h merge-gap); what `evt_f1` reports.
+- `compute_metrics_pointwise` — any-overlap set semantics; recall = `incident_recall`.
+- `compute_metrics` — legacy 1:1 greedy matching; printed by `python -m anomaly eval`.
+- `compute_metrics_latency` / `compute_metrics_onset_timing` — read `first_fire_ts` when present, fall back to `start` on legacy CSVs.
 
 ### Visualize
-```bash
-python -m anomaly viz \
-  --events events.csv \
-  --labels labels.csv \
-  --detections detections.csv \
-  --out viz.pdf \
+```powershell
+python -m anomaly viz `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --labels ..\synthetic-generator\out\household_60d\labels.csv `
+  --detections out\household_60d_detections.csv `
+  --out out\household_60d_viz.pdf `
   --window 1d
 ```
 
@@ -164,18 +198,18 @@ Vertical alignment between a red row and a blue row = caught. Unmatched red = mi
 
 ### Long-anomaly viz (`viz-long`)
 
-For scenarios with day- or week-scale anomalies, strip markers across 30 days don't communicate much. `viz-long` produces a per-label interpretive PDF:
+For scenarios with day- or week-scale anomalies, strip markers across 30+ days don't communicate much. `viz-long` produces a per-label interpretive PDF:
 
-```bash
-python -m anomaly viz-long \
-  --events events.csv \
-  --labels labels.csv \
-  --detections detections.csv \
-  --out viz_long.pdf \
+```powershell
+python -m anomaly viz-long `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --labels ..\synthetic-generator\out\household_60d\labels.csv `
+  --detections out\household_60d_detections.csv `
+  --out out\household_60d_viz_long.pdf `
   --min-hours 24
 ```
 
-Page 1 is a summary table of every label with duration, TP/FN, and detector mix. Each following page is one GT label whose duration ≥ `--min-hours`, showing the full 60-day signal with the label region highlighted, a zoomed signal with padded context (`max(1d, duration/3)`, capped at 14d), and aligned truth/detection strips.
+Page 1 is a summary table of every label with duration, TP/FN, and detector mix. Each following page is one GT label whose duration >= `--min-hours`, showing the full scenario signal with the label region highlighted, a zoomed signal with padded context (`max(1d, duration/3)`, capped at 14d), and aligned truth/detection strips. Short (<24h) labels are listed on the summary page but don't get a detail page — use the per-day `viz` above for those.
 
 ## Explain (`anomaly.explain`)
 
@@ -187,14 +221,14 @@ as a **library** for in-process streaming.
 ### CLI: events CSV + detections CSV → bundles JSONL
 
 After running `python -m anomaly run ...` to produce
-`out/outlet_detections.csv`, generate one bundle per detected alert:
+`out\household_60d_detections.csv`, generate one bundle per detected alert:
 
-```bash
-python -m anomaly explain \
-  --events ../synthetic-generator/out/outlet/events.csv \
-  --detections out/outlet_detections.csv \
-  --out out/outlet_bundles.jsonl
-# -> wrote N bundles to out/outlet_bundles.jsonl
+```powershell
+python -m anomaly explain `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --detections out\household_60d_detections.csv `
+  --out out\household_60d_bundles.jsonl
+# -> wrote N bundles to out\household_60d_bundles.jsonl
 ```
 
 Equivalent from Python (useful if you want the return value or are
@@ -203,13 +237,13 @@ driving this from another process):
 ```python
 from anomaly.explain import explain_detections_csv
 n = explain_detections_csv(
-    events_csv     = '../synthetic-generator/out/outlet/events.csv',
-    detections_csv = 'out/outlet_detections.csv',
-    out_jsonl      = 'out/outlet_bundles.jsonl',
+    events_csv     = '../synthetic-generator/out/household_60d/events.csv',
+    detections_csv = 'out/household_60d_detections.csv',
+    out_jsonl      = 'out/household_60d_bundles.jsonl',
 )
 ```
 
-`out/outlet_bundles.jsonl` is one JSON bundle per line:
+`out\household_60d_bundles.jsonl` is one JSON bundle per line:
 
 ```json
 {
@@ -231,14 +265,8 @@ n = explain_detections_csv(
 
 ### Analyze: render one bundle as markdown
 
-```bash
-python -c "
-import json
-from anomaly.explain import build_prompt
-with open('out/outlet_bundles.jsonl') as f:
-    bundle = json.loads(f.readline())    # first alert
-print(build_prompt(bundle))
-"
+```powershell
+python -c "import json; from anomaly.explain import build_prompt; print(build_prompt(json.loads(open('out/household_60d_bundles.jsonl').readline())))"
 ```
 
 Produces an LLM-ready markdown block:
@@ -315,22 +343,24 @@ src/anomaly/
   metrics.py     interval-overlap + pointwise + event + time-weighted
   explain.py     structured bundle + LLM-ready markdown prompt per alert
   viz.py         PDF visualization
-configs/                     sample sensor configurations (outlet / tv / kettle / waterleak)
-scripts/run_all_scenarios.py runs the pipeline on all 5 bundled scenarios, reports 1:1 / event / pointwise / time-weighted metrics
-tests/                       unit + integration tests
-pipeline.md                  full design spec (algorithms, suppression matrix, bootstrap phases)
-CHANGES.md                   tuning-session log (detector / fusion / metric evolution)
+configs/                          sample sensor configurations (household / leak_30d)
+research/run_research_eval.py     canonical scorer — behavior-stratified metrics, JSON snapshots, BASELINE.json diff
+research/BASELINE.md              frozen baseline narrative + ratchet history
+scripts/run_all_scenarios.py      legacy sweep over old scenarios (outlet / tv / kettle / waterleak)
+tests/                            unit + integration tests
+pipeline.md                       full design spec (algorithms, suppression matrix, bootstrap phases)
+CHANGES.md                        tuning-session log (detector / fusion / metric evolution)
 ```
 
 ## Tests
 
-```bash
+```powershell
 pytest -v
 ```
 
 All pure unit/integration tests using in-memory fixtures. No external data required.
 
-Some optional integration tests (if present) look for generated synthetic scenarios under the companion `synthetic-generator/` project's `out/` directory (e.g. `outlet7`, `leak7`). They auto-skip if the data isn't present, so the core suite runs everywhere.
+Some optional integration tests look for generated synthetic scenarios under the companion `synthetic-generator/` project's `out/` directory. They auto-skip if the data isn't present, so the core suite runs everywhere.
 
 ## Adding a new sensor archetype
 
