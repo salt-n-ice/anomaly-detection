@@ -46,6 +46,18 @@ class PassThroughCorroboration:
             # power-outlet feature scale (peak W~10^3, diff-feat residuals
             # push real anomalies to 10^4-10^5).
             return max(a.score for a in alerts) >= 10000
+        if dets == {"cusum", "temporal_profile"} and all(a.capability == "power" for a in alerts):
+            # BURSTY power {cusum, temporal_profile} 2-det chains are 100% FP
+            # across the suite: hh60d 0 chains, hh120d 2 FP (192h total, both
+            # outlet_tv_power Mar 15-19 and Mar 19-23 95.9h max_span chunks),
+            # leak_30d 0 chains. Mirrors iter 020's CONT reject: CUSUM
+            # cumulative drift + TP hourly-bucket z-score without residual
+            # (MvPCA) or variance (SubPCA) corroboration is weak evidence
+            # that fires as the baseline shifts but the full signal settles.
+            # The 2 hh120d chains sit between outlet_tv weekend_anomaly
+            # labels (Mar 7 - Apr 12) and fire on post-shift drift, not
+            # a new anomaly bout.
+            return False
         if dets == {"multivariate_pca", "sub_pca"} and all(a.capability == "power" for a in alerts):
             # BURSTY power mvpca+sub_pca 2-det chains are 85% FP across the
             # suite: hh60d 4/0 TP (18h FP, all outlet_kettle Mar 19-29
