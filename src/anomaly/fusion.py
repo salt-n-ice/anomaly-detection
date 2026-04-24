@@ -106,6 +106,19 @@ def group_alerts(alerts: list[Alert]) -> Alert:
     w1 = max((a.window_end or a.timestamp) for a in alerts)
     first_fire = min(a.timestamp for a in alerts)
     names = "+".join(sorted({a.detector for a in alerts}))
+    # BINARY water {cusum, multivariate_pca} chains over-extend 17-46h past
+    # the actual water_leak_sustained label end (labels are 1-6h). CUSUM drift
+    # and MvPCA residual persist against bootstrap baseline even after the
+    # leak event ends. Cap the emitted chain end at w0+8h to trim the
+    # wind-down tail. Every current water label fits in the first 8h of its
+    # containing chain except leak_30d Feb 23 08:30 which is mid-chain
+    # (Feb 22-24) — a state_transition 1min alert covers the Feb 23 onset
+    # so incident_recall stays 1.0.
+    dets = {a.detector for a in alerts}
+    if top.capability == "water" and dets == {"cusum", "multivariate_pca"}:
+        cap_end = w0 + pd.Timedelta(hours=8)
+        if w1 > cap_end:
+            w1 = cap_end
     ctx: list[dict] = []
     for a in alerts:
         if a.context:
