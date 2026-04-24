@@ -240,6 +240,17 @@ class DefaultAlertFuser:
                 and self.cfg.capability == "motion"
                 and dets == {"multivariate_pca", "temporal_profile"}
             )
+            # BINARY motion temporal_profile singletons: 7 TP (23h across
+            # bedroom_motion month_shift labels) vs 50 FP (176h) across the
+            # suite. 86% FP by count, 88% by time. TP cases all have
+            # state_transition + other coverage on the same long month_shift
+            # labels; incident_recall preserved but some time_recall dilution
+            # on bedroom_motion month_shift is expected.
+            is_tp1_binary_motion = (
+                is_binary
+                and self.cfg.capability == "motion"
+                and dets == {"temporal_profile"}
+            )
             if is_cs2:
                 self._consecutive_cs += 1
                 if self._consecutive_cs <= 2:
@@ -247,8 +258,9 @@ class DefaultAlertFuser:
                     self._last_emit_dets = frozenset(dets)
                     self._last_fused_emit_dets = frozenset(dets)
             elif (is_cstp3_post_mvpca or is_cms3_continuous_between
-                  or is_cm2_binary_motion_post_mvpca or is_mvtp2_binary_motion):
-                pass  # Iter 015/016/032/058: cross-chain wind-down / between-trend filter
+                  or is_cm2_binary_motion_post_mvpca or is_mvtp2_binary_motion
+                  or is_tp1_binary_motion):
+                pass  # Iter 015/016/032/058/059: cross-chain wind-down / between-trend filter
             else:
                 self._consecutive_cs = 0
                 emitted.append(group_alerts(self._pending))
