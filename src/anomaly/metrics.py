@@ -158,14 +158,47 @@ def compute_metrics_time(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
             "per_sensor": per_sensor}
 
 
+def _load_with_fire_ts(df: pd.DataFrame) -> list[tuple[Interval, pd.Timestamp]]:
+    """Load intervals alongside the earliest fire-tick for latency measurement.
+
+    Reads `first_fire_ts` when present (added by `_write_detections` so the
+    fused chain's earliest component tick is preserved instead of being
+    collapsed into `window_start`). Falls back to `start` for legacy CSVs
+    that predate the column; that fallback reproduces the old behavior.
+    """
+    has_ffts = "first_fire_ts" in df.columns
+    out: list[tuple[Interval, pd.Timestamp]] = []
+    for r in df.itertuples(index=False):
+        iv = Interval(r.sensor_id,
+                      pd.Timestamp(r.start, tz="UTC") if not isinstance(r.start, pd.Timestamp) else r.start,
+                      pd.Timestamp(r.end, tz="UTC") if not isinstance(r.end, pd.Timestamp) else r.end,
+                      getattr(r, "anomaly_type", ""))
+        if has_ffts and pd.notna(r.first_fire_ts):
+            fire = (pd.Timestamp(r.first_fire_ts, tz="UTC")
+                    if not isinstance(r.first_fire_ts, pd.Timestamp)
+                    else r.first_fire_ts)
+        else:
+            fire = iv.start
+        out.append((iv, fire))
+    return out
+
+
 def compute_metrics_latency(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
     """Per-label first-alert latency, in seconds.
 
     For each GT label matched by at least one overlapping detection, latency is
-    `max(0, earliest_overlap_det.start - label.start)`. Clamp-at-zero preserves
-    the "alert available at or before label start = zero latency" reading;
-    negative leading edges (detection fires slightly before label) aren't a
-    virtue we reward and they aren't a cost we penalize.
+    `max(0, earliest_overlap_fire - label.start)` where `fire` is the
+    detector's first-fire tick (`first_fire_ts` column; falls back to
+    `start` on legacy CSVs without the column). Using the fire tick instead
+    of `window_start` avoids collapsing real post-onset firing delay to
+    zero when (a) sliding-window detectors back-date their `window_start`
+    by the window length and (b) cross-label fused chains inherit an
+    earlier component's `window_start`.
+
+    Clamp-at-zero preserves the "alert available at or before label start
+    = zero latency" reading; negative leading edges (detection fires
+    slightly before label) aren't a virtue we reward and they aren't a cost
+    we penalize.
 
     Unmatched GT labels (FN) are excluded — latency is undefined for misses, and
     `incident_recall` / `evt_recall` already account for them.
@@ -175,14 +208,14 @@ def compute_metrics_latency(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
     measure multiple latency breakdowns in the same evaluation pass without
     coupling the function to detector-name taxonomy.
     """
-    gt = _load(gt_df); det = _load(det_df)
+    gt = _load(gt_df); det_pairs = _load_with_fire_ts(det_df)
     lags: list[float] = []
     for g in gt:
-        overlaps = [d for d in det if _overlaps(g, d)]
+        overlaps = [(d, fire) for d, fire in det_pairs if _overlaps(g, d)]
         if not overlaps:
             continue
-        first_start = min(d.start for d in overlaps)
-        lags.append(max(0.0, (first_start - g.start).total_seconds()))
+        first_fire = min(fire for _, fire in overlaps)
+        lags.append(max(0.0, (first_fire - g.start).total_seconds()))
     if not lags:
         return {"n_tp_labels": 0, "latency_mean_s": None,
                 "latency_median_s": None, "latency_p95_s": None,
@@ -201,30 +234,33 @@ def compute_metrics_onset_timing(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> d
     """Per-label timing split into early lead and late start.
 
     `compute_metrics_latency()` collapses every matched label whose first
-    overlapping detection starts before the label into `0s`. That is useful for
+    overlapping detection fires before the label into `0s`. That is useful for
     "was an alert already present by label start?" but it hides long pre-label
     bridge chains. This helper keeps the two directions separate:
 
     - early_lead_*: how far before label start the first overlapping detection
-      begins (0 if it starts at/after the label)
+      fires (0 if it fires at/after the label)
     - late_start_*: how far after label start the first overlapping detection
-      begins (0 if it starts at/before the label)
+      fires (0 if it fires at/before the label)
 
     Both are reported across matched labels, so zeros remain part of the
     distribution. Counts of early/late labels are included for interpretation.
+
+    Uses `first_fire_ts` when present (earliest component tick in a fused
+    chain) — same rationale as `compute_metrics_latency`.
     """
-    gt = _load(gt_df); det = _load(det_df)
+    gt = _load(gt_df); det_pairs = _load_with_fire_ts(det_df)
     early_leads: list[float] = []
     late_starts: list[float] = []
     n_missed = 0
     for g in gt:
-        overlaps = [d for d in det if _overlaps(g, d)]
+        overlaps = [(d, fire) for d, fire in det_pairs if _overlaps(g, d)]
         if not overlaps:
             n_missed += 1
             continue
-        first_start = min(d.start for d in overlaps)
-        early_leads.append(max(0.0, (g.start - first_start).total_seconds()))
-        late_starts.append(max(0.0, (first_start - g.start).total_seconds()))
+        first_fire = min(fire for _, fire in overlaps)
+        early_leads.append(max(0.0, (g.start - first_fire).total_seconds()))
+        late_starts.append(max(0.0, (first_fire - g.start).total_seconds()))
     if not early_leads:
         return {
             "n_matched_labels": 0,

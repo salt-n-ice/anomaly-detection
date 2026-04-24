@@ -51,3 +51,10 @@ class Alert:
     window_start: pd.Timestamp | None = None
     window_end: pd.Timestamp | None = None
     context: list[dict] | None = None
+    # Earliest component tick in a fused chain. `timestamp` carries the
+    # top-scorer's tick (used by explain/classification); `window_start` is
+    # the analysis-window extent (used by coverage metrics). `first_fire_ts`
+    # is the true alert fire time — the earliest tick in the chain that
+    # contributed — which is what latency should measure. None on immediate
+    # alerts (they aren't fused, so first_fire_ts == timestamp).
+    first_fire_ts: pd.Timestamp | None = None
