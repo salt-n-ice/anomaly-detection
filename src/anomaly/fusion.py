@@ -226,14 +226,29 @@ class DefaultAlertFuser:
                 and self._last_fused_emit_dets is not None
                 and "multivariate_pca" in self._last_fused_emit_dets
             )
+            # BINARY motion {mvpca, temporal_profile} 2-det chains are nearly
+            # pure FP on current data: 2 TPs (bedroom_motion month_shift Mar 8
+            # on hh60d and hh120d, 8h total) vs 13 FPs (132h total) across the
+            # full suite — 87% FP by count, 94% by FP time. Both TP cases have
+            # hundreds of alternative covering rows on the same label
+            # (state_transition + temporal_profile singletons), so incident
+            # recall is preserved. Without a cumulative-drift signal (cusum) or
+            # recent-vs-long-term shift (recent_shift), mvpca+tp is high-residual
+            # noise that matches the hourly-bucket deviation but lacks sustain.
+            is_mvtp2_binary_motion = (
+                is_binary
+                and self.cfg.capability == "motion"
+                and dets == {"multivariate_pca", "temporal_profile"}
+            )
             if is_cs2:
                 self._consecutive_cs += 1
                 if self._consecutive_cs <= 2:
                     emitted.append(group_alerts(self._pending))
                     self._last_emit_dets = frozenset(dets)
                     self._last_fused_emit_dets = frozenset(dets)
-            elif is_cstp3_post_mvpca or is_cms3_continuous_between or is_cm2_binary_motion_post_mvpca:
-                pass  # Iter 015/016/032: cross-chain wind-down / between-trend filter
+            elif (is_cstp3_post_mvpca or is_cms3_continuous_between
+                  or is_cm2_binary_motion_post_mvpca or is_mvtp2_binary_motion):
+                pass  # Iter 015/016/032/058: cross-chain wind-down / between-trend filter
             else:
                 self._consecutive_cs = 0
                 emitted.append(group_alerts(self._pending))
