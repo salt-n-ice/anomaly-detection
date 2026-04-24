@@ -742,7 +742,7 @@ class StateTransition:
     truthy. Extracted from inline code in pipeline.py."""
     name = "state_transition"
     live = True
-    _MOTION_IDLE_LOOKBACK_MIN_GAP = pd.Timedelta(minutes=20)
+    _MOTION_IDLE_LOOKBACK_MIN_GAP = pd.Timedelta(minutes=45)
     _MOTION_IDLE_LOOKBACK_CAP = pd.Timedelta(minutes=23)
 
     def __init__(self, config: SensorConfig):
