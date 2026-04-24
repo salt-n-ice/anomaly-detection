@@ -197,6 +197,63 @@ def compute_metrics_latency(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
     }
 
 
+def compute_metrics_onset_timing(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
+    """Per-label timing split into early lead and late start.
+
+    `compute_metrics_latency()` collapses every matched label whose first
+    overlapping detection starts before the label into `0s`. That is useful for
+    "was an alert already present by label start?" but it hides long pre-label
+    bridge chains. This helper keeps the two directions separate:
+
+    - early_lead_*: how far before label start the first overlapping detection
+      begins (0 if it starts at/after the label)
+    - late_start_*: how far after label start the first overlapping detection
+      begins (0 if it starts at/before the label)
+
+    Both are reported across matched labels, so zeros remain part of the
+    distribution. Counts of early/late labels are included for interpretation.
+    """
+    gt = _load(gt_df); det = _load(det_df)
+    early_leads: list[float] = []
+    late_starts: list[float] = []
+    n_missed = 0
+    for g in gt:
+        overlaps = [d for d in det if _overlaps(g, d)]
+        if not overlaps:
+            n_missed += 1
+            continue
+        first_start = min(d.start for d in overlaps)
+        early_leads.append(max(0.0, (g.start - first_start).total_seconds()))
+        late_starts.append(max(0.0, (first_start - g.start).total_seconds()))
+    if not early_leads:
+        return {
+            "n_matched_labels": 0,
+            "n_missed_labels": int(n_missed),
+            "n_early_labels": 0,
+            "n_late_labels": 0,
+            "early_lead_mean_s": None,
+            "early_lead_p95_s": None,
+            "early_lead_max_s": None,
+            "late_start_mean_s": None,
+            "late_start_p95_s": None,
+            "late_start_max_s": None,
+        }
+    early = pd.Series(early_leads)
+    late = pd.Series(late_starts)
+    return {
+        "n_matched_labels": int(len(early_leads)),
+        "n_missed_labels": int(n_missed),
+        "n_early_labels": int(sum(x > 0 for x in early_leads)),
+        "n_late_labels": int(sum(x > 0 for x in late_starts)),
+        "early_lead_mean_s": float(early.mean()),
+        "early_lead_p95_s": float(early.quantile(0.95)),
+        "early_lead_max_s": float(early.max()),
+        "late_start_mean_s": float(late.mean()),
+        "late_start_p95_s": float(late.quantile(0.95)),
+        "late_start_max_s": float(late.max()),
+    }
+
+
 def compute_metrics_event(gt_df: pd.DataFrame, det_df: pd.DataFrame,
                           merge_gap: pd.Timedelta = pd.Timedelta(hours=1)) -> dict:
     """Event-level F1: merge overlapping/near-adjacent detections into event clusters

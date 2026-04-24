@@ -4,7 +4,7 @@ from functools import partial
 from typing import Callable
 from .core import Archetype, SensorConfig
 from .detectors import (Detector, EventDetector, DataQualityGate,
-                         CUSUM, SubPCA, MultivariatePCA,
+                         CUSUM, RecentShift, SubPCA, MultivariatePCA,
                          TemporalProfile, StateTransition)
 from .fusion import (DefaultAlertFuser, PassThroughCorroboration,
                       ContinuousCorroboration)
@@ -75,9 +75,16 @@ PROFILES: dict[Archetype, ArchetypeProfile] = {
         short_event=[DataQualityGate],
         short_tick=[],
         medium=[
-            partial(CUSUM, features=_BURSTY_FEATS["cusum"]),
-            partial(SubPCA),
-            partial(MultivariatePCA, features=_BURSTY_FEATS["mvpca"]),
+            # 12h post-fit warmup: in fresh bootstrap data the BURSTY per-state
+            # PCA threshold (99.9% of bootstrap errors) and CUSUM sd are tuned
+            # to a too-narrow sample, causing Feb 15 bootstrap-end chains on
+            # outlet_fridge/outlet_tv (4 chains, up to 96h max_span) entirely
+            # before any labeled period. CUSUM also silently absorbs initial
+            # autocorrelation drift via fire-and-reset during warmup. CONT
+            # detectors already use 3-5d warmups for the same reason.
+            partial(CUSUM, features=_BURSTY_FEATS["cusum"], warmup_seconds=12*3600),
+            partial(SubPCA, warmup_seconds=12*3600),
+            partial(MultivariatePCA, features=_BURSTY_FEATS["mvpca"], warmup_seconds=12*3600),
         ],
         long_tick=[partial(TemporalProfile, features=_BURSTY_FEATS["temporal"])],
         long_fuser=_default_fuser,
@@ -94,3 +101,22 @@ PROFILES: dict[Archetype, ArchetypeProfile] = {
         long_fuser=_default_fuser,
     ),
 }
+
+
+def profile_for(cfg: SensorConfig) -> ArchetypeProfile:
+    p = PROFILES[cfg.archetype]
+    if cfg.archetype == Archetype.BINARY and cfg.capability == "motion":
+        return ArchetypeProfile(
+            short_event=p.short_event,
+            short_tick=p.short_tick,
+            medium=[
+                partial(RecentShift,
+                        short_feature="duty_cycle_1h",
+                        baseline_features=("duty_cycle_24h",
+                                           "duty_cycle_24h_roll_7d")),
+                partial(MultivariatePCA, features=_BINARY_FEATS["mvpca"]),
+            ],
+            long_tick=p.long_tick,
+            long_fuser=p.long_fuser,
+        )
+    return p
