@@ -743,7 +743,7 @@ class StateTransition:
     name = "state_transition"
     live = True
     _MOTION_IDLE_LOOKBACK_MIN_GAP = pd.Timedelta(minutes=45)
-    _MOTION_IDLE_LOOKBACK_CAP = pd.Timedelta(minutes=23)
+    _MOTION_IDLE_LOOKBACK_CAP = pd.Timedelta(minutes=17)
 
     def __init__(self, config: SensorConfig):
         self.config = config
