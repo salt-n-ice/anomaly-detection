@@ -80,7 +80,7 @@ PROFILES: dict[Archetype, ArchetypeProfile] = {
     Archetype.BURSTY: ArchetypeProfile(
         short_event=[DataQualityGate],
         short_tick=[],
-        medium=[DutyCycleShift],
+        medium=[DutyCycleShift, RollingMedianPeakShift],
         long_tick=[],
         long_fuser=_default_fuser,
     ),

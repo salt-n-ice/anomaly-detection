@@ -1339,13 +1339,22 @@ class RollingMedianPeakShift:
     def __init__(self, config: SensorConfig, on_threshold: float = 50.0,
                  min_event_ticks: int = 3, rolling_n: int = 5,
                  min_bootstrap_events: int = 30, z_threshold: float = 3.0,
-                 cooldown_s: int = 6 * 3600, feature: str = "value"):
+                 cooldown_s: int = 6 * 3600, feature: str = "value",
+                 adapt_K: int = 3, adapt_quiet_s: int = 24 * 3600,
+                 adapt_history_n: int = 20):
         # rolling_n=5: median of last 5 event peaks. On kettle (~3 events/day),
         # this is a ~1.7-day rolling horizon. On fridge (~100 events/day),
         # this is ~1h. For LONG labels (14-28d), lat_frac ≈ 6-12% — near
         # 10% ceiling; smaller rolling_n = faster but noisier.
         # z_threshold=3.0 on MAD-normalized deviation of median.
         # cooldown_s=6h: typical shift sustains; one fire per 6h window.
+        # adapt_K=3: after 3 consecutive cooldown-spaced fires (~18h sustained
+        # high-|z|), absorb the new regime into boot_median (LEARNINGS §2
+        # equivalent for cooldown>gap detectors — the chain-flush hook in
+        # pipeline.py never triggers because each fire is a singleton chain,
+        # so the adapt has to be detector-internal). adapt_quiet_s=24h: a
+        # gap >24h between fires resets the streak, so sporadic single fires
+        # don't accumulate toward adapt.
         self.config = config
         self.on_threshold = on_threshold
         self.min_event_ticks = min_event_ticks
@@ -1354,15 +1363,22 @@ class RollingMedianPeakShift:
         self.z_threshold = z_threshold
         self.cooldown_s = cooldown_s
         self.feature = feature
+        self.adapt_K = adapt_K
+        self.adapt_quiet_s = adapt_quiet_s
         self.live = False
         self._boot_median: float = 0.0
         self._boot_mad: float = 1.0
         self._recent_peaks: deque = deque(maxlen=rolling_n)
+        # Longer event-peak history for self-adapt re-fit (more stable median
+        # than the 5-event rolling deque). Maxlen 20 ≈ ~5h on fridge,
+        # ~6.7d on kettle; in either case enough samples for a stable median.
+        self._adapt_peaks: deque = deque(maxlen=adapt_history_n)
         self._event_peak: float | None = None
         self._event_ticks: int = 0
         self._event_start_ts: pd.Timestamp | None = None
         self._prev_above = False
         self._last_fire_ts: pd.Timestamp | None = None
+        self._consecutive_fires: int = 0
 
     def _scan_peaks(self, rows):
         prev_above = False
@@ -1400,6 +1416,42 @@ class RollingMedianPeakShift:
         self._boot_mad = max(mad, abs(self._boot_median) * 0.01, 1.0)
         self.live = True
 
+    def adapt_to_recent(self, rows):
+        # LEARNINGS §2: Pipeline-hook variant (called by pipeline.py at
+        # K=3 max_span streak). Used by detectors whose chains naturally
+        # span max_span. RollingMedianPeak has cooldown(6h)>fuser_gap(1h)
+        # so each fire is a singleton chain — the streak hook does not
+        # trigger for this detector. Implementation kept for completeness
+        # and for any future fuser-gap revision that lets these chains
+        # extend (e.g., fast cooldown variants).
+        if not self.live or not rows:
+            return
+        peaks = list(self._scan_peaks(rows))
+        if len(peaks) < 5:
+            return
+        arr = np.asarray(peaks)
+        new_median = float(np.median(arr))
+        new_mad = float(np.median(np.abs(arr - new_median)))
+        self._boot_median = new_median
+        self._boot_mad = max(self._boot_mad, new_mad,
+                             abs(new_median) * 0.01, 1.0)
+
+    def _self_adapt(self):
+        # LEARNINGS §2: detector-internal adapt. Triggered when
+        # _consecutive_fires reaches adapt_K with no quiet gap > adapt_quiet_s.
+        # Re-fits boot_median + boot_mad from _adapt_peaks (last ~20 event
+        # peaks). MAD-only-grow floor: a quieter post-shift regime keeps
+        # the original firing band rather than tightening → no over-fire
+        # trap on in-regime noise.
+        if len(self._adapt_peaks) < 5:
+            return
+        arr = np.asarray(self._adapt_peaks)
+        new_median = float(np.median(arr))
+        new_mad = float(np.median(np.abs(arr - new_median)))
+        self._boot_median = new_median
+        self._boot_mad = max(self._boot_mad, new_mad,
+                             abs(new_median) * 0.01, 1.0)
+
     def update(self, ts, feat):
         if not self.live:
             return []
@@ -1421,6 +1473,7 @@ class RollingMedianPeakShift:
             if (self._prev_above and self._event_ticks >= self.min_event_ticks
                     and self._event_peak is not None):
                 self._recent_peaks.append(self._event_peak)
+                self._adapt_peaks.append(self._event_peak)
                 if len(self._recent_peaks) >= self.rolling_n:
                     roll_median = float(np.median(list(self._recent_peaks)))
                     z = (roll_median - self._boot_median) / self._boot_mad
@@ -1428,6 +1481,18 @@ class RollingMedianPeakShift:
                                    or (ts - self._last_fire_ts).total_seconds()
                                       >= self.cooldown_s)
                     if abs(z) > self.z_threshold and cooldown_ok:
+                        # Streak counter for self-adapt: increment on each
+                        # cooldown-spaced fire; reset to 1 if the gap from
+                        # the previous fire exceeds adapt_quiet_s (sporadic
+                        # firing isn't sustained-shift signal).
+                        if self._last_fire_ts is None:
+                            self._consecutive_fires = 1
+                        else:
+                            gap_s = (ts - self._last_fire_ts).total_seconds()
+                            if gap_s > self.adapt_quiet_s:
+                                self._consecutive_fires = 1
+                            else:
+                                self._consecutive_fires += 1
                         self._last_fire_ts = ts
                         direction = "high" if z > 0 else "low"
                         score = abs(z)
@@ -1441,6 +1506,9 @@ class RollingMedianPeakShift:
                                                        "z": float(z),
                                                        "direction": direction,
                                                        "rolling_n": self.rolling_n}))
+                        if self._consecutive_fires >= self.adapt_K:
+                            self._self_adapt()
+                            self._consecutive_fires = 0
                 self._event_peak = None
                 self._event_ticks = 0
                 self._event_start_ts = None
