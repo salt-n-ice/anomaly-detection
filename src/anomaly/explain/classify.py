@@ -30,9 +30,14 @@ class ClassificationResult:
     signal_classes: list[str] # sorted list of Signals.classes that contributed
 
 
-def classify(alert: Alert) -> ClassificationResult:
+def classify(alert: Alert, mag: dict | None = None) -> ClassificationResult:
     """Rich classifier result. `bundle.explain` feeds this into the
     structured `classification` block; `classify_type` wraps it.
+
+    The optional ``mag`` parameter (the magnitude block already computed
+    by ``bundle.explain``) is forwarded to ``Signals.from_alert`` so that
+    direction can be inferred from ``mag.delta`` sign in the CSV-replay
+    path where ``alert.context`` is None.
 
     Confidence rules:
       - Pre-typed alerts (DQG, StateTransition) → "high"; signal_classes []
@@ -52,7 +57,7 @@ def classify(alert: Alert) -> ClassificationResult:
             confidence="high",
             signal_classes=[],
         )
-    s = Signals.from_alert(alert)
+    s = Signals.from_alert(alert, mag=mag)
     type_ = _dispatch(s)
     confidence = "low" if type_ == "statistical_anomaly" else "high"
     if type_ in ("spike", "dip") and s.direction is None:
@@ -65,8 +70,8 @@ def classify(alert: Alert) -> ClassificationResult:
     )
 
 
-def classify_type(alert: Alert) -> str:
-    return classify(alert).type
+def classify_type(alert: Alert, mag: dict | None = None) -> str:
+    return classify(alert, mag=mag).type
 
 
 def _dispatch(s: Signals) -> str:

@@ -65,7 +65,8 @@ def _is_off_hours(hour: int) -> bool:
     return any(lo <= hour < hi for lo, hi in _OFF_HOURS_RANGES)
 
 
-def _direction_from_context(context: list[dict] | None) -> str | None:
+def _direction_from_context(context: list[dict] | None,
+                            mag: dict | None = None) -> str | None:
     """Walk per-detector context dicts looking for a direction signal.
 
     Sources, in order of preference:
@@ -74,23 +75,29 @@ def _direction_from_context(context: list[dict] | None) -> str | None:
       - recent_shift.short_value vs baseline_value (compute "+" or "-")
       - rolling_median_peak_shift.direction ("high"/"low" → "+"/"-")
       - duty_cycle_shift_*.direction         ("high"/"low" → "+"/"-")
+      - magnitude.delta sign (final fallback — covers the CSV-replay path
+        where alert.context is None and no synthesized dict carries a
+        direction marker for the firing detectors)
     """
-    if not context:
-        return None
-    for ctx in context:
-        det = ctx.get("detector", "")
-        d = ctx.get("direction")
-        if d in ("+", "-"):
-            return d
-        if d == "high":
-            return "+"
-        if d == "low":
-            return "-"
-        if det == "recent_shift":
-            sv = ctx.get("short_value")
-            bv = ctx.get("baseline_value")
-            if sv is not None and bv is not None:
-                return "+" if sv > bv else "-"
+    if context:
+        for ctx in context:
+            det = ctx.get("detector", "")
+            d = ctx.get("direction")
+            if d in ("+", "-"):
+                return d
+            if d == "high":
+                return "+"
+            if d == "low":
+                return "-"
+            if det == "recent_shift":
+                sv = ctx.get("short_value")
+                bv = ctx.get("baseline_value")
+                if sv is not None and bv is not None:
+                    return "+" if sv > bv else "-"
+    if mag:
+        delta = mag.get("delta")
+        if delta is not None and delta == delta and delta != 0:
+            return "+" if delta > 0 else "-"
     return None
 
 
@@ -108,7 +115,7 @@ class Signals:
     pre_typed: str | None
 
     @classmethod
-    def from_alert(cls, alert: Alert) -> "Signals":
+    def from_alert(cls, alert: Alert, mag: dict | None = None) -> "Signals":
         detectors = frozenset(alert.detector.split("+"))
         classes = frozenset(
             DETECTOR_CLASSES[d] for d in detectors if d in DETECTOR_CLASSES
@@ -124,7 +131,7 @@ class Signals:
             duration_sec=float(duration_sec),
             capability=alert.capability,
             archetype=archetype,
-            direction=_direction_from_context(alert.context),
+            direction=_direction_from_context(alert.context, mag),
             hour=int(ts.hour),
             is_weekend=bool(ts.dayofweek >= 5),
             is_off_hours=_is_off_hours(int(ts.hour)),

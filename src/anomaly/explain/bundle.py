@@ -40,8 +40,8 @@ def explain(alert: Alert, events: pd.DataFrame) -> dict:
     events = _ensure_utc_timestamps(events)
     mag = extract_magnitude(alert, events)
     ctx = list(alert.context) if alert.context else _synth_detector_context(alert, events, mag)
-    s = Signals.from_alert(alert)
-    cls = classify(alert)
+    s = Signals.from_alert(alert, mag=mag)
+    cls = classify(alert, mag=mag)
     type_class = type_to_class(cls.type)
     presentation = "user_visible" if type_class == "user_behavior" else "infrastructure"
     if type_class == "unknown":
