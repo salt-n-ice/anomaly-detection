@@ -78,11 +78,14 @@ def test_magnitude_temperature_long_is_calibration_drift():
 
 # --- Duty cycle (BURSTY) ---
 
-def test_duty_alone_weekday_normal_hour_is_frequency_change():
-    # Wednesday 10am (not weekend, not off-hours)
+def test_duty_alone_weekday_normal_hour_is_level_shift():
+    # Wednesday 10am (not weekend, not off-hours).
+    # Per WORKLOAD_FINGERPRINT priors (16 level_shift vs 6 frequency_change
+    # in BURSTY), level_shift is the prior winner for duty-alone weekday
+    # normal-hour chains.
     a = _alert("duty_cycle_shift_6h", ts="2026-03-04T10:00:00Z",
                duration_sec=3600)
-    assert classify_type(a) == "frequency_change"
+    assert classify_type(a) == "level_shift"
 
 
 def test_duty_alone_off_hours_is_time_of_day():
@@ -132,9 +135,12 @@ def test_duty_plus_peak_plus_rate_is_level_shift():
 
 # --- Peak alone (BURSTY) ---
 
-def test_peak_short_is_spike():
+def test_peak_alone_default_is_trend():
+    # Peak-alone singleton chains (RollingMedianPeak emits 1-min windows)
+    # default to trend per WORKLOAD_FINGERPRINT priors. True spikes fire
+    # DQG's extreme_value branch and are pre-typed.
     a = _alert("rolling_median_peak_shift", duration_sec=300)
-    assert classify_type(a) == "spike"
+    assert classify_type(a) == "trend"
 
 
 def test_peak_long_is_degradation_trajectory():

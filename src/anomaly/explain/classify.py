@@ -92,15 +92,21 @@ def _classify_duty(s: Signals) -> str:
         return "time_of_day"
     if s.duration_sec >= 7 * 86400:
         return "degradation_trajectory"
-    return "frequency_change"
+    return "level_shift"
 
 
 def _classify_peak(s: Signals) -> str:
-    """BURSTY per-event peak magnitude. Branches on rate co-presence."""
+    """BURSTY per-event peak magnitude. Branches on rate co-presence.
+
+    Peak chains are typically singleton 1-min emits (cooldown > fuser gap
+    per LEARNINGS §2a), so chain duration_sec is not a useful discriminator.
+    Default to `trend` (the WORKLOAD_FINGERPRINT prior winner among magnitude-
+    only BURSTY labels: trend 6 + level_shift 16 + degradation_trajectory 2 vs
+    spike 1). True spikes typically fire data_quality_gate (extreme_value),
+    which is pre-typed and short-circuits before reaching this helper.
+    """
     if "rate" in s.classes:
         return "trend"
-    if s.duration_sec < 600:
-        return "spike"
     if s.duration_sec >= 7 * 86400:
         return "degradation_trajectory"
     return "trend"
