@@ -1,9 +1,8 @@
-# household scenario: appliances + voltage + basement leak.
-# Motion (bedroom_motion) temporarily commented out — BINARY motion
-# state_transition over-fires on every occupancy transition (~1700
-# alerts / 60d), dominating NAB FP accounting and masking real
-# detector deltas. Re-introduce after the baseline stabilizes on
-# drift / level-shift / leak anomalies.
+# household_full.yaml — used ONLY by the type-classifier training extractor
+# (research/extract_training_data.py). Same as household.yaml but includes
+# motion + basement_temp so the classifier trains on all sensor archetypes
+# for eventual re-introduction. Production eval uses household.yaml (motion
+# disabled during baseline work).
 sensors:
   - id: outlet_fridge_power
     capability: power
@@ -29,15 +28,21 @@ sensors:
     expected_interval_sec: 600
     min_value: 80
     max_value: 140
+  - id: basement_temp
+    capability: temperature
+    archetype: continuous
+    expected_interval_sec: 600
+    min_value: -40
+    max_value: 80
   - id: basement_leak
     capability: water
     archetype: binary
     expected_interval_sec: 7200
     heartbeat_sec: 7200
     deterministic_trigger: true
-  # - id: bedroom_motion  # TEMPORARILY DISABLED — see header comment
-  #   capability: motion
-  #   archetype: binary
-  #   expected_interval_sec: 1800
-  #   heartbeat_sec: 1800
-  #   deterministic_trigger: true
+  - id: bedroom_motion
+    capability: motion
+    archetype: binary
+    expected_interval_sec: 1800
+    heartbeat_sec: 1800
+    deterministic_trigger: true

@@ -5,7 +5,10 @@ from typing import Callable
 from .core import Archetype, SensorConfig
 from .detectors import (Detector, EventDetector, DataQualityGate,
                          CUSUM, RecentShift, SubPCA, MultivariatePCA,
-                         TemporalProfile, StateTransition)
+                         TemporalProfile, StateTransition,
+                         StateConditionalShift, EventPeakShift,
+                         EventRateShift, BOCPD, RollingMedianPeakShift,
+                         DutyCycleShift, HourlyEventRateChiSq)
 from .fusion import (DefaultAlertFuser, PassThroughCorroboration,
                       ContinuousCorroboration)
 
@@ -70,14 +73,14 @@ PROFILES: dict[Archetype, ArchetypeProfile] = {
     Archetype.CONTINUOUS: ArchetypeProfile(
         short_event=[DataQualityGate],
         short_tick=[],
-        medium=[],
+        medium=[RecentShift],
         long_tick=[],
         long_fuser=_continuous_fuser,
     ),
     Archetype.BURSTY: ArchetypeProfile(
         short_event=[DataQualityGate],
         short_tick=[],
-        medium=[],
+        medium=[DutyCycleShift],
         long_tick=[],
         long_fuser=_default_fuser,
     ),
