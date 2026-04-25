@@ -32,6 +32,51 @@ class ClassificationResult:
 
 _DQG_SPIKE_OVERRIDE_CAPS = frozenset({"power", "voltage", "temperature"})
 
+# H6.2 (iter 003) override: minimum |shwz| at which a DQG out_of_range
+# emit on a power capability is reclassified as level_shift. 3σ is the
+# point where the pre-window-2h baseline is statistically distinct from
+# same-hour-of-week history — below that, the OOR fire could be a
+# transient/diurnal artifact rather than a sustained behavior change.
+_DQG_LEVEL_SHIFT_SHWZ_THRESHOLD = 3.0
+
+
+def _maybe_dqg_level_shift_override(alert: Alert,
+                                    temporal: dict | None) -> str | None:
+    """Re-classify a DQG ``out_of_range`` pre-typed alert as ``level_shift``
+    when the bundle context indicates a behavior-driven baseline shift on
+    a power-capability sensor.
+
+    Triggered only when ALL of:
+      - DQG ``out_of_range`` pre-type
+      - Capability is ``power`` (most over-range fires on power are
+        appliance unplug / steady-state shifts, not real sensor faults —
+        power has wide legitimate dynamic range and the static OOR
+        threshold is a noisy proxy for "value is unusual")
+      - ``|temporal.same_hour_weekday_z| >= 3`` (the value is meaningfully
+        off the same-hour-of-week historical median; a sensor that always
+        fires OOR at this hour wouldn't get a strong per-event z against
+        its own hour-of-week distribution)
+
+    Returns ``"level_shift"`` (covered by ``value_shift`` super-class) or
+    ``None`` to fall through. Direction is intentionally not encoded in
+    the type — `level_shift` accommodates both ups and downs and lifts
+    the user_behavior super-class regardless of sign.
+    """
+    if alert.anomaly_type != "out_of_range":
+        return None
+    if alert.capability != "power":
+        return None
+    if "data_quality_gate" not in alert.detector.split("+"):
+        return None
+    if not temporal:
+        return None
+    shwz = temporal.get("same_hour_weekday_z")
+    if shwz is None or shwz != shwz:
+        return None
+    if abs(shwz) < _DQG_LEVEL_SHIFT_SHWZ_THRESHOLD:
+        return None
+    return "level_shift"
+
 
 def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
                               temporal: dict | None) -> str | None:
@@ -109,6 +154,13 @@ def classify(alert: Alert, mag: dict | None = None,
             type=overridden,
             confidence="high",
             signal_classes=["dqg", "magnitude"],
+        )
+    overridden = _maybe_dqg_level_shift_override(alert, temporal)
+    if overridden is not None:
+        return ClassificationResult(
+            type=overridden,
+            confidence="high",
+            signal_classes=["dqg", "calendar"],
         )
     if alert.anomaly_type:
         return ClassificationResult(
