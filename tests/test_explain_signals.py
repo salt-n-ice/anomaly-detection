@@ -96,3 +96,33 @@ def test_signals_detector_classes_table_covers_pipeline_detectors():
     assert "recent_shift" in DETECTOR_CLASSES
     assert "duty_cycle_shift_6h" in DETECTOR_CLASSES
     assert "rolling_median_peak_shift" in DETECTOR_CLASSES
+
+
+def test_signals_archetype_inferred_from_capability_water():
+    a = _alert("state_transition", capability="water")
+    s = Signals.from_alert(a)
+    assert s.archetype == "BINARY"
+
+
+def test_signals_archetype_inferred_from_capability_motion():
+    a = _alert("state_transition", capability="motion")
+    s = Signals.from_alert(a)
+    assert s.archetype == "BINARY"
+
+
+def test_signals_archetype_inferred_from_capability_voltage():
+    a = _alert("recent_shift", capability="voltage")
+    s = Signals.from_alert(a)
+    assert s.archetype == "CONTINUOUS"
+
+
+def test_signals_archetype_inferred_from_capability_temperature():
+    a = _alert("recent_shift", capability="temperature")
+    s = Signals.from_alert(a)
+    assert s.archetype == "CONTINUOUS"
+
+
+def test_signals_archetype_inferred_from_capability_power():
+    a = _alert("duty_cycle_shift_6h", capability="power")
+    s = Signals.from_alert(a)
+    assert s.archetype == "BURSTY"

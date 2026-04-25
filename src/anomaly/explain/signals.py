@@ -46,6 +46,18 @@ DETECTOR_CLASSES: dict[str, str] = {
 }
 
 
+# Capability → archetype heuristic. Pipeline Alerts don't carry archetype
+# directly; the inference covers the cases in the current configs (water/
+# motion → BINARY, voltage/temperature → CONTINUOUS, power → BURSTY).
+_ARCHETYPE_BY_CAPABILITY: dict[str, str] = {
+    "water":       "BINARY",
+    "motion":      "BINARY",
+    "voltage":     "CONTINUOUS",
+    "temperature": "CONTINUOUS",
+    "power":       "BURSTY",
+}
+
+
 _OFF_HOURS_RANGES = ((22, 24), (0, 7))  # 22:00-23:59 and 00:00-06:59
 
 
@@ -88,6 +100,7 @@ class Signals:
     classes: frozenset[str]
     duration_sec: float
     capability: str
+    archetype: str
     direction: str | None
     hour: int
     is_weekend: bool
@@ -104,11 +117,13 @@ class Signals:
         w1 = alert.window_end or alert.timestamp
         duration_sec = (w1 - w0).total_seconds()
         ts = alert.timestamp
+        archetype = _ARCHETYPE_BY_CAPABILITY.get(alert.capability, "UNKNOWN")
         return cls(
             detectors=detectors,
             classes=classes,
             duration_sec=float(duration_sec),
             capability=alert.capability,
+            archetype=archetype,
             direction=_direction_from_context(alert.context),
             hour=int(ts.hour),
             is_weekend=bool(ts.dayofweek >= 5),

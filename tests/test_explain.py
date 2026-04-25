@@ -115,21 +115,40 @@ from anomaly.explain import explain, explain_detections_csv
 
 
 def test_explain_bundle_has_expected_keys():
-    df, t_peak = _events_df(baseline=120.0, peak=124.0)
-    alert = Alert(sensor_id="s", capability="v",
-                  timestamp=t_peak + pd.Timedelta(minutes=5),
-                  detector="cusum+sub_pca", score=1.0, threshold=0.5,
-                  window_start=t_peak, window_end=t_peak + pd.Timedelta(minutes=10),
-                  context=[{"detector": "cusum", "mu": 120.0, "sigma": 0.4,
-                            "direction": "+"}])
-    b = explain(alert, df)
-    assert b["sensor"] == "s"
-    assert b["inferred_type"] in ("level_shift", "statistical_anomaly",
-                                   "calibration_drift", "spike")
-    assert "magnitude" in b and b["magnitude"]["delta"] == 4.0
-    assert "temporal" in b and b["temporal"]["hour"] == t_peak.hour + 5 // 60
-    assert b["detectors"] == ["cusum", "sub_pca"]
-    assert b["detector_context"][0]["detector"] == "cusum"
+    import pandas as pd
+    from anomaly.core import Alert
+    from anomaly.explain import explain
+    ts = pd.Timestamp("2026-03-05T10:00:00Z")
+    a = Alert(sensor_id="s", capability="power", timestamp=ts,
+              detector="duty_cycle_shift_6h+rolling_median_peak_shift",
+              score=4.0, threshold=3.0,
+              window_start=ts, window_end=ts + pd.Timedelta(hours=1),
+              context=[{"detector": "duty_cycle_shift_6h",
+                        "duty": 0.4, "bootstrap_median": 0.1,
+                        "bootstrap_mad": 0.05, "z": 5.0}])
+    events = pd.DataFrame({"sensor_id": ["s"], "capability": ["power"],
+                            "value": [100.0],
+                            "timestamp": [ts - pd.Timedelta(hours=1)]})
+    events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True)
+    b = explain(a, events)
+    # Top-level shape
+    assert set(b.keys()) >= {
+        "alert_id", "sensor", "capability", "archetype", "window",
+        "classification", "magnitude", "temporal", "detectors",
+        "detector_context", "score",
+    }
+    # Classification block
+    c = b["classification"]
+    assert set(c.keys()) == {
+        "type", "class", "presentation", "confidence", "signal_classes"
+    }
+    assert c["type"] == "level_shift"
+    assert c["class"] == "user_behavior"
+    assert c["presentation"] == "user_visible"
+    assert c["confidence"] == "high"
+    assert sorted(c["signal_classes"]) == ["duty", "peak"]
+    # No legacy flat inferred_type at top level
+    assert "inferred_type" not in b
 
 
 def test_explain_detections_csv_roundtrip(tmp_path: Path):
@@ -145,6 +164,7 @@ def test_explain_detections_csv_roundtrip(tmp_path: Path):
         "sensor_id": "s", "capability": "v",
         "start": "2026-03-05T10:00:00Z", "end": "2026-03-05T10:30:00Z",
         "anomaly_type": "out_of_range", "detector": "data_quality_gate",
+        "threshold": 0.5,
         "score": 1.0,
     }])
     ev_p = tmp_path / "events.csv"; events.to_csv(ev_p, index=False)
@@ -154,7 +174,8 @@ def test_explain_detections_csv_roundtrip(tmp_path: Path):
     lines = out_p.read_text().splitlines()
     assert len(lines) == 1
     bundle = json.loads(lines[0])
-    assert bundle["inferred_type"] == "out_of_range"
+    # Phase B: flat inferred_type replaced by classification.type.
+    assert bundle["classification"]["type"] == "out_of_range"
     assert bundle["detectors"] == ["data_quality_gate"]
 
 
@@ -242,3 +263,28 @@ def test_detections_to_alerts_strips_detector_string_fallback():
     assert alerts[1].anomaly_type == "out_of_range"
     # And the classifier now runs the decision tree on the statistical row.
     assert classify_type(alerts[0]) != "cusum+sub_pca"
+
+
+def test_detections_to_alerts_reads_threshold_from_csv():
+    """Phase B: pipeline._write_detections now writes a threshold column;
+    _detections_to_alerts should round-trip it onto the Alert. Old CSVs
+    without the column fall back to 0.0 (backwards-compat)."""
+    from anomaly.explain import _detections_to_alerts
+    # New CSV with threshold column → preserved on Alert.
+    dets_with = pd.DataFrame([{
+        "sensor_id": "s", "capability": "v",
+        "start": "2026-03-05T10:00:00Z", "end": "2026-03-05T12:00:00Z",
+        "anomaly_type": "out_of_range", "detector": "data_quality_gate",
+        "threshold": 2.5, "score": 4.0,
+    }])
+    alerts = _detections_to_alerts(dets_with)
+    assert alerts[0].threshold == 2.5
+    # Old CSV without threshold column → falls back to 0.0.
+    dets_without = pd.DataFrame([{
+        "sensor_id": "s", "capability": "v",
+        "start": "2026-03-05T10:00:00Z", "end": "2026-03-05T12:00:00Z",
+        "anomaly_type": "out_of_range", "detector": "data_quality_gate",
+        "score": 4.0,
+    }])
+    alerts = _detections_to_alerts(dets_without)
+    assert alerts[0].threshold == 0.0

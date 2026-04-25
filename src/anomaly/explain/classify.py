@@ -5,6 +5,12 @@ dispatch is a flat 7-branch chain over `Signals.classes`; each branch
 calls a small specialized helper. No fall-through except the explicit
 final `"statistical_anomaly"`.
 
+`classify(alert) -> ClassificationResult` returns a richer value with
+type, confidence ("high" | "low"), and the sorted Signals.classes that
+contributed to the dispatch. The bundle in `bundle.explain` consumes
+the rich result; `classify_type` is kept as a thin string facade so
+external callers (pipeline._write_detections) compile unchanged.
+
 Acceptance: on the production scenarios (household_60d, household_120d,
 leak_30d) the per-scenario `behavior_type_accuracy` (TP cases where any
 overlapping chain's inferred_type ∈ gt_labels.anomaly_type) must be >=
@@ -12,15 +18,55 @@ the pre-rewrite baseline. iter 021's missing `{duty, peak}` rule lifts
 hh60d and hh120d specifically.
 """
 from __future__ import annotations
+from dataclasses import dataclass
 from ..core import Alert
 from .signals import Signals
 
 
-def classify_type(alert: Alert) -> str:
+@dataclass(frozen=True)
+class ClassificationResult:
+    type: str
+    confidence: str           # "high" | "low"
+    signal_classes: list[str] # sorted list of Signals.classes that contributed
+
+
+def classify(alert: Alert) -> ClassificationResult:
+    """Rich classifier result. `bundle.explain` feeds this into the
+    structured `classification` block; `classify_type` wraps it.
+
+    Confidence rules:
+      - Pre-typed alerts (DQG, StateTransition) → "high"; signal_classes []
+        because the detector signal didn't drive the dispatch.
+      - "statistical_anomaly" fallthrough → "low" (the dispatcher couldn't
+        identify a recognizable signal class).
+      - All other dispatched types → "high".
+      - Direction-None CONT branches that would have used direction
+        (spike/dip) → downgrade to "low" so downstream consumers know the
+        spike-vs-dip choice was arbitrary. The type stays whatever the
+        helper returned (no point in re-running the dispatch); the
+        confidence flag carries the caveat.
+    """
     if alert.anomaly_type:
-        # DQG and StateTransition pre-type their alerts; pass through.
-        return alert.anomaly_type
-    return _dispatch(Signals.from_alert(alert))
+        return ClassificationResult(
+            type=alert.anomaly_type,
+            confidence="high",
+            signal_classes=[],
+        )
+    s = Signals.from_alert(alert)
+    type_ = _dispatch(s)
+    confidence = "low" if type_ == "statistical_anomaly" else "high"
+    if type_ in ("spike", "dip") and s.direction is None:
+        # _classify_continuous defaults to "dip" when direction is None;
+        # the caller has no real evidence for spike-vs-dip, so flag low.
+        confidence = "low"
+    signal_classes = sorted(s.classes)
+    return ClassificationResult(
+        type=type_, confidence=confidence, signal_classes=signal_classes,
+    )
+
+
+def classify_type(alert: Alert) -> str:
+    return classify(alert).type
 
 
 def _dispatch(s: Signals) -> str:

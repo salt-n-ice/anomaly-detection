@@ -41,3 +41,24 @@ def test_pipeline_dqg_out_of_range_cooldown():
     assert any(a.anomaly_type == "out_of_range" for a in a1)            # first fires
     assert not any(a.anomaly_type == "out_of_range" for a in a2)        # cooldown suppresses
     assert any(a.anomaly_type == "out_of_range" for a in a3)            # beyond 30-min cooldown, fires again
+
+
+def test_write_detections_includes_threshold_column(tmp_path):
+    """Detection CSV carries the alert.threshold so downstream consumers
+    (explain layer, eval) don't have to hardcode threshold=0.0."""
+    import pandas as pd
+    from anomaly.core import Alert
+    from anomaly.pipeline import _write_detections
+
+    ts = pd.Timestamp("2026-03-05T10:00:00Z")
+    alerts = [
+        Alert(sensor_id="s", capability="power", timestamp=ts,
+              detector="duty_cycle_shift_6h", score=4.5, threshold=3.0,
+              anomaly_type=None,
+              window_start=ts, window_end=ts + pd.Timedelta(minutes=1)),
+    ]
+    out = tmp_path / "det.csv"
+    _write_detections(alerts, out)
+    df = pd.read_csv(out)
+    assert "threshold" in df.columns
+    assert df.iloc[0]["threshold"] == 3.0

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from .types import USER_BEHAVIOR_TYPES, SENSOR_FAULT_TYPES, type_to_class
 from .signals import Signals, DETECTOR_CLASSES
-from .classify import classify_type
+from .classify import classify_type, classify, ClassificationResult
 from .magnitude import extract_magnitude
 from .temporal import temporal_framing
 from .bundle import explain
@@ -36,6 +36,8 @@ __all__ = [
     "Signals",
     "DETECTOR_CLASSES",
     "classify_type",
+    "classify",
+    "ClassificationResult",
     "extract_magnitude",
     "temporal_framing",
     "explain",

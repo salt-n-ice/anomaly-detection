@@ -23,10 +23,14 @@ def _detections_to_alerts(det_df: pd.DataFrame) -> list[Alert]:
         # the detector string. Strip that fallback so classify_type walks the
         # decision tree instead of short-circuiting on the pre-typed branch.
         anomaly_type = None if atype_raw == det_str else atype_raw
+        # Threshold lands in the CSV via pipeline._write_detections (Phase B).
+        # Old CSVs (pre-Phase-B research/explain runs) lack the column, so
+        # fall back to 0.0 — getattr handles the missing-attr case for namedtuples.
+        threshold = float(getattr(r, "threshold", 0.0)) if hasattr(r, "threshold") else 0.0
         out.append(Alert(
             sensor_id=str(r.sensor_id), capability=str(r.capability),
             timestamp=w0, detector=det_str,
-            score=float(getattr(r, "score", 0.0)), threshold=0.0,
+            score=float(getattr(r, "score", 0.0)), threshold=threshold,
             anomaly_type=anomaly_type,
             raw_value=None, state=None, window_start=w0, window_end=w1,
             context=None,

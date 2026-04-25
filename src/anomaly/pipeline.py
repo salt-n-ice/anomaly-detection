@@ -228,12 +228,14 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
                      "anomaly_type": a.anomaly_type or a.detector,
                      "inferred_type": inferred_type,
                      "inferred_class": inferred_class,
-                     "detector": a.detector, "score": a.score})
+                     "detector": a.detector,
+                     "threshold": float(a.threshold),
+                     "score": a.score})
     path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows, columns=["sensor_id","capability","start","end",
                                  "first_fire_ts","anomaly_type",
                                  "inferred_type","inferred_class",
-                                 "detector","score"]).to_csv(path, index=False)
+                                 "detector","threshold","score"]).to_csv(path, index=False)
 
 
 def evaluate(detections_csv: Path, labels_csv: Path) -> dict:

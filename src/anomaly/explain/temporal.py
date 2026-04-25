@@ -38,14 +38,15 @@ def _same_hour_weekday_stats(alert: Alert, events: pd.DataFrame,
     firing detectors are statistical rather than `temporal_profile`.
     Returns ``{}`` if there's too little peer history (< 4 points) or peak
     is not finite.
+
+    Contract: ``events["timestamp"]`` MUST already be UTC datetime64. The
+    parse is lifted to ``bundle._ensure_utc_timestamps`` so the batch CSV
+    path doesn't pay it 3× per alert.
     """
     if peak is None or peak != peak:
         return {}
     ts = alert.timestamp
     w0 = alert.window_start or ts
-    if "timestamp" in events.columns and events["timestamp"].dtype != "datetime64[ns, UTC]":
-        events = events.copy()
-        events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
     sub = events[events["sensor_id"] == alert.sensor_id]
     peers = sub[(sub["timestamp"] < w0)
                 & (sub["timestamp"].dt.hour == ts.hour)

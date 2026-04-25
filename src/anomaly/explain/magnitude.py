@@ -27,12 +27,13 @@ def extract_magnitude(alert: Alert, events: pd.DataFrame) -> dict:
 
     Prefers ``cusum.mu`` when present (detector-native reference). Falls back to
     the median of the 2h pre-window for the alert's sensor.
+
+    Contract: ``events["timestamp"]`` MUST already be UTC datetime64. The
+    parse is lifted to ``bundle._ensure_utc_timestamps`` so the batch CSV
+    path doesn't pay it 3× per alert.
     """
     w0 = alert.window_start or alert.timestamp
     w1 = alert.window_end or alert.timestamp
-    if "timestamp" in events.columns and events["timestamp"].dtype != "datetime64[ns, UTC]":
-        events = events.copy()
-        events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
     sub = events[events["sensor_id"] == alert.sensor_id]
 
     cusum = _find_ctx(alert, "cusum")
@@ -92,14 +93,15 @@ def _synth_detector_context(alert: Alert, events: pd.DataFrame,
     uses to interpret each detector (cusum direction + mu/sigma,
     temporal_profile same-hour z, DQG raw value + anomaly_type) from the
     events frame, so bundles from the batch path carry equivalent signal.
+
+    Contract: ``events["timestamp"]`` MUST already be UTC datetime64. The
+    parse is lifted to ``bundle._ensure_utc_timestamps`` so the batch CSV
+    path doesn't pay it 3× per alert.
     """
     dets = sorted(alert.detector.split("+"))
     w0 = alert.window_start or alert.timestamp
     w1 = alert.window_end or alert.timestamp
 
-    if "timestamp" in events.columns and events["timestamp"].dtype != "datetime64[ns, UTC]":
-        events = events.copy()
-        events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
     sub = events[events["sensor_id"] == alert.sensor_id]
     pre = sub[(sub["timestamp"] >= w0 - pd.Timedelta(hours=2))
               & (sub["timestamp"] < w0)]

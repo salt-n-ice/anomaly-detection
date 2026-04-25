@@ -191,3 +191,44 @@ def test_calendar_alone_default_is_temporal_pattern():
 def test_unknown_detector_returns_statistical_anomaly():
     a = _alert("brand_new_detector_xyz", duration_sec=3600)
     assert classify_type(a) == "statistical_anomaly"
+
+
+# --- Phase B: classify(alert) returning ClassificationResult ---
+
+from anomaly.explain.classify import classify, ClassificationResult
+
+
+def test_classify_returns_result_with_type_and_confidence():
+    a = _alert("duty_cycle_shift_6h+rolling_median_peak_shift",
+               ts="2026-03-04T10:00:00Z", duration_sec=3600)
+    r = classify(a)
+    assert isinstance(r, ClassificationResult)
+    assert r.type == "level_shift"
+    assert r.confidence == "high"
+    assert r.signal_classes == ["duty", "peak"]
+
+
+def test_classify_low_confidence_for_statistical_anomaly():
+    a = _alert("brand_new_detector_xyz", duration_sec=3600)
+    r = classify(a)
+    assert r.type == "statistical_anomaly"
+    assert r.confidence == "low"
+    assert r.signal_classes == []
+
+
+def test_classify_high_confidence_for_specific_signal_class():
+    # Peak-alone defaults to trend per WORKLOAD_FINGERPRINT priors
+    # (see test_peak_alone_default_is_trend). The point of this test
+    # is that a recognized signal class yields confidence="high" with
+    # the corresponding class surfaced in signal_classes.
+    a = _alert("rolling_median_peak_shift", duration_sec=300)
+    r = classify(a)
+    assert r.type == "trend"
+    assert r.confidence == "high"
+    assert r.signal_classes == ["peak"]
+
+
+def test_classify_type_still_returns_string():
+    a = _alert("duty_cycle_shift_6h+rolling_median_peak_shift",
+               ts="2026-03-04T10:00:00Z", duration_sec=3600)
+    assert classify_type(a) == "level_shift"  # str-returning facade
