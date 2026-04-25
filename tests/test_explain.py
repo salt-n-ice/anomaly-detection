@@ -188,9 +188,13 @@ def _sample_bundle(dur_sec=600.0, ctx=None, detectors=None):
     return {
         "alert_id": "s|v|2026-03-05T10:00:00+00:00",
         "sensor": "s", "capability": "v",
+        "archetype": "BURSTY",
+        "classification": {"type": "statistical_anomaly", "class": "unknown",
+                            "presentation": "user_visible",
+                            "confidence": "low",
+                            "signal_classes": []},
         "window": {"start": ws.isoformat(), "end": we.isoformat(),
                    "duration_sec": dur_sec},
-        "inferred_type": "spike",
         "magnitude": {"baseline": 120.0, "baseline_source": "cusum_mu",
                       "peak": 124.0, "delta": 4.0, "delta_pct": 3.33},
         "temporal": {"timestamp": ws.isoformat(),
@@ -204,16 +208,41 @@ def _sample_bundle(dur_sec=600.0, ctx=None, detectors=None):
 
 
 def test_build_prompt_includes_sensor_capability_and_time():
-    p = build_prompt(_sample_bundle())
-    assert "sensor s" in p
-    assert "capability: v" in p
-    assert "Thu Mar 05 2026 10:00 UTC" in p
-    assert "duration" in p
+    bundle = {
+        "sensor": "outlet_kettle_power", "capability": "power",
+        "archetype": "BURSTY",
+        "window": {"start": "2026-03-05T10:00:00+00:00",
+                   "end":   "2026-03-05T10:05:00+00:00",
+                   "duration_sec": 300.0},
+        "classification": {"type": "spike", "class": "user_behavior",
+                            "presentation": "user_visible",
+                            "confidence": "high",
+                            "signal_classes": ["peak"]},
+        "magnitude": {}, "temporal": {}, "detectors": ["rolling_median_peak_shift"],
+        "detector_context": [], "score": 5.0,
+    }
+    p = build_prompt(bundle)
+    assert "outlet_kettle_power" in p
+    assert "power" in p
+    assert "BURSTY" in p
 
 
-def test_build_prompt_omits_inferred_type():
-    p = build_prompt(_sample_bundle())
-    assert "inferred_type" not in p.lower()
+def test_build_prompt_renders_heuristic_hint_as_advisory():
+    bundle = {
+        "sensor": "s", "capability": "power", "archetype": "BURSTY",
+        "window": {"start": "2026-03-05T10:00:00+00:00",
+                   "end":   "2026-03-05T11:00:00+00:00",
+                   "duration_sec": 3600.0},
+        "classification": {"type": "level_shift", "class": "user_behavior",
+                            "presentation": "user_visible",
+                            "confidence": "high",
+                            "signal_classes": ["duty", "peak"]},
+        "magnitude": {}, "temporal": {}, "detectors": [], "detector_context": [],
+        "score": 7.0,
+    }
+    p = build_prompt(bundle)
+    assert "level_shift" in p
+    assert "starting point" in p.lower() or "refine" in p.lower()
 
 
 def test_build_prompt_adds_long_duration_framing():
@@ -288,3 +317,69 @@ def test_detections_to_alerts_reads_threshold_from_csv():
     }])
     alerts = _detections_to_alerts(dets_without)
     assert alerts[0].threshold == 0.0
+
+
+def test_sensor_profile_line_from_bursty_bundle():
+    from anomaly.explain.prompt import _sensor_profile_line
+    bundle = {
+        "archetype": "BURSTY",
+        "capability": "power",
+        "detector_context": [
+            {"detector": "duty_cycle_shift_6h",
+             "bootstrap_median": 0.08, "bootstrap_mad": 0.03},
+            {"detector": "rolling_median_peak_shift",
+             "bootstrap_median": 1450.0, "bootstrap_mad": 30.0},
+        ],
+    }
+    line = _sensor_profile_line(bundle)
+    assert line is not None
+    assert "BURSTY" in line
+    assert "power" in line
+    assert "1450" in line  # peak baseline rendered
+
+
+def test_sensor_profile_line_returns_none_when_context_empty():
+    from anomaly.explain.prompt import _sensor_profile_line
+    bundle = {"archetype": "BURSTY", "capability": "power",
+              "detector_context": []}
+    assert _sensor_profile_line(bundle) is None
+
+
+def test_presentation_banner_for_sensor_fault():
+    from anomaly.explain.prompt import _presentation_banner
+    bundle = {"classification": {"presentation": "infrastructure"}}
+    line = _presentation_banner(bundle)
+    assert line is not None
+    assert "Infrastructure" in line
+
+
+def test_presentation_banner_none_for_user_visible():
+    from anomaly.explain.prompt import _presentation_banner
+    bundle = {"classification": {"presentation": "user_visible"}}
+    assert _presentation_banner(bundle) is None
+
+
+def test_signal_class_narrative_duty_plus_peak():
+    from anomaly.explain.prompt import _signal_class_narrative
+    bundle = {"classification": {"signal_classes": ["duty", "peak"]}}
+    line = _signal_class_narrative(bundle)
+    assert "duty" in line.lower() or "time-in-state" in line.lower()
+    assert "peak" in line.lower()
+
+
+def test_signal_class_narrative_empty_for_pretyped():
+    from anomaly.explain.prompt import _signal_class_narrative
+    bundle = {"classification": {"signal_classes": []}}
+    assert _signal_class_narrative(bundle) is None
+
+
+def test_heuristic_hint_includes_type_and_confidence():
+    from anomaly.explain.prompt import _heuristic_hint
+    bundle = {"classification": {
+        "type": "level_shift", "confidence": "high",
+        "signal_classes": ["duty", "peak"],
+    }}
+    line = _heuristic_hint(bundle)
+    assert "level_shift" in line
+    assert "high" in line.lower()
+    assert "starting point" in line.lower() or "refine" in line.lower()
