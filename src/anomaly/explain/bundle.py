@@ -40,14 +40,16 @@ def explain(alert: Alert, events: pd.DataFrame) -> dict:
     events = _ensure_utc_timestamps(events)
     mag = extract_magnitude(alert, events)
     ctx = list(alert.context) if alert.context else _synth_detector_context(alert, events, mag)
+    # Temporal is computed before classify so the same_hour_weekday_z signal
+    # is available to the DQG-override branch (lifted in iter 002).
+    temporal = temporal_framing(alert)
+    temporal.update(_same_hour_weekday_stats(alert, events, mag.get("peak")))
     s = Signals.from_alert(alert, mag=mag)
-    cls = classify(alert, mag=mag)
+    cls = classify(alert, mag=mag, temporal=temporal)
     type_class = type_to_class(cls.type)
     presentation = "user_visible" if type_class == "user_behavior" else "infrastructure"
     if type_class == "unknown":
         presentation = "user_visible"  # err on the side of showing
-    temporal = temporal_framing(alert)
-    temporal.update(_same_hour_weekday_stats(alert, events, mag.get("peak")))
     return {
         "alert_id": f"{alert.sensor_id}|{alert.capability}|{w0.isoformat()}",
         "sensor": alert.sensor_id,

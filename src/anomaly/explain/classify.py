@@ -30,7 +30,55 @@ class ClassificationResult:
     signal_classes: list[str] # sorted list of Signals.classes that contributed
 
 
-def classify(alert: Alert, mag: dict | None = None) -> ClassificationResult:
+_DQG_SPIKE_OVERRIDE_CAPS = frozenset({"power", "voltage", "temperature"})
+
+
+def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
+                              temporal: dict | None) -> str | None:
+    """Re-classify a DQG ``extreme_value`` pre-typed alert as ``spike`` /
+    ``dip`` when the bundle context unambiguously indicates a transient
+    user-behavior excursion rather than a sensor max-rated trip.
+
+    Triggered only when ALL of:
+      - DQG ``extreme_value`` pre-type
+      - Capability is appliance-style (power / voltage / temperature) —
+        these have wide legitimate dynamic range, so a single threshold
+        crossing is more often behavior than fault.
+      - ``mag.delta`` is non-zero (rules out null-magnitude trips)
+      - ``|mag.delta_pct| >= 100`` (excursion is at least 1× baseline —
+        a transient, not a baseline drift)
+      - ``|temporal.same_hour_weekday_z| >= 6`` (value is >=6σ off the
+        same-hour-of-week historical median; sensor faults that recur
+        do not get this strong against their own history)
+
+    Returns the inferred type, or ``None`` to fall through to the normal
+    pre-typed short-circuit. The 6σ threshold is intentionally
+    conservative — picks up textbook spikes (delta_pct in hundreds of
+    percent on appliances), avoids re-classifying merely-large excursions
+    that could be early-stage faults.
+    """
+    if alert.anomaly_type != "extreme_value":
+        return None
+    if alert.capability not in _DQG_SPIKE_OVERRIDE_CAPS:
+        return None
+    if "data_quality_gate" not in alert.detector.split("+"):
+        return None
+    if not mag or not temporal:
+        return None
+    delta = mag.get("delta")
+    dp = mag.get("delta_pct")
+    shwz = temporal.get("same_hour_weekday_z")
+    if delta is None or delta != delta or delta == 0:
+        return None
+    if dp is None or dp != dp or abs(dp) < 100:
+        return None
+    if shwz is None or shwz != shwz or abs(shwz) < 6:
+        return None
+    return "spike" if delta > 0 else "dip"
+
+
+def classify(alert: Alert, mag: dict | None = None,
+             temporal: dict | None = None) -> ClassificationResult:
     """Rich classifier result. `bundle.explain` feeds this into the
     structured `classification` block; `classify_type` wraps it.
 
@@ -38,6 +86,10 @@ def classify(alert: Alert, mag: dict | None = None) -> ClassificationResult:
     by ``bundle.explain``) is forwarded to ``Signals.from_alert`` so that
     direction can be inferred from ``mag.delta`` sign in the CSV-replay
     path where ``alert.context`` is None.
+
+    The optional ``temporal`` parameter (the temporal block, including
+    ``same_hour_weekday_z``) drives the DQG-override branch — see
+    ``_maybe_dqg_spike_override``.
 
     Confidence rules:
       - Pre-typed alerts (DQG, StateTransition) → "high"; signal_classes []
@@ -51,6 +103,13 @@ def classify(alert: Alert, mag: dict | None = None) -> ClassificationResult:
         helper returned (no point in re-running the dispatch); the
         confidence flag carries the caveat.
     """
+    overridden = _maybe_dqg_spike_override(alert, mag, temporal)
+    if overridden is not None:
+        return ClassificationResult(
+            type=overridden,
+            confidence="high",
+            signal_classes=["dqg", "magnitude"],
+        )
     if alert.anomaly_type:
         return ClassificationResult(
             type=alert.anomaly_type,
@@ -70,8 +129,9 @@ def classify(alert: Alert, mag: dict | None = None) -> ClassificationResult:
     )
 
 
-def classify_type(alert: Alert, mag: dict | None = None) -> str:
-    return classify(alert, mag=mag).type
+def classify_type(alert: Alert, mag: dict | None = None,
+                  temporal: dict | None = None) -> str:
+    return classify(alert, mag=mag, temporal=temporal).type
 
 
 def _dispatch(s: Signals) -> str:
