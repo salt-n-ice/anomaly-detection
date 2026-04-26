@@ -71,3 +71,23 @@ def _minimal_viz_scenario():
         "score": [4.5, 3.2, 5.1],
     })
     return events, labels, detections
+
+
+def _render_one_page_to_text(render_fn, ctx, *args, **kwargs) -> str:
+    """Helper: invoke a single-page renderer, save a 1-page PDF, extract text."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_pdf import PdfPages
+    import tempfile, os
+    from pdfminer.high_level import extract_text
+    fig = plt.figure(figsize=(13, 7))
+    render_fn(fig, ctx, *args, **kwargs)
+    fd, path = tempfile.mkstemp(suffix=".pdf"); os.close(fd)
+    try:
+        with PdfPages(path) as pdf:
+            pdf.savefig(fig, facecolor="white")
+        plt.close(fig)
+        return extract_text(path)
+    finally:
+        os.unlink(path)

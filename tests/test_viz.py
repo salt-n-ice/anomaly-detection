@@ -347,3 +347,22 @@ def test_attach_best_chain_defensive_against_sparse_index():
     assert 0 <= chain_idx < len(inner)
     # The highest-score user_visible was the s1 chain at original index 3 (score 9.0)
     assert inner.iloc[chain_idx]["score"] == 9.0
+
+
+def test_render_cover_smoke():
+    from anomaly.viz import cover
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario, _render_one_page_to_text
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title="test scenario")
+    text = _render_one_page_to_text(cover.render_cover, ctx)
+    # Hero metric
+    assert "1" in text and "of 2" in text
+    # Friendly cover narrative
+    assert "anomalies caught" in text.lower() or "caught" in text.lower()
+    # Eyebrow
+    assert "DAYS" in text
+    # Suppression footer
+    assert "suppressed" in text.lower() or "filtered" in text.lower() or "noise" in text.lower()
