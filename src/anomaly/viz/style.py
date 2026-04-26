@@ -130,3 +130,62 @@ def sensor_friendly(sensor_id: str,
     if len(parts) == 1:
         return parts[0].capitalize()
     return parts[0].capitalize() + " " + " ".join(p.lower() for p in parts[1:])
+
+
+PLAIN_ENGLISH: dict[str, str] = {
+    "level_shift":            "{sensor} baseline shifted {direction_word} at the start of this period. Flagged as a level shift.",
+    "weekend_anomaly":        "{sensor} ran heavily during this weekend. Flagged as a weekend pattern.",
+    "time_of_day":            "{sensor} fired at {hour_str} — outside its typical hours. Flagged as a time-of-day pattern.",
+    "trend":                  "{sensor} began drifting {direction_word} early in this period. Flagged as a gradual drift.",
+    "water_leak_sustained":   "{sensor} began reporting flow. Flagged as a sustained leak based on sensor type.",
+    "frequency_change":       "{sensor} cycled at a different rate than usual. Flagged as a frequency change.",
+    "month_shift":            "{sensor} {direction_word_long} at the start of this period. Flagged as a long-term shift.",
+    "degradation_trajectory": "{sensor} began showing gradual degradation. Flagged.",
+    "spike":                  "{sensor} jumped sharply. Flagged as a spike.",
+    "dip":                    "{sensor} dropped sharply. Flagged as a dip.",
+    "dropout":                "{sensor} lost reading. Flagged as a dropout.",
+    "calibration_drift":      "{sensor} drifted from its baseline. Flagged as a calibration drift.",
+}
+
+_GENERIC_TEMPLATE = "{sensor} produced an event the system flagged as a {friendly_type}."
+_MISSED_TEMPLATE = (
+    "The system did not detect this period. {sensor} anomalies of type "
+    "'{friendly_type}' rely on detectors not currently active for this sensor."
+)
+
+
+def _direction_word(delta: float | None) -> str:
+    if delta is None or delta != delta or delta == 0:
+        return ""
+    return "upward" if delta > 0 else "downward"
+
+
+def _direction_word_long(delta: float | None) -> str:
+    if delta is None or delta != delta or delta == 0:
+        return "shifted"
+    return "rose" if delta > 0 else "dropped"
+
+
+def render_summary(*, anomaly_type: str, sensor_friendly_name: str,
+                   is_missed: bool, delta: float | None,
+                   duration_h: float, hour_str: str | None) -> str:
+    """Render the plain-English summary line for a showcase page.
+
+    Templates describe what the system saw at fire time, NOT what the GT
+    label claims about duration. Caller passes in the friendly name (resolved
+    upstream via `sensor_friendly`) and the anomaly type (canonical, not yet
+    friendly-mapped here).
+    """
+    friendly = type_friendly(anomaly_type)
+    if is_missed:
+        return _MISSED_TEMPLATE.format(
+            sensor=sensor_friendly_name, friendly_type=friendly,
+        )
+    tmpl = PLAIN_ENGLISH.get(anomaly_type, _GENERIC_TEMPLATE)
+    return tmpl.format(
+        sensor=sensor_friendly_name,
+        friendly_type=friendly,
+        direction_word=_direction_word(delta) or "in some direction",
+        direction_word_long=_direction_word_long(delta),
+        hour_str=hour_str or "",
+    )

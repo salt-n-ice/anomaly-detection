@@ -73,3 +73,63 @@ def test_sensor_friendly_uppercase_input_fallback():
     from anomaly.viz.style import sensor_friendly
     assert sensor_friendly("WEIRD_ID_THING") == "Weird id thing"
     assert sensor_friendly("Mixed_Case_Input") == "Mixed case input"
+
+
+def test_render_summary_level_shift_up():
+    from anomaly.viz.style import render_summary
+    s = render_summary(
+        anomaly_type="level_shift",
+        sensor_friendly_name="Kettle outlet",
+        is_missed=False,
+        delta=120.0,
+        duration_h=24.0,
+        hour_str="02:00",
+    )
+    assert "Kettle outlet baseline shifted upward" in s
+    assert "level shift" in s
+
+
+def test_render_summary_level_shift_down():
+    from anomaly.viz.style import render_summary
+    s = render_summary(
+        anomaly_type="level_shift", sensor_friendly_name="Kettle outlet",
+        is_missed=False, delta=-120.0, duration_h=24.0, hour_str=None,
+    )
+    assert "downward" in s
+
+
+def test_render_summary_water_leak_honest():
+    from anomaly.viz.style import render_summary
+    s = render_summary(
+        anomaly_type="water_leak_sustained",
+        sensor_friendly_name="Basement leak sensor",
+        is_missed=False, delta=None, duration_h=4.0, hour_str=None,
+    )
+    # Honest template — does NOT claim observed duration
+    assert "began reporting flow" in s
+    assert "sustained leak based on sensor type" in s
+    assert "four hours" not in s.lower()
+    assert "4 hours" not in s
+
+
+def test_render_summary_missed():
+    from anomaly.viz.style import render_summary
+    s = render_summary(
+        anomaly_type="unusual_occupancy",
+        sensor_friendly_name="Bedroom motion sensor",
+        is_missed=True, delta=None, duration_h=1.0, hour_str=None,
+    )
+    assert "did not detect" in s
+    assert "Bedroom motion sensor" in s
+    assert "unusual occupancy" in s
+
+
+def test_render_summary_unknown_type_fallback():
+    from anomaly.viz.style import render_summary
+    s = render_summary(
+        anomaly_type="brand_new_type",
+        sensor_friendly_name="Some sensor",
+        is_missed=False, delta=None, duration_h=1.0, hour_str=None,
+    )
+    assert "Some sensor" in s
+    assert "brand new type" in s
