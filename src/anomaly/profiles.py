@@ -56,8 +56,12 @@ def _continuous_fuser(cfg):
 
 
 def _default_fuser(cfg):
-    # BURSTY / BINARY: 60-min gap, no anchor rule, no corroboration filtering.
-    return DefaultAlertFuser(cfg, gap=60*60, max_span=96*3600,
+    # BURSTY / BINARY: 4h gap (was 60min). Bursty detectors (DCS-6h, RMP)
+    # have 2h cooldown — at 60min gap, every cooldown-period fire is its
+    # own chain. At 4h gap, sustained anomalies fuse into one chain.
+    # Effect: TPs become single chain per label (UX: one notification);
+    # paired FP fires (cooldown rhythm) merge into one FP chain.
+    return DefaultAlertFuser(cfg, gap=4*3600, max_span=96*3600,
                               anchor_on_non_cusum=False,
                               corroboration=PassThroughCorroboration())
 
