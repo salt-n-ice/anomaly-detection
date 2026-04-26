@@ -93,6 +93,28 @@ _SIGNAL_CLASS_LABELS: dict[str, str] = {
 }
 
 
+def _rate_context_line(bundle: dict) -> str | None:
+    """Render the iter-008 rate-context block as a single line.
+
+    The bundle's ``rate_context`` field (when present) carries
+    ``recent_dqg_fires_1h`` and ``recent_dqg_fires_24h`` — counts of
+    data_quality_gate fires for this sensor+capability in the 1-hour and
+    24-hour windows preceding the alert. Surfaced descriptively, not
+    as a verdict — the LLM weighs it alongside other evidence to detect
+    rate-shift patterns absent from a single-chain bundle.
+    """
+    rc = bundle.get("rate_context")
+    if not rc:
+        return None
+    n1h = rc.get("recent_dqg_fires_1h")
+    n24h = rc.get("recent_dqg_fires_24h")
+    if n1h is None or n24h is None:
+        return None
+    return (f"**Rate context:** data_quality_gate has fired {n1h} time(s) "
+            f"in the last 1 hour and {n24h} time(s) in the last 24 hours "
+            f"on this sensor.")
+
+
 def _signal_class_narrative(bundle: dict) -> str | None:
     """Auto-generated bridge: \"Signals fired: time-in-state and per-event peak
     magnitude both deviated from bootstrap.\" Returns None for pre-typed alerts
@@ -206,6 +228,10 @@ def build_prompt(bundle: dict) -> str:
             f"prior {temp.get('weekday', '?')} {temp.get('hour', '?')}:00 samples "
             f"(peer median {temp.get('same_hour_weekday_median'):.4g})."
         )
+
+    rate_line = _rate_context_line(bundle)
+    if rate_line:
+        lines.append(rate_line)
     lines.append("")
 
     # Signal-class narrative bridge (NEW)

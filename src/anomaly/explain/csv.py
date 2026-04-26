@@ -11,6 +11,42 @@ from ..core import Alert
 from .bundle import explain
 
 
+# Iter 008: count of DQG fires for the alert's sensor+capability in the
+# preceding 1-hour and 24-hour windows. Surfaced in the prompt body as a
+# "Rate context" line so the LLM has evidence to detect rate-shift patterns
+# (frequency_change GTs) that single-chain bundles cannot otherwise convey.
+_DQG_DETECTOR_NAME = "data_quality_gate"
+
+
+def _compute_rate_context(alert: Alert,
+                          sensor_dets: pd.DataFrame) -> dict | None:
+    """Count DQG fires for the alert's sensor+capability in the 1h and 24h
+    windows preceding the alert's window_start (inclusive of the alert
+    itself when it falls in the window).
+
+    ``sensor_dets`` must already be filtered to the alert's sensor and
+    have a parsed-UTC ``start`` column. Returns ``None`` if there are no
+    matching detections for the sensor+capability.
+    """
+    if len(sensor_dets) == 0:
+        return None
+    sub = sensor_dets[sensor_dets["capability"] == alert.capability]
+    if len(sub) == 0:
+        return None
+    has_dqg = sub["detector"].astype(str).str.contains(
+        _DQG_DETECTOR_NAME, na=False, regex=False)
+    sub = sub[has_dqg]
+    if len(sub) == 0:
+        return None
+    ts = alert.window_start or alert.timestamp
+    starts = sub["start"]
+    n_1h = int(((starts >= ts - pd.Timedelta(hours=1))
+                & (starts <= ts)).sum())
+    n_24h = int(((starts >= ts - pd.Timedelta(hours=24))
+                 & (starts <= ts)).sum())
+    return {"recent_dqg_fires_1h": n_1h, "recent_dqg_fires_24h": n_24h}
+
+
 def _detections_to_alerts(det_df: pd.DataFrame) -> list[Alert]:
     out: list[Alert] = []
     for r in det_df.itertuples(index=False):
@@ -46,23 +82,36 @@ def explain_detections_csv(events_csv, detections_csv, out_jsonl) -> int:
     == ...]` filter on every detection. ~2x speedup on the full 7-scenario
     suite (~25 min → ~12 min); the inner timestamp-window filters are still
     the dominant cost on large scenarios.
+
+    Detections are also pre-grouped by sensor_id and the ``start`` column is
+    parsed to UTC timestamp once so the per-alert rate-context lookup
+    (iter 008) doesn't repeat the parse on every chain.
     """
     import json as _json
     from pathlib import Path as _P
     events = pd.read_csv(events_csv)
     events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True, format="ISO8601")
-    # Pre-group: one filter per sensor up front, then index lookups per alert.
     events_by_sensor: dict[str, pd.DataFrame] = {
         sid: g.reset_index(drop=True) for sid, g in events.groupby("sensor_id")
     }
     empty_events = events.iloc[0:0]
     dets = pd.read_csv(detections_csv)
+    dets["start"] = pd.to_datetime(dets["start"], utc=True, format="ISO8601")
+    dets_by_sensor: dict[str, pd.DataFrame] = {
+        sid: g.reset_index(drop=True) for sid, g in dets.groupby("sensor_id")
+    }
+    empty_dets = dets.iloc[0:0]
     alerts = _detections_to_alerts(dets)
     path = _P(out_jsonl); path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w") as f:
         n = 0
         for a in alerts:
             sensor_events = events_by_sensor.get(a.sensor_id, empty_events)
-            f.write(_json.dumps(explain(a, sensor_events), default=str) + "\n")
+            bundle = explain(a, sensor_events)
+            sensor_dets = dets_by_sensor.get(a.sensor_id, empty_dets)
+            rc = _compute_rate_context(a, sensor_dets)
+            if rc is not None:
+                bundle["rate_context"] = rc
+            f.write(_json.dumps(bundle, default=str) + "\n")
             n += 1
     return n
