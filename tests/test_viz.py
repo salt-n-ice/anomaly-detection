@@ -133,3 +133,50 @@ def test_render_summary_unknown_type_fallback():
     )
     assert "Some sensor" in s
     assert "brand new type" in s
+
+
+def test_format_duration_short():
+    from anomaly.viz.style import format_duration
+    assert format_duration(45.0) == "45s"
+    assert format_duration(60.0) == "1 minute"
+    assert format_duration(120.0) == "2 minutes"
+
+
+def test_format_duration_hours():
+    from anomaly.viz.style import format_duration
+    assert format_duration(3600.0) == "1 hour"
+    assert format_duration(7200.0) == "2 hours"
+    assert format_duration(3600.0 * 4) == "4 hours"
+
+
+def test_format_duration_days():
+    from anomaly.viz.style import format_duration
+    assert format_duration(86400.0) == "1 day"
+    assert format_duration(86400.0 * 2) == "2 days"
+    assert format_duration(86400.0 * 23) == "23 days"
+
+
+def test_format_date_range_multiday():
+    from anomaly.viz.style import format_date_range
+    from conftest import ts
+    s = format_date_range(ts("2026-02-16T00:00:00"), ts("2026-02-18T00:00:00"))
+    assert "Monday Feb 16" in s
+    assert "Wednesday Feb 18, 2026" in s
+    assert "48 hours" in s
+
+
+def test_format_date_range_intraday():
+    from anomaly.viz.style import format_date_range
+    from conftest import ts
+    s = format_date_range(ts("2026-04-03T14:00:00"), ts("2026-04-03T18:00:00"))
+    assert "Friday Apr 3, 2026" in s
+    assert "14:00" in s and "18:00" in s
+    assert "4 hours" in s
+
+
+def test_format_eyebrow():
+    from anomaly.viz.style import format_eyebrow
+    from conftest import ts
+    s = format_eyebrow(ts("2026-02-15"), ts("2026-06-15"), "household_120d")
+    assert "120 DAYS" in s
+    assert "HOUSEHOLD" in s

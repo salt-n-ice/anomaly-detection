@@ -6,6 +6,7 @@ from __future__ import annotations
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import pandas as pd
 
 LINE = "#1a1a1a"
 TP = "#2a7f2a"
@@ -189,3 +190,58 @@ def render_summary(*, anomaly_type: str, sensor_friendly_name: str,
         direction_word_long=_direction_word_long(delta),
         hour_str=hour_str or "",
     )
+
+
+def _day_no_pad(ts: pd.Timestamp) -> str:
+    """Return the day of month as a string with no leading zero.
+
+    Platform-safe: avoids the `%-d` strftime token which is not supported
+    on Windows (it would produce e.g. `'%-d'` literal or fail).
+    """
+    return str(ts.day)
+
+
+def format_duration(seconds: float) -> str:
+    """Friendly duration: '45s', '1 minute', '23 hours', '7 days'."""
+    if seconds < 60:
+        return f"{seconds:.0f}s"
+    if seconds < 3600:
+        n = int(round(seconds / 60))
+        return f"{n} minute{'s' if n != 1 else ''}"
+    if seconds < 86400:
+        n = int(round(seconds / 3600))
+        return f"{n} hour{'s' if n != 1 else ''}"
+    n = int(round(seconds / 86400))
+    return f"{n} day{'s' if n != 1 else ''}"
+
+
+def format_date_range(start: pd.Timestamp, end: pd.Timestamp) -> str:
+    """Friendly date range. Multi-day uses weekday-first long format; intraday
+    shows weekday + date + clock times. Duration is rendered in hours so
+    multi-day spans surface their concrete length (e.g., '48 hours').
+    """
+    duration_s = (end - start).total_seconds()
+    hours = int(round(duration_s / 3600))
+    duration_str = f"{hours} hour{'s' if hours != 1 else ''}"
+    if duration_s >= 86400:
+        return (f"{start.strftime('%A %b')} {_day_no_pad(start)} — "
+                f"{end.strftime('%A %b')} {_day_no_pad(end)}, "
+                f"{end.strftime('%Y')} · "
+                f"{duration_str}")
+    return (f"{start.strftime('%A %b')} {_day_no_pad(start)}, "
+            f"{start.strftime('%Y')} · "
+            f"{start.strftime('%H:%M')} — {end.strftime('%H:%M')} · "
+            f"{duration_str}")
+
+
+def format_eyebrow(start: pd.Timestamp, end: pd.Timestamp,
+                   scenario_name: str | None) -> str:
+    """Cover eyebrow line: 'N DAYS · SCENARIO_CLASS_UPPER'."""
+    days = max(1, int(round((end - start).total_seconds() / 86400)))
+    name_part = ""
+    if scenario_name:
+        # Trim trailing _Nd / _Nh suffix; uppercase the remainder.
+        import re as _re
+        cleaned = _re.sub(r"_\d+[dhmw]?$", "", scenario_name)
+        name_part = " · " + cleaned.upper().replace("_", " ")
+    return f"{days} DAYS{name_part}"
