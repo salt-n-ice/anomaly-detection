@@ -64,38 +64,42 @@ def attach_best_chain(labels: pd.DataFrame,
 
 def compute_buckets(labels: pd.DataFrame, detections: pd.DataFrame
                     ) -> tuple[int, int, list[tuple[str, int]]]:
-    """Count user-visible FPs (chains with `inferred_class == 'user_behavior'`
-    that don't overlap any GT label), sensor-fault suppressed chains, and
-    sensor-fault counts grouped by sensor (descending).
-    Returns (n_user_visible_fps, n_suppressed, suppression_by_sensor).
+    """Count user-visible FPs, sensor-fault suppressed chains, and
+    sensor-fault counts per sensor (descending).
     """
-    # Build per-sensor label intervals for fast overlap test
+    n_user_fps = int(len(user_visible_fps(labels, detections)))
+    suppressed = detections[detections.get("inferred_class", pd.Series([], dtype=object)) == "sensor_fault"]
+    n_suppressed = int(len(suppressed))
+    by_sensor_counts = (suppressed.groupby("sensor_id").size()
+                        .sort_values(ascending=False)
+                        .to_dict() if len(suppressed) else {})
+    suppression_sorted = list(by_sensor_counts.items())
+    return n_user_fps, n_suppressed, suppression_sorted
+
+
+def user_visible_fps(labels: pd.DataFrame,
+                     detections: pd.DataFrame) -> pd.DataFrame:
+    """Detections classified user_behavior with no overlapping GT label.
+
+    Single source of truth for the FP definition; both `compute_buckets`
+    (count) and `honest.render_honest` (rows) consume it.
+    """
     label_intervals: dict[str, list[tuple[pd.Timestamp, pd.Timestamp]]] = {}
     for _, lab in labels.iterrows():
         label_intervals.setdefault(lab["sensor_id"], []).append(
             (lab["start"], lab["end"]))
 
-    def _overlaps_any_label(row) -> bool:
-        ivs = label_intervals.get(row["sensor_id"], [])
-        for (s, e) in ivs:
+    def _is_fp(row) -> bool:
+        if row.get("inferred_class") != "user_behavior":
+            return False
+        for s, e in label_intervals.get(row["sensor_id"], []):
             if row["start"] <= e and row["end"] >= s:
-                return True
-        return False
+                return False
+        return True
 
-    n_user_fps = 0
-    n_suppressed = 0
-    by_sensor: dict[str, int] = {}
-    for _, row in detections.iterrows():
-        cls = row.get("inferred_class", "")
-        if cls == "sensor_fault":
-            n_suppressed += 1
-            by_sensor[row["sensor_id"]] = by_sensor.get(row["sensor_id"], 0) + 1
-        elif cls == "user_behavior":
-            if not _overlaps_any_label(row):
-                n_user_fps += 1
-    suppression_sorted = sorted(by_sensor.items(),
-                                key=lambda kv: -kv[1])
-    return n_user_fps, n_suppressed, suppression_sorted
+    if len(detections) == 0:
+        return detections.iloc[0:0]
+    return detections[detections.apply(_is_fp, axis=1)]
 
 
 def select_showcases(labels: pd.DataFrame, *, max_n: int = 8) -> pd.DataFrame:

@@ -449,3 +449,46 @@ def test_render_honest_smoke():
     assert "MISSED" in text or "missed" in text.lower()
     assert "FALSE ALARM" in text or "false alarm" in text.lower()
     assert "Bedroom motion sensor" in text  # FN tile
+
+
+def test_render_honest_fp_overflow_indicator():
+    """When >6 user-visible FPs exist, render_honest must show a
+    '+ N more false alarms' overflow indicator (mirrors the FN side)."""
+    from anomaly.viz import honest
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario, _render_one_page_to_text
+    import pandas as _pd
+    events, labels, detections = _minimal_viz_scenario()
+    # Synthesize 8 user-visible FPs on outlet_tv_power
+    extra_fps = _pd.DataFrame({
+        "sensor_id": ["outlet_tv_power"] * 8,
+        "capability": ["power"] * 8,
+        "start": _pd.to_datetime([
+            "2026-02-19T01:00:00Z", "2026-02-19T02:00:00Z",
+            "2026-02-19T03:00:00Z", "2026-02-19T04:00:00Z",
+            "2026-02-19T05:00:00Z", "2026-02-19T06:00:00Z",
+            "2026-02-19T07:00:00Z", "2026-02-19T08:00:00Z",
+        ]),
+        "end": _pd.to_datetime([
+            "2026-02-19T01:01:00Z", "2026-02-19T02:01:00Z",
+            "2026-02-19T03:01:00Z", "2026-02-19T04:01:00Z",
+            "2026-02-19T05:01:00Z", "2026-02-19T06:01:00Z",
+            "2026-02-19T07:01:00Z", "2026-02-19T08:01:00Z",
+        ]),
+        "first_fire_ts": _pd.to_datetime([
+            "2026-02-19T01:01:00Z"] * 8),
+        "anomaly_type": ["duty_cycle_shift_6h"] * 8,
+        "inferred_type": ["level_shift"] * 8,
+        "inferred_class": ["user_behavior"] * 8,
+        "detector": ["duty_cycle_shift_6h"] * 8,
+        "threshold": [3.0] * 8,
+        "score": [3.0] * 8,
+    })
+    detections = _pd.concat([detections, extra_fps], ignore_index=True)
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    text = _render_one_page_to_text(honest.render_honest, ctx)
+    # We have at least 9 user-visible FPs: 1 original + 8 extra.
+    # 6 fit on page; 3+ should be reported as overflow.
+    assert "more false alarms" in text.lower()
