@@ -403,3 +403,35 @@ def test_render_cover_zero_tp_uses_red_hero():
     assert color.lower() == expected.lower(), \
         f"expected hero color {expected}, got {color}"
     plt.close(fig)
+
+
+def test_render_showcase_caught():
+    from anomaly.viz import showcase
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario, _render_one_page_to_text
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    tp_label = ctx.labels[ctx.labels["is_tp"]].iloc[0]
+    text = _render_one_page_to_text(showcase.render_showcase, ctx, tp_label)
+    assert "CAUGHT" in text
+    assert "TV outlet" in text
+    assert "weekend pattern" in text.lower()
+    # Honest plain-English: doesn't claim observed duration in seconds/days
+    assert "weekend" in text.lower()
+
+
+def test_render_showcase_missed():
+    from anomaly.viz import showcase
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario, _render_one_page_to_text
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    fn_label = ctx.labels[~ctx.labels["is_tp"]].iloc[0]
+    text = _render_one_page_to_text(showcase.render_showcase, ctx, fn_label)
+    assert "MISSED" in text
+    assert "Bedroom motion sensor" in text
+    assert "did not detect" in text.lower()
