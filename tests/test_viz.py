@@ -1,6 +1,9 @@
 import pandas as pd
 
 
+# ------------------------------ style ------------------------------
+
+
 def test_style_palette_constants_present():
     from anomaly.viz import style
     assert style.LINE == "#1a1a1a"
@@ -182,6 +185,9 @@ def test_format_eyebrow():
     assert "HOUSEHOLD" in s
 
 
+# ------------------------------ context ----------------------------
+
+
 def test_context_build_basic_fields():
     from anomaly.viz.context import Context
     from conftest import _minimal_viz_scenario
@@ -234,6 +240,9 @@ def test_context_best_chain_idx_valid_under_exclusion():
     assert 0 <= chain_idx < len(ctx.detections)
     chain = ctx.detections.iloc[chain_idx]
     assert chain["sensor_id"] == tp["sensor_id"]
+
+
+# ------------------------------ selection --------------------------
 
 
 def test_classify_labels_marks_tp_fn():
@@ -349,6 +358,9 @@ def test_attach_best_chain_defensive_against_sparse_index():
     assert inner.iloc[chain_idx]["score"] == 9.0
 
 
+# ------------------------------ cover ------------------------------
+
+
 def test_render_cover_smoke():
     from anomaly.viz import cover
     from anomaly.viz.context import Context
@@ -405,6 +417,9 @@ def test_render_cover_zero_tp_uses_red_hero():
     plt.close(fig)
 
 
+# ------------------------------ showcase ---------------------------
+
+
 def test_render_showcase_caught():
     from anomaly.viz import showcase
     from anomaly.viz.context import Context
@@ -435,6 +450,9 @@ def test_render_showcase_missed():
     assert "MISSED" in text
     assert "Bedroom motion sensor" in text
     assert "did not detect" in text.lower()
+
+
+# ------------------------------ honest -----------------------------
 
 
 def test_render_honest_smoke():
@@ -494,6 +512,9 @@ def test_render_honest_fp_overflow_indicator():
     assert "more false alarms" in text.lower()
 
 
+# ------------------------------ suppression ------------------------
+
+
 def test_render_suppression_smoke():
     from anomaly.viz import suppression
     from anomaly.viz.context import Context
@@ -505,6 +526,9 @@ def test_render_suppression_smoke():
     text = _render_one_page_to_text(suppression.render_suppression, ctx)
     assert "Quietly suppressed" in text or "suppressed" in text.lower()
     assert "noise" in text.lower() or "filtered" in text.lower()
+
+
+# ------------------------------ appendix ---------------------------
 
 
 def test_render_appendix_returns_pages():
@@ -524,6 +548,9 @@ def test_render_appendix_returns_pages():
     assert len(figs) >= 1
     for f in figs:
         plt.close(f)
+
+
+# ------------------------------ end-to-end -------------------------
 
 
 def test_render_end_to_end_writes_multipage_pdf(tmp_path):
