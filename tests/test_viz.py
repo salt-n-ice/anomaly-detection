@@ -435,3 +435,17 @@ def test_render_showcase_missed():
     assert "MISSED" in text
     assert "Bedroom motion sensor" in text
     assert "did not detect" in text.lower()
+
+
+def test_render_honest_smoke():
+    from anomaly.viz import honest
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario, _render_one_page_to_text
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    text = _render_one_page_to_text(honest.render_honest, ctx)
+    assert "MISSED" in text or "missed" in text.lower()
+    assert "FALSE ALARM" in text or "false alarm" in text.lower()
+    assert "Bedroom motion sensor" in text  # FN tile
