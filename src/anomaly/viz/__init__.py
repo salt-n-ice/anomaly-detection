@@ -8,9 +8,7 @@ The legacy `render_long` (per-incident long-form PDF) is preserved unchanged
 as `viz.long.render_long` and re-exported here.
 """
 from __future__ import annotations
+from .document import render
 from .long import render_long
 
-__all__ = ["render_long"]
-# Note: `render` re-export is added in Task 14, after document.py is implemented.
-# Keeping the temporary single-export form during scaffolding lets render_long
-# import without depending on stub modules.
+__all__ = ["render", "render_long"]

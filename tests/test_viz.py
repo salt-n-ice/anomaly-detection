@@ -524,3 +524,36 @@ def test_render_appendix_returns_pages():
     assert len(figs) >= 1
     for f in figs:
         plt.close(f)
+
+
+def test_render_end_to_end_writes_multipage_pdf(tmp_path):
+    from anomaly.viz import render
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    out = tmp_path / "report.pdf"
+    render(events, labels, detections, out,
+           sensor_names={}, max_showcases=8,
+           excluded_sensors=frozenset(), title=None)
+    assert out.exists() and out.stat().st_size > 0
+    # Verify it's a multi-page PDF (cover + >=1 showcase + appendix at minimum)
+    from pdfminer.pdfparser import PDFParser
+    from pdfminer.pdfdocument import PDFDocument
+    with open(out, "rb") as fp:
+        parser = PDFParser(fp)
+        doc = PDFDocument(parser)
+        from pdfminer.pdfpage import PDFPage
+        n_pages = sum(1 for _ in PDFPage.create_pages(doc))
+    assert n_pages >= 3
+
+
+def test_render_excludes_sensors(tmp_path):
+    from anomaly.viz import render
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    out = tmp_path / "report.pdf"
+    render(events, labels, detections, out,
+           sensor_names={}, max_showcases=8,
+           excluded_sensors=frozenset({"bedroom_motion"}), title=None)
+    from pdfminer.high_level import extract_text
+    text = extract_text(out)
+    assert "Bedroom motion sensor" not in text
