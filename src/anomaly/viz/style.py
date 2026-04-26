@@ -113,10 +113,13 @@ def sensor_friendly(sensor_id: str,
     # Recognized placement prefix with at least one trailing appliance token
     if len(tokens) >= 2 and tokens[0] in _PLACEMENT_PREFIXES:
         placement, *rest = tokens
-        appliance = " ".join(_titlecase_token(t) for t in rest)
         if placement == "outlet":
+            appliance = " ".join(_titlecase_token(t) for t in rest)
             return f"{appliance} outlet"
-        return f"{_titlecase_token(placement)} {appliance} sensor"
+        # Non-outlet placement: trailing tokens are usually measurement nouns
+        # (humidity, pressure, etc.). Lowercase them.
+        rest_lower = " ".join(t.lower() for t in rest)
+        return f"{_titlecase_token(placement)} {rest_lower} sensor"
     # Single placement token only (e.g., 'mains_voltage', 'kitchen_temperature')
     if len(tokens) == 1 and tokens[0] in _PLACEMENT_PREFIXES and stripped_suffix:
         cap_word = stripped_suffix.lstrip("_")  # "_voltage" -> "voltage"
@@ -126,4 +129,4 @@ def sensor_friendly(sensor_id: str,
     parts = sensor_id.split("_")
     if len(parts) == 1:
         return parts[0].capitalize()
-    return parts[0].capitalize() + " " + " ".join(parts[1:])
+    return parts[0].capitalize() + " " + " ".join(p.lower() for p in parts[1:])

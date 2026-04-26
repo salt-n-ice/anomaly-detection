@@ -58,3 +58,18 @@ def test_sensor_friendly_unknown_pattern():
     from anomaly.viz.style import sensor_friendly
     # Unknown shape — title-case fallback
     assert sensor_friendly("weird_id_thing") == "Weird id thing"
+
+
+def test_sensor_friendly_humidity_lowercase():
+    """Non-outlet placement with trailing measurement word should lowercase
+    the measurement (capability words like humidity / pressure are nouns,
+    not appliances)."""
+    from anomaly.viz.style import sensor_friendly
+    assert sensor_friendly("bathroom_humidity") == "Bathroom humidity sensor"
+
+
+def test_sensor_friendly_uppercase_input_fallback():
+    """Fallback branch should sentence-case the output regardless of input case."""
+    from anomaly.viz.style import sensor_friendly
+    assert sensor_friendly("WEIRD_ID_THING") == "Weird id thing"
+    assert sensor_friendly("Mixed_Case_Input") == "Mixed case input"
