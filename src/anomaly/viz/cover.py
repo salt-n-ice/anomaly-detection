@@ -28,8 +28,9 @@ def render_cover(fig: matplotlib.figure.Figure, ctx: Context) -> None:
     fig.text(0.06, 0.89, date_range, fontsize=9, color=style.MUTED)
 
     # 2. Hero metric
+    hero_color = style.GT if ctx.n_tp == 0 else style.TEXT
     fig.text(0.06, 0.76, str(ctx.n_tp),
-             fontsize=72, fontweight="700", color=style.TEXT)
+             fontsize=72, fontweight="700", color=hero_color)
     # Approximate offset for the "of N" small text alongside the big numeral.
     offset_x = 0.06 + 0.013 * len(str(ctx.n_tp)) + 0.04
     fig.text(offset_x, 0.78, f"of {ctx.n_total_labels}",

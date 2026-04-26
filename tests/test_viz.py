@@ -366,3 +366,40 @@ def test_render_cover_smoke():
     assert "DAYS" in text
     # Suppression footer
     assert "suppressed" in text.lower() or "filtered" in text.lower() or "noise" in text.lower()
+
+
+def test_render_cover_zero_tp_uses_red_hero():
+    """Spec §13: zero-TP scenarios render the hero metric in red, not the
+    default text color."""
+    from anomaly.viz import cover, style
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    events, labels, detections = _minimal_viz_scenario()
+    # Force zero TPs by passing detections with no chains overlapping any GT
+    empty_dets = detections.iloc[0:0].copy()
+    ctx = Context.build(events, labels, empty_dets,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    assert ctx.n_tp == 0  # sanity
+
+    fig = plt.figure(figsize=(13, 7))
+    cover.render_cover(fig, ctx)
+    # The hero "0" text should be the GT (red) color, not TEXT (dark grey).
+    # Walk the figure's text artists to find the largest fontsize text and
+    # check its color.
+    texts = [t for t in fig.findobj(match=lambda o: hasattr(o, "get_fontsize") and hasattr(o, "get_color"))]
+    # Filter to figure-level texts (not axes ticks): largest fontsize and text == "0"
+    hero = [t for t in texts if t.get_text() == "0"]
+    assert hero, "expected to find a hero text artist with text '0'"
+    # Find the one with fontsize >= 50 (the large hero numeral)
+    big = [t for t in hero if t.get_fontsize() >= 50]
+    assert big, "expected a large-fontsize '0' for the hero metric"
+    color = matplotlib.colors.to_hex(big[0].get_color())
+    expected = matplotlib.colors.to_hex(style.GT)
+    assert color.lower() == expected.lower(), \
+        f"expected hero color {expected}, got {color}"
+    plt.close(fig)
