@@ -210,3 +210,27 @@ def test_context_build_excluded_sensors():
     assert ctx.n_fn == 0
     assert ctx.n_total_labels == 1
     assert "bedroom_motion" not in ctx.events
+
+
+def test_context_best_chain_idx_valid_under_exclusion():
+    """When excluded_sensors filters detections, best_chain_idx values must
+    correctly index into the surviving detections (positional, not original
+    sparse index from the source frame)."""
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    # Exclude a sensor (none in the fixture have detections, so pretend
+    # we exclude bedroom_motion; what matters is reset_index runs on
+    # detections regardless).
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset({"bedroom_motion"}),
+                        title=None)
+    tp = ctx.labels[ctx.labels["is_tp"]].iloc[0]
+    chain_idx = tp["best_chain_idx"]
+    assert chain_idx is not None and not pd.isna(chain_idx), \
+        "best_chain_idx should be set for TP labels"
+    chain_idx = int(chain_idx)
+    # The picked chain should be valid: indexable via .iloc and a user_visible chain
+    assert 0 <= chain_idx < len(ctx.detections)
+    chain = ctx.detections.iloc[chain_idx]
+    assert chain["sensor_id"] == tp["sensor_id"]

@@ -62,6 +62,10 @@ class Context:
             events = events[~events["sensor_id"].isin(excluded_sensors)]
             labels = labels[~labels["sensor_id"].isin(excluded_sensors)]
             detections = detections[~detections["sensor_id"].isin(excluded_sensors)]
+        # Normalize indices to positional 0..N-1 BEFORE selection.* functions run,
+        # because attach_best_chain bakes detection indices into labels["best_chain_idx"].
+        detections = detections.reset_index(drop=True)
+        labels = labels.reset_index(drop=True)
 
         # Group events by sensor for fast page-time lookup
         events_by_sensor: dict[str, pd.DataFrame] = {
@@ -105,8 +109,8 @@ class Context:
         return Context(
             events=events_by_sensor,
             sensor_capability=sensor_capability,
-            labels=labels.reset_index(drop=True),
-            detections=detections.reset_index(drop=True),
+            labels=labels,
+            detections=detections,
             scenario_start=scen_start,
             scenario_end=scen_end,
             title=title,
