@@ -1559,6 +1559,11 @@ class DutyCycleShift:
         self.name = f"duty_cycle_shift_{window_s // 3600}h"
         self._boot_median: float = 0.0
         self._boot_mad: float = 0.01
+        # Bootstrap-percentile novelty gate (used only when boot_mad
+        # collapses to its floor; see fit() / update()).
+        self._boot_q01: float = 0.0
+        self._boot_q99: float = 1.0
+        self._mad_at_floor: bool = False
         # Live: (ts, above) pairs in rolling window
         self._window: deque = deque()
         self._last_fire_ts: pd.Timestamp | None = None
@@ -1605,7 +1610,17 @@ class DutyCycleShift:
         arr = np.asarray(duties)
         self._boot_median = float(np.median(arr))
         mad = float(np.median(np.abs(arr - self._boot_median)))
+        # MAD floor stays at 0.005 so the existing z scaling is preserved
+        # for sensors with meaningful natural variance. Track whether the
+        # raw MAD hit the floor — bimodal-zero distributions on chatty
+        # BURSTY outlets (TV 14% ZOH, kettle 35% ZOH with mostly-off
+        # bootstrap windows) collapse MAD to ~0, then z = duty/0.005
+        # explodes for any non-zero live duty. The percentile-novelty
+        # gate in update() activates only in that regime.
         self._boot_mad = max(mad, 0.005)
+        self._boot_q01 = float(np.quantile(arr, 0.01))
+        self._boot_q99 = float(np.quantile(arr, 0.99))
+        self._mad_at_floor = (mad <= 0.005)
         self.live = True
 
     def update(self, ts, feat):
@@ -1641,6 +1656,19 @@ class DutyCycleShift:
         cooldown_ok = (self._last_fire_ts is None
                        or (ts - self._last_fire_ts).total_seconds() >= self.cooldown_s)
         if abs(z) > self.z_threshold and cooldown_ok:
+            # Percentile-novelty gate (only when bootstrap MAD collapsed):
+            # require live duty to fall outside the bootstrap [q01, q99]
+            # range. Suppresses z-inflation FPs from chatty BURSTY outlets
+            # whose bootstrap is dominated by zero-duty windows. Real
+            # magnitude-novel anomalies push duty into a regime never
+            # seen during bootstrap; natural-variance fires (and
+            # z-inflation "fluke TPs" — see iter 023 ITERATIONS.md)
+            # stay within it.
+            if self._mad_at_floor:
+                if z > 0 and duty <= self._boot_q99:
+                    return []
+                if z < 0 and duty >= self._boot_q01:
+                    return []
             self._last_fire_ts = ts
             direction = "high" if z > 0 else "low"
             score = abs(z)
