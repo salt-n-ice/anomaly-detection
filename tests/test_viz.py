@@ -492,3 +492,16 @@ def test_render_honest_fp_overflow_indicator():
     # We have at least 9 user-visible FPs: 1 original + 8 extra.
     # 6 fit on page; 3+ should be reported as overflow.
     assert "more false alarms" in text.lower()
+
+
+def test_render_suppression_smoke():
+    from anomaly.viz import suppression
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario, _render_one_page_to_text
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    text = _render_one_page_to_text(suppression.render_suppression, ctx)
+    assert "Quietly suppressed" in text or "suppressed" in text.lower()
+    assert "noise" in text.lower() or "filtered" in text.lower()
