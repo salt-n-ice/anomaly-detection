@@ -259,13 +259,16 @@ def main(argv=None) -> int:
     v = sub.add_parser("viz")
     v.add_argument("--events", required=True, type=Path)
     v.add_argument("--labels", required=True, type=Path)
-    v.add_argument("--detections", type=Path, default=None)
+    v.add_argument("--detections", required=True, type=Path)
     v.add_argument("--out", required=True, type=Path)
-    v.add_argument("--window", default="1d", help="e.g. 1h, 6h, 1d, 2d")
-    v.add_argument("--explain", action="store_true",
-                   help="label detection rows with the explainer's inferred_type "
-                        "(level_shift / spike / calibration_drift / ...) instead "
-                        "of the raw detector combination string")
+    v.add_argument("--sensor-names", type=Path, default=None,
+                   help="JSON file mapping sensor_id to friendly display name")
+    v.add_argument("--max-showcases", type=int, default=8,
+                   help="cap on the number of curated showcase pages")
+    v.add_argument("--exclude-sensors", default="",
+                   help="comma-separated sensor_ids to drop from the report")
+    v.add_argument("--title", default=None,
+                   help="document title; default auto-derived from events.csv path")
     vl = sub.add_parser("viz-long")
     vl.add_argument("--events", required=True, type=Path)
     vl.add_argument("--labels", required=True, type=Path)
@@ -284,11 +287,18 @@ def main(argv=None) -> int:
     if args.cmd == "eval":
         evaluate(args.detections, args.labels); return 0
     if args.cmd == "viz":
+        import json as _json
         from .viz import render
         ev = pd.read_csv(args.events)
         lb = pd.read_csv(args.labels)
-        dt = pd.read_csv(args.detections) if args.detections else None
-        render(ev, lb, dt, args.out, args.window, explain=args.explain)
+        dt = pd.read_csv(args.detections)
+        sn = _json.loads(args.sensor_names.read_text()) if args.sensor_names else {}
+        excluded = frozenset(s.strip() for s in args.exclude_sensors.split(",") if s.strip())
+        render(ev, lb, dt, args.out,
+               sensor_names=sn,
+               max_showcases=args.max_showcases,
+               excluded_sensors=excluded,
+               title=args.title)
         print(f"wrote {args.out}")
         return 0
     if args.cmd == "viz-long":
