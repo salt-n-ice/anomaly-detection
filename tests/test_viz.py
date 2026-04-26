@@ -180,3 +180,33 @@ def test_format_eyebrow():
     s = format_eyebrow(ts("2026-02-15"), ts("2026-06-15"), "household_120d")
     assert "120 DAYS" in s
     assert "HOUSEHOLD" in s
+
+
+def test_context_build_basic_fields():
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    assert ctx.n_total_labels == 2
+    assert ctx.n_tp == 1
+    assert ctx.n_fn == 1
+    assert ctx.n_user_visible_fps == 1
+    assert ctx.n_suppressed == 1
+    assert "outlet_tv_power" in ctx.sensor_friendly
+    assert ctx.sensor_friendly["outlet_tv_power"] == "TV outlet"
+    assert "outlet_tv_power" in ctx.events  # grouped by sensor
+
+
+def test_context_build_excluded_sensors():
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset({"bedroom_motion"}),
+                        title=None)
+    # Motion label dropped -> no FN
+    assert ctx.n_fn == 0
+    assert ctx.n_total_labels == 1
+    assert "bedroom_motion" not in ctx.events
