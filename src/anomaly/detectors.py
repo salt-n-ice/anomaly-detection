@@ -1664,11 +1664,13 @@ class DutyCycleShift:
             # seen during bootstrap; natural-variance fires (and
             # z-inflation "fluke TPs" — see iter 023 ITERATIONS.md)
             # stay within it.
-            if self._mad_at_floor:
-                if z > 0 and duty <= self._boot_q99:
-                    return []
-                if z < 0 and duty >= self._boot_q01:
-                    return []
+            # Trial A: percentile gate ALWAYS applied (not just when
+            # mad_at_floor). Tests whether fridge low-z FPs at duty values
+            # inside the bootstrap envelope can be filtered cleanly.
+            if z > 0 and duty <= self._boot_q99:
+                return []
+            if z < 0 and duty >= self._boot_q01:
+                return []
             self._last_fire_ts = ts
             direction = "high" if z > 0 else "low"
             score = abs(z)
