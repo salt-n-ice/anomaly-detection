@@ -39,6 +39,15 @@ _DQG_SPIKE_OVERRIDE_CAPS = frozenset({"power", "voltage", "temperature"})
 _DQG_LEVEL_SHIFT_SHWZ_THRESHOLD = 3.0
 _DQG_FREQ_CHANGE_DELTA_PCT_THRESHOLD = 3.0
 
+# Iter 006: a DQG dropout co-firing with one of these duty-cycle detectors
+# is corroborating evidence that the appliance's time-in-state shifted
+# before readings stopped — read as behavioral level_shift, not sensor
+# fault.
+_DUTY_CYCLE_DETECTORS = frozenset({
+    "duty_cycle_shift_1h", "duty_cycle_shift_3h",
+    "duty_cycle_shift_6h", "duty_cycle_shift_12h",
+})
+
 
 def _maybe_dqg_oor_override(alert: Alert, mag: dict | None,
                             temporal: dict | None) -> str | None:
@@ -87,6 +96,51 @@ def _maybe_dqg_oor_override(alert: Alert, mag: dict | None,
     if dp is None or dp != dp or abs(dp) < _DQG_FREQ_CHANGE_DELTA_PCT_THRESHOLD:
         return None
     return "frequency_change"
+
+
+def _maybe_dqg_dropout_override(alert: Alert) -> str | None:
+    """Re-classify a DQG ``dropout`` pre-typed alert on a power-capability
+    sensor as ``level_shift`` when a ``duty_cycle_shift_*h`` detector
+    co-fires AND the dropout persists at least an hour.
+
+    A real sensor dropout (hardware failure, comm loss) doesn't co-fire
+    with a duty-cycle detector — duty_cycle_shift_*h operates on the
+    binarized appliance time-in-state, which during a real dropout would
+    register as ``off``, not as a *shift*. A dropout that DOES co-fire
+    with a duty-cycle detector reflects a behavioral change: the
+    appliance's usage pattern shifted in a measurable way (kettle
+    unplugged, TV left off) before the reading stream stopped.
+
+    The duration floor (1 hour) is the mechanism-honest tiebreaker on
+    short dropouts that *do* coincide with duty-cycle co-fire by
+    accident. A 30–45 min dropout where the appliance happens to be
+    cycling on/off is a comm hiccup whose timing aligned with a
+    duty-window — not a real behavioral shift. A 1+ hour dropout on a
+    power appliance is much more often a real state change (unplugged,
+    left off).
+
+    Confidence is "low" because we lean on the duty co-fire as the sole
+    corroborator and the dropout itself carries no magnitude evidence
+    (no readings during the window). signal_classes ``["dqg", "duty"]``
+    reflects the discriminating signals.
+
+    Returns the inferred type, or ``None`` to fall through to the normal
+    pre-typed short-circuit (``dropout`` / sensor_fault).
+    """
+    if alert.anomaly_type != "dropout":
+        return None
+    if alert.capability != "power":
+        return None
+    detectors = set(alert.detector.split("+"))
+    if "data_quality_gate" not in detectors:
+        return None
+    if not (detectors & _DUTY_CYCLE_DETECTORS):
+        return None
+    w0 = alert.window_start or alert.timestamp
+    w1 = alert.window_end or alert.timestamp
+    if (w1 - w0).total_seconds() < 3600:
+        return None
+    return "level_shift"
 
 
 def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
@@ -159,6 +213,13 @@ def classify(alert: Alert, mag: dict | None = None,
         helper returned (no point in re-running the dispatch); the
         confidence flag carries the caveat.
     """
+    overridden = _maybe_dqg_dropout_override(alert)
+    if overridden is not None:
+        return ClassificationResult(
+            type=overridden,
+            confidence="low",
+            signal_classes=["dqg", "duty"],
+        )
     overridden = _maybe_dqg_spike_override(alert, mag, temporal)
     if overridden is not None:
         return ClassificationResult(
