@@ -234,3 +234,76 @@ def test_context_best_chain_idx_valid_under_exclusion():
     assert 0 <= chain_idx < len(ctx.detections)
     chain = ctx.detections.iloc[chain_idx]
     assert chain["sensor_id"] == tp["sensor_id"]
+
+
+def test_classify_labels_marks_tp_fn():
+    from anomaly.viz import selection
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    labels["start"] = pd.to_datetime(labels["start"], utc=True)
+    labels["end"] = pd.to_datetime(labels["end"], utc=True)
+    detections["start"] = pd.to_datetime(detections["start"], utc=True)
+    detections["end"] = pd.to_datetime(detections["end"], utc=True)
+    out = selection.classify_labels(labels, detections)
+    tp_rows = out[out["is_tp"]]
+    fn_rows = out[~out["is_tp"]]
+    assert set(tp_rows["sensor_id"]) == {"outlet_tv_power"}
+    assert set(fn_rows["sensor_id"]) == {"bedroom_motion"}
+
+
+def test_attach_best_chain_picks_user_visible():
+    from anomaly.viz import selection
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    labels["start"] = pd.to_datetime(labels["start"], utc=True)
+    labels["end"] = pd.to_datetime(labels["end"], utc=True)
+    detections["start"] = pd.to_datetime(detections["start"], utc=True)
+    detections["end"] = pd.to_datetime(detections["end"], utc=True)
+    labels = selection.classify_labels(labels, detections)
+    labels = selection.attach_best_chain(labels, detections)
+    tp = labels[labels["is_tp"]].iloc[0]
+    assert tp["best_chain_idx"] is not None and tp["best_chain_idx"] >= 0
+    # The picked chain should be the user-visible one (TV outlet TP)
+    assert detections.iloc[int(tp["best_chain_idx"])]["inferred_class"] == "user_behavior"
+
+
+def test_compute_buckets():
+    from anomaly.viz import selection
+    from conftest import _minimal_viz_scenario
+    events, labels, detections = _minimal_viz_scenario()
+    labels["start"] = pd.to_datetime(labels["start"], utc=True)
+    labels["end"] = pd.to_datetime(labels["end"], utc=True)
+    detections["start"] = pd.to_datetime(detections["start"], utc=True)
+    detections["end"] = pd.to_datetime(detections["end"], utc=True)
+    labels = selection.classify_labels(labels, detections)
+    n_user_fps, n_suppressed, by_sensor = selection.compute_buckets(labels, detections)
+    assert n_user_fps == 1
+    assert n_suppressed == 1
+    assert by_sensor[0][0] == "outlet_tv_power"
+    assert by_sensor[0][1] == 1
+
+
+def test_select_showcases_curation():
+    from anomaly.viz import selection
+    import pandas as _pd
+    # Construct a labels df spanning multiple types and durations
+    labels = _pd.DataFrame({
+        "sensor_id": ["s1", "s2", "s3", "s4", "s5"],
+        "capability": ["power"]*5,
+        "start": _pd.to_datetime([
+            "2026-01-01", "2026-01-05", "2026-01-10",
+            "2026-01-12", "2026-01-15"], utc=True),
+        "end": _pd.to_datetime([
+            "2026-01-08", "2026-01-06", "2026-01-30",
+            "2026-01-13", "2026-01-16"], utc=True),
+        "anomaly_type": ["level_shift", "level_shift", "trend",
+                         "weekend_anomaly", "weekend_anomaly"],
+        "is_tp": [True, True, True, True, True],
+        "best_chain_idx": [0, 1, 2, 3, 4],
+    })
+    picked = selection.select_showcases(labels, max_n=8)
+    # One per type: longest level_shift (s1, 7d), longest trend (s3, 20d),
+    # longest weekend_anomaly (s4, 1d).
+    assert len(picked) == 3
+    types = [r["anomaly_type"] for _, r in picked.iterrows()]
+    assert set(types) == {"level_shift", "trend", "weekend_anomaly"}
