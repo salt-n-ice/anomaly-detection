@@ -31,8 +31,10 @@ def render_cover(fig: matplotlib.figure.Figure, ctx: Context) -> None:
     hero_color = style.GT if ctx.n_tp == 0 else style.TEXT
     fig.text(0.06, 0.76, str(ctx.n_tp),
              fontsize=72, fontweight="700", color=hero_color)
-    # Approximate offset for the "of N" small text alongside the big numeral.
-    offset_x = 0.06 + 0.013 * len(str(ctx.n_tp)) + 0.04
+    # Offset for the "of N" small text alongside the big numeral. At fontsize 72
+    # in figure-coords, each digit takes ~0.046 of width on a 13-inch figure;
+    # add a small gap to keep the small "of" text visibly separated.
+    offset_x = 0.06 + 0.046 * len(str(ctx.n_tp)) + 0.012
     fig.text(offset_x, 0.78, f"of {ctx.n_total_labels}",
              fontsize=22, color=style.MUTED)
     fig.text(0.06, 0.71, "anomalies caught",

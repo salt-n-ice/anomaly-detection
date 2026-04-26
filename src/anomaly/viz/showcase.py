@@ -108,7 +108,11 @@ def render_showcase(fig: matplotlib.figure.Figure, ctx: Context,
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(loc))
 
-    # Best-chain pin + verdict callout (caught) OR no-fire callout (missed)
+    # Best-chain pin + verdict callout (caught) OR no-fire callout (missed).
+    # Caught showcases describe the SYSTEM verdict (chain.inferred_type), so
+    # the badge label and the plain-English summary stay in sync. Missed
+    # showcases fall back to the GT label (no system fire to describe).
+    summary_type = label["anomaly_type"]
     if not is_missed and pd.notna(label.get("best_chain_idx", None)):
         chain_idx = int(label["best_chain_idx"])
         chain = ctx.detections.iloc[chain_idx]
@@ -123,9 +127,10 @@ def render_showcase(fig: matplotlib.figure.Figure, ctx: Context,
             pin_y = 0.5
         ax.plot([pin_t], [pin_y], "o", color=style.TP, markersize=8,
                 markeredgecolor="white", markeredgewidth=1.5)
-        verdict_friendly = style.type_friendly(
-            chain.get("inferred_type", label["anomaly_type"])
-        )
+        inferred = chain.get("inferred_type", label["anomaly_type"])
+        if isinstance(inferred, str) and inferred:
+            summary_type = inferred
+        verdict_friendly = style.type_friendly(summary_type)
         fig.text(0.65, 0.83, "SYSTEM VERDICT",
                  fontsize=9, fontweight="600", color=style.TP)
         fig.text(0.65, 0.79, verdict_friendly,
@@ -140,7 +145,7 @@ def render_showcase(fig: matplotlib.figure.Figure, ctx: Context,
     delta = None
     duration_h = (label["end"] - label["start"]).total_seconds() / 3600
     summary = style.render_summary(
-        anomaly_type=label["anomaly_type"],
+        anomaly_type=summary_type,
         sensor_friendly_name=sensor_name,
         is_missed=is_missed,
         delta=delta,

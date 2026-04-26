@@ -141,7 +141,7 @@ PLAIN_ENGLISH: dict[str, str] = {
     "water_leak_sustained":   "{sensor} began reporting flow. Flagged as a sustained leak based on sensor type.",
     "frequency_change":       "{sensor} cycled at a different rate than usual. Flagged as a frequency change.",
     "month_shift":            "{sensor} {direction_word_long} at the start of this period. Flagged as a long-term shift.",
-    "degradation_trajectory": "{sensor} began showing gradual degradation. Flagged.",
+    "degradation_trajectory": "{sensor} began showing gradual degradation. Flagged as a gradual degradation.",
     "spike":                  "{sensor} jumped sharply. Flagged as a spike.",
     "dip":                    "{sensor} dropped sharply. Flagged as a dip.",
     "dropout":                "{sensor} lost reading. Flagged as a dropout.",

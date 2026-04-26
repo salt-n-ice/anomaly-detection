@@ -71,12 +71,14 @@ def render_honest(fig: matplotlib.figure.Figure, ctx: Context) -> None:
     tile_w = 0.27
     tile_h = 0.18
 
-    # MISSED section
+    # MISSED section. Header is only drawn when there are FNs to show; an
+    # empty header above blank space looks like a layout bug.
     fns = ctx.labels[~ctx.labels["is_tp"]]
-    fig.text(0.06, 0.86, "MISSED", fontsize=10, fontweight="600",
-             color=style.MUTED)
     x0 = 0.06
     fn_y0 = 0.62
+    if len(fns):
+        fig.text(0.06, 0.86, "MISSED", fontsize=10, fontweight="600",
+                 color=style.MUTED)
     for i, (_, fn) in enumerate(fns.iterrows()):
         if i >= 6:
             break
@@ -92,10 +94,12 @@ def render_honest(fig: matplotlib.figure.Figure, ctx: Context) -> None:
         fig.text(0.06, 0.50, f"+ {len(fns) - 6} more",
                  fontsize=10, color=style.MUTED, fontstyle="italic")
 
-    # FALSE ALARMS section
+    # FALSE ALARMS section. Header is conditional on having FPs, mirroring
+    # the MISSED section.
     fps = selection.user_visible_fps(ctx.labels, ctx.detections)
-    fig.text(0.06, 0.42, "FALSE ALARMS (user-visible)",
-             fontsize=10, fontweight="600", color=style.MUTED)
+    if len(fps):
+        fig.text(0.06, 0.42, "FALSE ALARMS (user-visible)",
+                 fontsize=10, fontweight="600", color=style.MUTED)
     fp_y0 = 0.20
     for i, (_, fp) in enumerate(fps.iterrows()):
         if i >= 6:
