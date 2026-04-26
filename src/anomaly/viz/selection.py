@@ -31,9 +31,15 @@ def attach_best_chain(labels: pd.DataFrame,
     """Add `best_chain_idx` column. For each TP label, pick the highest-score
     overlapping chain. Prefer user-visible (`inferred_class == 'user_behavior'`)
     chains; fall back to sensor-fault if no user-visible overlap exists.
-    For FN labels, leave as None (pd.NA).
+    For FN labels, leave as None.
+
+    Stored `best_chain_idx` values are positional offsets into the
+    `detections` frame (compatible with `detections.iloc[chain_idx]`). The
+    function resets the detections index defensively to keep this contract
+    even when callers haven't pre-normalized.
     """
     labels = labels.copy()
+    detections = detections.reset_index(drop=True)
     best_idx: list[object] = []
     for _, lab in labels.iterrows():
         if not lab["is_tp"]:

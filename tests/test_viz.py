@@ -307,3 +307,43 @@ def test_select_showcases_curation():
     assert len(picked) == 3
     types = [r["anomaly_type"] for _, r in picked.iterrows()]
     assert set(types) == {"level_shift", "trend", "weekend_anomaly"}
+
+
+def test_attach_best_chain_defensive_against_sparse_index():
+    """Direct callers may pass a filtered (sparse-index) detections frame.
+    attach_best_chain should still produce positional best_chain_idx values
+    that are valid for .iloc indexing on the (also-resetted) detections."""
+    from anomaly.viz import selection
+    import pandas as _pd
+    labels = _pd.DataFrame({
+        "sensor_id": ["s1"],
+        "start": _pd.to_datetime(["2026-01-01T00:00:00Z"]),
+        "end":   _pd.to_datetime(["2026-01-02T00:00:00Z"]),
+        "anomaly_type": ["level_shift"],
+        "is_tp": [True],
+    })
+    # Simulate a filter result: original index has gaps [10, 20, 30]
+    full = _pd.DataFrame({
+        "sensor_id": ["x", "s1", "y", "s1", "z", "s1"],
+        "start": _pd.to_datetime([
+            "2026-01-01", "2026-01-01T01:00:00", "2026-01-01",
+            "2026-01-01T12:00:00", "2026-01-01", "2026-01-01T23:00:00"],
+            utc=True, format="mixed"),
+        "end":   _pd.to_datetime([
+            "2026-01-01T01:00:00", "2026-01-01T01:01:00", "2026-01-01T01:00:00",
+            "2026-01-01T12:01:00", "2026-01-01T01:00:00", "2026-01-01T23:01:00"],
+            utc=True, format="mixed"),
+        "inferred_class": ["sensor_fault","user_behavior","sensor_fault",
+                           "user_behavior","sensor_fault","user_behavior"],
+        "score": [1.0, 5.0, 1.0, 9.0, 1.0, 3.0],
+    })
+    detections_sparse = full[full["sensor_id"] == "s1"]
+    # Confirm we have a sparse index
+    assert list(detections_sparse.index) == [1, 3, 5]
+    out = selection.attach_best_chain(labels, detections_sparse)
+    chain_idx = int(out.iloc[0]["best_chain_idx"])
+    # The picked chain must be valid against the (internally-reset) detections
+    inner = detections_sparse.reset_index(drop=True)
+    assert 0 <= chain_idx < len(inner)
+    # The highest-score user_visible was the s1 chain at original index 3 (score 9.0)
+    assert inner.iloc[chain_idx]["score"] == 9.0
