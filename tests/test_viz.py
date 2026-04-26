@@ -505,3 +505,22 @@ def test_render_suppression_smoke():
     text = _render_one_page_to_text(suppression.render_suppression, ctx)
     assert "Quietly suppressed" in text or "suppressed" in text.lower()
     assert "noise" in text.lower() or "filtered" in text.lower()
+
+
+def test_render_appendix_returns_pages():
+    """iter_appendix_figures yields one matplotlib.Figure per page so the
+    document orchestrator can write multiple pages if rows overflow."""
+    from anomaly.viz import appendix
+    from anomaly.viz.context import Context
+    from conftest import _minimal_viz_scenario
+    import matplotlib.pyplot as plt
+    events, labels, detections = _minimal_viz_scenario()
+    ctx = Context.build(events, labels, detections,
+                        sensor_names={}, excluded_sensors=frozenset(),
+                        title=None)
+    figs = []
+    for fig in appendix.iter_appendix_figures(ctx):
+        figs.append(fig)
+    assert len(figs) >= 1
+    for f in figs:
+        plt.close(f)
