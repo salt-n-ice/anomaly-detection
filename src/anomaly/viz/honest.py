@@ -64,9 +64,6 @@ def render_honest(fig: matplotlib.figure.Figure, ctx: Context) -> None:
     style.apply()
     fig.set_facecolor(style.PAGE_BG)
 
-    fig.text(0.06, 0.93, "What we missed · what we got wrong",
-             fontsize=16, fontweight="700", color=style.GT)
-
     cols = 3
     tile_w = 0.27
     tile_h = 0.18

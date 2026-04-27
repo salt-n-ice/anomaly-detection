@@ -10,7 +10,6 @@ from .adapter import make_adapter, Adapter
 from .features import FeatureEngineer
 from .fusion import DefaultAlertFuser
 from .profiles import profile_for
-from .batch import matrix_profile_discords
 from .metrics import compute_metrics
 from .explain import classify_type, type_to_class
 
@@ -33,12 +32,11 @@ class _SensorState:
     engineer: FeatureEngineer
     short_event: list                   # pre-adapter EventDetectors (DQG)
     short_tick: list                    # post-adapter immediate triggers (StateTransition or [])
-    medium: list                        # sliding-window Detectors (CUSUM, SubPCA, MvPCA)
-    long_tick: list                     # calendar Detectors (TemporalProfile)
+    medium: list                        # sliding-window Detectors (RecentShift / DCS-6h / RMP)
+    long_tick: list                     # reserved (currently empty)
     fuser: DefaultAlertFuser
     bootstrap_raw: list = field(default_factory=list)   # (tick, adapter_features)
     bootstrap_rows: list = field(default_factory=list)  # (tick, enriched)
-    raw_series: list = field(default_factory=list)
     start_ts: pd.Timestamp | None = None
     fit_done: bool = False
     recent_rows: deque = field(default_factory=deque)  # size set in Pipeline.__init__ per-archetype
@@ -112,7 +110,6 @@ class Pipeline:
         # Adapter band — normalize to uniform ticks.
         st.adapter.ingest(ev)
         for tick, feat in st.adapter.emit_ready(ev.timestamp):
-            st.raw_series.append((tick, feat.get("value", float("nan"))))
             if not st.fit_done:
                 st.bootstrap_raw.append((tick, dict(feat)))
                 continue
@@ -161,11 +158,6 @@ class Pipeline:
         out = []
         for st in self._states.values():
             out.extend(st.fuser.finalize())
-            # MatrixProfile discords: disabled. Produces only leak FPs on this dataset
-            # (0 hits for outlet/tv/kettle after 5σ threshold tightening); statistical
-            # detectors already cover the same label types that MP would catch.
-            # if st.cfg.archetype != Archetype.BINARY and st.raw_series:
-            #     out.extend(matrix_profile_discords(st.cfg, st.raw_series))
         return out
 
 
