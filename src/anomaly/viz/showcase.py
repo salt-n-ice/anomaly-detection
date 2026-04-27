@@ -107,11 +107,23 @@ def render_showcase(fig: matplotlib.figure.Figure, ctx: Context,
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(loc))
 
-    # Best-chain pin + verdict callout (caught) OR no-fire callout (missed).
-    # Caught showcases describe the SYSTEM verdict (chain.inferred_type), so
-    # the badge label and the plain-English summary stay in sync. Missed
-    # showcases fall back to the GT label (no system fire to describe).
-    summary_type = label["anomaly_type"]
+    # Right-panel block: GROUND TRUTH (always) + SYSTEM VERDICT / NO FIRE.
+    # GROUND TRUTH surfaces the GT anomaly_type so a chain that's a
+    # chain-level TP but type-misclassified is visible at a glance.
+    # Caught showcases color the verdict block green (match) or amber
+    # (mismatch); missed cases mark the GT in red and skip the verdict
+    # block entirely (no system fire to describe).
+    gt_type = label["anomaly_type"]
+    gt_friendly = (style.type_friendly(gt_type)
+                   if isinstance(gt_type, str) and gt_type else "—")
+    gt_label_color = style.GT if is_missed else style.MUTED
+    gt_value_color = style.GT if is_missed else style.TEXT
+    fig.text(0.65, 0.86, "GROUND TRUTH",
+             fontsize=9, fontweight="600", color=gt_label_color)
+    fig.text(0.65, 0.825, gt_friendly,
+             fontsize=14, fontweight="700", color=gt_value_color)
+
+    summary_type = gt_type
     if not is_missed and pd.notna(label.get("best_chain_idx", None)):
         chain_idx = int(label["best_chain_idx"])
         chain = ctx.detections.iloc[chain_idx]
@@ -126,19 +138,22 @@ def render_showcase(fig: matplotlib.figure.Figure, ctx: Context,
             pin_y = 0.5
         ax.plot([pin_t], [pin_y], "o", color=style.TP, markersize=8,
                 markeredgecolor="white", markeredgewidth=1.5)
-        inferred = chain.get("inferred_type", label["anomaly_type"])
+        inferred = chain.get("inferred_type", gt_type)
         if isinstance(inferred, str) and inferred:
             summary_type = inferred
+        type_match = (summary_type == gt_type)
+        verdict_color = style.TP if type_match else style.FP
+        verdict_mark = "  ✓" if type_match else "  ✗"
         verdict_friendly = style.type_friendly(summary_type)
-        fig.text(0.65, 0.83, "SYSTEM VERDICT",
-                 fontsize=9, fontweight="600", color=style.TP)
-        fig.text(0.65, 0.79, verdict_friendly,
-                 fontsize=14, fontweight="700", color=style.TEXT)
+        fig.text(0.65, 0.77, "SYSTEM VERDICT",
+                 fontsize=9, fontweight="600", color=verdict_color)
+        fig.text(0.65, 0.735, verdict_friendly + verdict_mark,
+                 fontsize=14, fontweight="700", color=verdict_color)
     elif is_missed:
-        fig.text(0.65, 0.83, "NO SYSTEM FIRE",
-                 fontsize=9, fontweight="600", color=style.GT)
-        fig.text(0.65, 0.79, "This period was not detected.",
-                 fontsize=12, fontweight="700", color=style.TEXT)
+        fig.text(0.65, 0.77, "NO SYSTEM FIRE",
+                 fontsize=9, fontweight="600", color=style.MUTED)
+        fig.text(0.65, 0.735, "This period was not detected.",
+                 fontsize=12, fontweight="600", color=style.TEXT)
 
     # Plain-English summary
     delta = None
