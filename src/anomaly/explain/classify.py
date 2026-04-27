@@ -250,7 +250,8 @@ def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
 
 def classify(alert: Alert, mag: dict | None = None,
              temporal: dict | None = None,
-             sustained_oor: bool = False) -> ClassificationResult:
+             sustained_oor: bool = False,
+             sustained_dcs: bool = False) -> ClassificationResult:
     """Rich classifier result. `bundle.explain` feeds this into the
     structured `classification` block; `classify_type` wraps it.
 
@@ -324,6 +325,24 @@ def classify(alert: Alert, mag: dict | None = None,
             signal_classes=[],
         )
     s = Signals.from_alert(alert, mag=mag)
+    if sustained_dcs and "duty" in s.classes and s.direction == "+":
+        # Iter 4: cross-chain hour-spread says DCS is firing across many
+        # hours-of-day on this sensor in a 14d window — that's a sustained
+        # behavioral anomaly, not a per-day calendar pattern.
+        # Iter 6: a multi-day fused chain confined to weekdays is the
+        # synth-gen `weekend_anomaly target=weekday` signature (magnitude
+        # added Mon-Fri only); a chain that crosses Sat/Sun is the
+        # always-on level_shift signature.
+        if (s.chain_weekday_only
+                and s.duration_sec > 12 * 3600):
+            sustained_type = "weekend_anomaly"
+        else:
+            sustained_type = "level_shift"
+        return ClassificationResult(
+            type=sustained_type,
+            confidence="high",
+            signal_classes=sorted(s.classes | {"sustained"}),
+        )
     type_ = _dispatch(s)
     confidence = "low" if type_ == "statistical_anomaly" else "high"
     if type_ in ("spike", "dip") and s.direction is None:
@@ -338,9 +357,11 @@ def classify(alert: Alert, mag: dict | None = None,
 
 def classify_type(alert: Alert, mag: dict | None = None,
                   temporal: dict | None = None,
-                  sustained_oor: bool = False) -> str:
+                  sustained_oor: bool = False,
+                  sustained_dcs: bool = False) -> str:
     return classify(alert, mag=mag, temporal=temporal,
-                    sustained_oor=sustained_oor).type
+                    sustained_oor=sustained_oor,
+                    sustained_dcs=sustained_dcs).type
 
 
 def _dispatch(s: Signals) -> str:
@@ -412,8 +433,19 @@ def _classify_duty(s: Signals) -> str:
     if has_peak and has_rate:
         return "level_shift"
     if has_peak:
-        # Combined duty + peak: classic level_shift signature. But a
-        # short weekend hit is more plausibly a weekend behavior change.
+        # Combined duty + peak: usually a level_shift signature. But a
+        # SHORT chain (single-day) can't be a sustained level_shift —
+        # those produce peak co-fire across multiple days fused into
+        # one chain. A single-day peak co-fire is more likely a calendar
+        # pattern: kettle 10-12 daily produces peak shifts during the
+        # active hours. Iter 7: route single-day chains by calendar
+        # position; multi-day chains stay level_shift.
+        if s.duration_sec < 24 * 3600:
+            if s.is_weekend:
+                return "weekend_anomaly"
+            if s.is_off_hours:
+                return "time_of_day"
+            return "time_of_day"
         if s.is_weekend and s.duration_sec < 3 * 86400:
             return "weekend_anomaly"
         return "level_shift"
@@ -458,6 +490,16 @@ def _classify_duty(s: Signals) -> str:
         # synth-gen prior (kettle 10-12 / 14-18 daily injections are
         # the dominant pattern in this signature).
         return "time_of_day"
+    # Iter 6: multi-day chain confined to weekdays → weekend_anomaly
+    # target=weekday. Synth-gen weekend_anomaly target=weekday adds
+    # magnitude on Mon-Fri only, so weekend duty returns to baseline
+    # and the fuser splits the chain at Sat/Sun. A multi-day fused
+    # chain that never crosses a weekend day is the signature.
+    if (s.duration_sec > 12 * 3600
+            and s.duration_sec < 7 * 86400
+            and s.direction == "+"
+            and s.chain_weekday_only):
+        return "weekend_anomaly"
     # Existing fall-through for "normal" buckets and non-matching directions.
     if s.is_weekend:
         return "weekend_anomaly"

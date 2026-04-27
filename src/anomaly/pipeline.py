@@ -196,38 +196,51 @@ def run(events_csv: Path, config_yaml: Path, out_csv: Path, bootstrap_days: floa
 
 def _write_detections(alerts: list[Alert], path: Path) -> None:
     # Pre-pass: flag DQG out_of_range fires that recur on the same sensor
-    # AND are corroborated by a behavior detector (DCS / RMP / EventRate)
-    # firing on the same sensor within ±12h. DQG bypasses the fuser so
-    # chain-side corroboration isn't available; the co-fire check is
-    # explicit. Sustained-OOR alone isn't enough — synth-gen's level_shift
-    # offset can persist past the label window, producing a stream of
-    # post-label OOR fires that have no behavior-detector corroboration
-    # (because the appliance's duty / event-peak pattern returned to
-    # normal even though raw values are still offset). Behavior co-fire
-    # is the signal that the OOR represents a real behavior shift, not
-    # an artifact.
+    # within a 6h sliding window. Sustained-OOR is the level-shift
+    # signature on power-capability sensors — synth-gen's
+    # ``level_shift offset=-N`` drives the off-state below the configured
+    # min, producing OOR every cooldown for the label duration. Iter 1
+    # gated this on a behavior-detector co-fire (within ±12h) as a
+    # defensive guard against post-label OOR drift, but the synth-gen
+    # bound (94ab893) made offsets stop at the label end, so the guard is
+    # no longer needed and was costing ~700 misclassified fires across
+    # the suite (TV/kettle level_shift labels with no DCS co-fire).
     SUSTAINED_OOR_WINDOW = pd.Timedelta(hours=6)
     SUSTAINED_OOR_COUNT = 3
-    COFIRE_WINDOW = pd.Timedelta(hours=12)
-    _BEHAVIOR_DETECTORS = frozenset({
+    # Iter 4: cross-chain DCS hour-spread → level_shift override.
+    # A long-running level_shift on an always-on power appliance (e.g.,
+    # +150W offset on the kettle) doesn't push it below the OOR floor
+    # (so the sustained-OOR override doesn't fire), but it does drive
+    # DCS to fire roughly every cooldown across the label window. The
+    # cooldown is decoupled from 24h, so successive fires drift through
+    # all hours of the day — and the per-chain classifier sees each as
+    # a short calendar pattern (time_of_day / weekend_anomaly). True
+    # calendar anomalies cluster DCS fires at a tight band of hours
+    # (kettle 10-12 time_of_day produces chains all near hour 10-12).
+    # Two conditions separate them in a 14d window:
+    #   - DISTINCT_HOURS ≥ 5: the firing positions span the day.
+    #   - MAX_HOUR_PCT  < 0.35: no single hour dominates (else it's
+    #     a concentrated calendar pattern with noise on the side).
+    SUSTAINED_DCS_WINDOW = pd.Timedelta(days=14)
+    SUSTAINED_DCS_DISTINCT_HOURS = 5
+    SUSTAINED_DCS_MAX_HOUR_PCT = 0.35
+    _DCS_DETECTORS = frozenset({
         "duty_cycle_shift_1h", "duty_cycle_shift_3h",
         "duty_cycle_shift_6h", "duty_cycle_shift_12h",
-        "rolling_median_peak_shift", "event_peak_shift",
-        "event_rate_shift",
     })
     oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
-    behavior_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
+    dcs_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     for a in alerts:
         detectors = set((a.detector or "").split("+"))
         if (a.anomaly_type == "out_of_range"
                 and a.capability == "power"
                 and "data_quality_gate" in detectors):
             oor_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
-        if detectors & _BEHAVIOR_DETECTORS:
-            behavior_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
+        if detectors & _DCS_DETECTORS:
+            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
     for v in oor_ts_by_sensor.values():
         v.sort()
-    for v in behavior_ts_by_sensor.values():
+    for v in dcs_ts_by_sensor.values():
         v.sort()
     import bisect
     def _is_sustained_oor(a: Alert) -> bool:
@@ -240,17 +253,27 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         hi = ts + SUSTAINED_OOR_WINDOW
         l = bisect.bisect_left(ts_list, lo)
         r = bisect.bisect_right(ts_list, hi)
-        if (r - l) < SUSTAINED_OOR_COUNT:
+        return (r - l) >= SUSTAINED_OOR_COUNT
+    def _is_sustained_dcs(a: Alert) -> bool:
+        sid = a.sensor_id
+        ts_list = dcs_ts_by_sensor.get(sid)
+        if not ts_list:
             return False
-        # Behavior-detector corroboration (±12h window).
-        bts = behavior_ts_by_sensor.get(sid)
-        if not bts:
+        ts = a.timestamp
+        lo = ts - SUSTAINED_DCS_WINDOW
+        hi = ts + SUSTAINED_DCS_WINDOW
+        l = bisect.bisect_left(ts_list, lo)
+        r = bisect.bisect_right(ts_list, hi)
+        n = r - l
+        if n < SUSTAINED_DCS_DISTINCT_HOURS:
             return False
-        blo = ts - COFIRE_WINDOW
-        bhi = ts + COFIRE_WINDOW
-        bl = bisect.bisect_left(bts, blo)
-        br = bisect.bisect_right(bts, bhi)
-        return br > bl
+        hour_counts: dict[int, int] = {}
+        for i in range(l, r):
+            h = ts_list[i].hour
+            hour_counts[h] = hour_counts.get(h, 0) + 1
+        if len(hour_counts) < SUSTAINED_DCS_DISTINCT_HOURS:
+            return False
+        return max(hour_counts.values()) / n < SUSTAINED_DCS_MAX_HOUR_PCT
 
     rows = []
     for a in alerts:
@@ -278,7 +301,10 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         # sensor (and vice versa).
         sustained_oor = (a.anomaly_type == "out_of_range"
                          and _is_sustained_oor(a))
-        inferred_type = classify_type(a, sustained_oor=sustained_oor)
+        detectors = set((a.detector or "").split("+"))
+        sustained_dcs = bool(detectors & _DCS_DETECTORS) and _is_sustained_dcs(a)
+        inferred_type = classify_type(a, sustained_oor=sustained_oor,
+                                       sustained_dcs=sustained_dcs)
         inferred_class = type_to_class(inferred_type)
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),
