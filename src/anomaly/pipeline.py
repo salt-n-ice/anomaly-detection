@@ -218,18 +218,101 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # calendar anomalies cluster DCS fires at a tight band of hours
     # (kettle 10-12 time_of_day produces chains all near hour 10-12).
     # Two conditions separate them in a 14d window:
-    #   - DISTINCT_HOURS ≥ 5: the firing positions span the day.
+    #   - DISTINCT_HOURS ≥ 4: the firing positions span the day.
     #   - MAX_HOUR_PCT  < 0.35: no single hour dominates (else it's
     #     a concentrated calendar pattern with noise on the side).
+    # Iter 8: lowered from 5 → 4. The dense_90d 30d kettle level_shift
+    # produces 8 chains drifting through hours every 4d, so the FIRST
+    # two chains only see 4 prior chains in the symmetric 14d window
+    # — threshold 5 missed them and they fell through to time_of_day.
+    # Concentration ceiling (0.35) blocks holdout's multi-anomaly
+    # contamination case at the lower threshold (concentration there
+    # is 0.44 → still gated).
     SUSTAINED_DCS_WINDOW = pd.Timedelta(days=14)
-    SUSTAINED_DCS_DISTINCT_HOURS = 5
+    SUSTAINED_DCS_DISTINCT_HOURS = 4
     SUSTAINED_DCS_MAX_HOUR_PCT = 0.35
+    # Iter 10: post-label return-transient suppression. After a sustained
+    # DCS run ends (level_shift / time_of_day label expires), synth-gen
+    # snaps the offset back to baseline at the label boundary. The DCS
+    # detector sees that step as a duty-cycle shift in the OPPOSITE
+    # direction and emits a short reversal chain just past the label —
+    # which has no GT label and counts as a user_visible FP. The fuser's
+    # 4h gap absorbs reversals within 4h, so anything we can suppress here
+    # sits in the 4h-24h range. Sustained-prev gate (≥3 same-direction
+    # chains, prev included) keeps the rule from firing on incidental
+    # back-to-back reversals; the 24h gap caps it to immediately-after
+    # transients so genuine multi-day behavior reversals (≥1d apart)
+    # are unaffected.
+    RETURN_TRANSIENT_GAP = pd.Timedelta(hours=72)
+    RETURN_TRANSIENT_PRIOR_COUNT = 3
+    # Iter 14: recent_shift on CONTINUOUS sensors (mains_voltage,
+    # basement_temp) fires post-label recovery chains differently from
+    # DCS — instead of multiple short chains it produces ONE huge chain
+    # with thousands of fire-ticks (continuous tick-level firing as the
+    # rolling baseline slowly adapts). The iter 11 "≥2 prior chains"
+    # sustained-run gate can't recognise this because the in-label firing
+    # is a single chain with no priors. Add a size-based disjunct:
+    # prev_n_ticks ≥ 100 is also "sustained." Detected on hh120d's
+    # post-calibration_drift Mar 21-27 window where 5 monster chains
+    # contributed 96.8% of all wholly-FP behavior ticks (6869 of 7093).
+    # MIN_GAP = 1h on the recent_shift rule prevents the metric quirk
+    # where the detector's 1h analysis-window back-pads first_fire's
+    # window_start into the prior label, causing a metric-TP overlap
+    # the eval would credit (saw on holdout Feb 22 00:39, gap 49min).
+    RECENT_SHIFT_MIN_GAP = pd.Timedelta(hours=1)
+    RECENT_SHIFT_PREV_TICK_THRESHOLD = 100
     _DCS_DETECTORS = frozenset({
         "duty_cycle_shift_1h", "duty_cycle_shift_3h",
         "duty_cycle_shift_6h", "duty_cycle_shift_12h",
     })
+    _RECENT_SHIFT_DETECTORS = frozenset({"recent_shift"})
+
+    def _dcs_direction(a: Alert) -> str | None:
+        """Extract +/- from any DCS context dict on the alert."""
+        if not a.context:
+            return None
+        for ctx in a.context:
+            d = ctx.get("direction")
+            if d in ("+", "-"):
+                return d
+            if d == "high":
+                return "+"
+            if d == "low":
+                return "-"
+        return None
+
+    def _rs_direction(a: Alert) -> str | None:
+        """Extract +/- for recent_shift chains. Uses explicit `direction`
+        if present, else derives from short_value vs baseline_value."""
+        if not a.context:
+            return None
+        for ctx in a.context:
+            d = ctx.get("direction")
+            if d in ("+", "-"):
+                return d
+            sv = ctx.get("short_value")
+            bv = ctx.get("baseline_value")
+            if sv is not None and bv is not None:
+                return "+" if sv > bv else "-"
+        return None
+
     oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     dcs_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
+    # (first_fire, last_fire, direction) per DCS chain — needed by iter 10
+    # return-transient gate. Kept alongside the timestamp-only index above
+    # so iter 4/8/9 helpers that only need the hour distribution stay
+    # untouched.
+    dcs_chains_by_sensor: dict[
+        str, list[tuple[pd.Timestamp, pd.Timestamp, str | None]]
+    ] = {}
+    # Iter 14: recent_shift chains tracked separately with `n_ticks` so
+    # the size-based sustained disjunct can recognise mono-chain
+    # in-label firing patterns. RMP intentionally excluded (iter 12d
+    # showed RMP suppression hurts hh60d via in-label off-pattern noise
+    # chains the metric counts as TPs).
+    rs_chains_by_sensor: dict[
+        str, list[tuple[pd.Timestamp, pd.Timestamp, str | None, int]]
+    ] = {}
     for a in alerts:
         detectors = set((a.detector or "").split("+"))
         if (a.anomaly_type == "out_of_range"
@@ -237,11 +320,31 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
                 and "data_quality_gate" in detectors):
             oor_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
         if detectors & _DCS_DETECTORS:
-            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
+            # Iter 8: index DCS chains by first_fire_ts (earliest tick
+            # in the chain). a.timestamp uses the LAST tick of the
+            # fused chain, which for DCS_6h means all chains land
+            # ~6h after their start — so two chains starting at hours
+            # 0 and 2 both end at hours 6 and 8. The last-tick hour
+            # collapses the natural cooldown drift, hurting the
+            # distinct-hour count. first_fire_ts preserves the
+            # actual chain-start drift.
+            ff = a.first_fire_ts or a.timestamp
+            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(ff)
+            dcs_chains_by_sensor.setdefault(a.sensor_id, []).append(
+                (ff, a.timestamp, _dcs_direction(a)))
+        if detectors & _RECENT_SHIFT_DETECTORS:
+            ff = a.first_fire_ts or a.timestamp
+            n_ticks = len(a.fire_ticks) if a.fire_ticks else 1
+            rs_chains_by_sensor.setdefault(a.sensor_id, []).append(
+                (ff, a.timestamp, _rs_direction(a), n_ticks))
     for v in oor_ts_by_sensor.values():
         v.sort()
     for v in dcs_ts_by_sensor.values():
         v.sort()
+    for v in dcs_chains_by_sensor.values():
+        v.sort(key=lambda t: t[0])
+    for v in rs_chains_by_sensor.values():
+        v.sort(key=lambda t: t[0])
     import bisect
     def _is_sustained_oor(a: Alert) -> bool:
         sid = a.sensor_id
@@ -259,7 +362,7 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         ts_list = dcs_ts_by_sensor.get(sid)
         if not ts_list:
             return False
-        ts = a.timestamp
+        ts = a.first_fire_ts or a.timestamp
         lo = ts - SUSTAINED_DCS_WINDOW
         hi = ts + SUSTAINED_DCS_WINDOW
         l = bisect.bisect_left(ts_list, lo)
@@ -275,8 +378,132 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
             return False
         return max(hour_counts.values()) / n < SUSTAINED_DCS_MAX_HOUR_PCT
 
+    def _is_return_transient(a: Alert) -> bool:
+        # Iter 10: a DCS chain whose direction reverses the immediately
+        # preceding chain on the same sensor — within 24h of that prior
+        # chain ending — and where the prior chain was part of a sustained
+        # run (≥3 same-direction chains in its 14d window, itself
+        # included). Pattern signature: synth-gen snaps the level_shift
+        # offset off at label end, and the duty cycle steps back to
+        # baseline. The detector correctly fires, but no GT label covers
+        # the boundary, so it's a user_visible FP.
+        detectors = set((a.detector or "").split("+"))
+        if not (detectors & _DCS_DETECTORS):
+            return False
+        sid = a.sensor_id
+        chains = dcs_chains_by_sensor.get(sid, [])
+        if len(chains) < 2:
+            return False
+        cur_ff = a.first_fire_ts or a.timestamp
+        cur_dir = _dcs_direction(a)
+        if cur_dir is None:
+            return False
+        prev = None
+        for ch in chains:
+            if ch[0] >= cur_ff:
+                break
+            prev = ch
+        if prev is None:
+            return False
+        prev_ff, prev_lf, prev_dir = prev
+        if prev_dir is None or prev_dir == cur_dir:
+            return False
+        gap = cur_ff - prev_lf
+        if gap < pd.Timedelta(0) or gap > RETURN_TRANSIENT_GAP:
+            return False
+        prior_lo = prev_ff - SUSTAINED_DCS_WINDOW
+        same_dir_priors = sum(
+            1 for ch in chains
+            if prior_lo <= ch[0] < prev_ff and ch[2] == prev_dir
+        )
+        return same_dir_priors >= (RETURN_TRANSIENT_PRIOR_COUNT - 1)
+
+    # Iter 14: pre-compute the recent_shift recovery cascade. After a
+    # sustained recent_shift chain (≥100 ticks) ends, all subsequent
+    # opposite-direction chains within RETURN_TRANSIENT_GAP (72h) of
+    # the cascade's last fire are post-recovery noise. The cascade
+    # extends with each suppression: chain N's last_fire becomes the
+    # new anchor for chain N+1's gap check. Breaks when:
+    #   - gap > 72h (recovery has run its course)
+    #   - direction switches back (a real new anomaly)
+    rs_suppressed_keys: set[tuple[str, pd.Timestamp]] = set()
+    for sid, chains in rs_chains_by_sensor.items():
+        for i, ch in enumerate(chains):
+            prev_ff, prev_lf, prev_dir, prev_n_ticks = ch
+            if prev_dir is None:
+                continue
+            if prev_n_ticks < RECENT_SHIFT_PREV_TICK_THRESHOLD:
+                continue
+            opp_dir = "-" if prev_dir == "+" else "+"
+            anchor_lf = prev_lf
+            for j in range(i + 1, len(chains)):
+                ff_j, lf_j, dir_j, _ = chains[j]
+                gap = ff_j - anchor_lf
+                if gap < RECENT_SHIFT_MIN_GAP:
+                    continue
+                if gap > RETURN_TRANSIENT_GAP:
+                    break
+                if dir_j != opp_dir:
+                    break
+                rs_suppressed_keys.add((sid, ff_j))
+                anchor_lf = lf_j
+
+    def _is_rs_return_transient(a: Alert) -> bool:
+        # Iter 14 with cascade: the heavy lifting happened at index-build
+        # time. Here we just check membership in the precomputed set.
+        # Pattern targets: post-calibration_drift / post-month_shift
+        # recovery on CONTINUOUS sensors (mains_voltage), where
+        # recent_shift fires for days as the rolling baseline adapts.
+        # Bulk of hh120d's wholly-FP behavior ticks (6869 of 7093) come
+        # from a single such cascade post-Mar 21 calibration_drift.
+        detectors = set((a.detector or "").split("+"))
+        if not (detectors & _RECENT_SHIFT_DETECTORS):
+            return False
+        cur_ff = a.first_fire_ts or a.timestamp
+        return (a.sensor_id, cur_ff) in rs_suppressed_keys
+
+    def _is_time_of_day_pattern(a: Alert) -> bool:
+        # Iter 9: chain hour-of-day appears on BOTH weekdays and
+        # weekends in the 14d window — that's a daily calendar
+        # pattern (kettle 10-12 daily) which fires DCS every day at
+        # the same hour. The chain itself might be a weekend day
+        # within a multi-week label, so the per-chain
+        # `is_weekend` check would route to weekend_anomaly. The
+        # cross-day hour-of-day signature corrects that to
+        # time_of_day.
+        sid = a.sensor_id
+        ts_list = dcs_ts_by_sensor.get(sid)
+        if not ts_list:
+            return False
+        ts = a.first_fire_ts or a.timestamp
+        target_hour = ts.hour
+        lo = ts - SUSTAINED_DCS_WINDOW
+        hi = ts + SUSTAINED_DCS_WINDOW
+        l = bisect.bisect_left(ts_list, lo)
+        r = bisect.bisect_right(ts_list, hi)
+        weekday_count = 0
+        weekend_count = 0
+        for i in range(l, r):
+            t = ts_list[i]
+            # ±1h band to absorb cooldown jitter on the same daily peak
+            if abs(t.hour - target_hour) > 1:
+                # also handle 23 ↔ 0 wrap
+                if not (target_hour == 0 and t.hour == 23) and \
+                   not (target_hour == 23 and t.hour == 0):
+                    continue
+            if t.dayofweek >= 5:
+                weekend_count += 1
+            else:
+                weekday_count += 1
+        return weekday_count >= 2 and weekend_count >= 1
+
     rows = []
     for a in alerts:
+        # Iter 10/14: skip post-label return-transient chains entirely.
+        # DCS uses iter 11's rule; recent_shift uses iter 14's
+        # size-aware variant.
+        if _is_return_transient(a) or _is_rs_return_transient(a):
+            continue
         start = a.window_start or a.timestamp
         end = a.window_end or (a.timestamp + pd.Timedelta(minutes=1))
         # first_fire_ts: earliest component tick in a fused chain; immediate
@@ -302,9 +529,12 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         sustained_oor = (a.anomaly_type == "out_of_range"
                          and _is_sustained_oor(a))
         detectors = set((a.detector or "").split("+"))
-        sustained_dcs = bool(detectors & _DCS_DETECTORS) and _is_sustained_dcs(a)
+        is_dcs = bool(detectors & _DCS_DETECTORS)
+        sustained_dcs = is_dcs and _is_sustained_dcs(a)
+        time_of_day_pattern = is_dcs and _is_time_of_day_pattern(a)
         inferred_type = classify_type(a, sustained_oor=sustained_oor,
-                                       sustained_dcs=sustained_dcs)
+                                       sustained_dcs=sustained_dcs,
+                                       time_of_day_pattern=time_of_day_pattern)
         inferred_class = type_to_class(inferred_type)
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),

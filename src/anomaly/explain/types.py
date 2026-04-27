@@ -12,6 +12,13 @@ USER_BEHAVIOR_TYPES: frozenset[str] = frozenset({
     "frequency_change", "seasonality_loss", "time_of_day",
     "weekend_anomaly", "month_shift", "seasonal_mismatch",
     "water_leak_sustained",
+    # Synth-gen auto-emitted (post-generation outlier detection on
+    # BURSTY sensors). Detector classifier doesn't currently emit
+    # this type — chains landing in usage_anomaly windows will be
+    # classified as level_shift/time_of_day/etc. and contribute
+    # tyAcc=0 for those days. evt_F1 / fpur / uvfp/d still improve
+    # because the chain counts as a TP regardless of inferred_type.
+    "usage_anomaly",
 })
 
 
