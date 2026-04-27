@@ -94,8 +94,67 @@ def main() -> int:
     return 0
 
 
+# ----------------------------- payload shaping -----------------------------
+
+
+def _ts_ms(s) -> int:
+    """Convert a timestamp-like value to integer epoch milliseconds (UTC)."""
+    if isinstance(s, pd.Timestamp):
+        return int(s.timestamp() * 1000)
+    return int(pd.Timestamp(s, tz="UTC").timestamp() * 1000)
+
+
 def build_payload(events_csv, labels_csv, det_csv, scenario, duration_sec):
-    raise NotImplementedError("Task 3")
+    # Timeline bounds from events.csv (cheapest read possible)
+    ts = pd.read_csv(events_csv, usecols=["timestamp"])["timestamp"]
+    ts = pd.to_datetime(ts, utc=True, format="ISO8601")
+    timeline_start_ms = _ts_ms(ts.min())
+    timeline_end_ms   = _ts_ms(ts.max())
+
+    # Labels: parse start/end as UTC, keep params_json for synonym lookup
+    labels = pd.read_csv(labels_csv)
+    if not labels.empty:
+        labels["start"] = pd.to_datetime(labels["start"], utc=True, format="ISO8601")
+        labels["end"]   = pd.to_datetime(labels["end"],   utc=True, format="ISO8601")
+
+    # Detections: parse times, classify each chain
+    dets = pd.read_csv(det_csv)
+    for col in ("start", "end", "first_fire_ts"):
+        dets[col] = pd.to_datetime(dets[col], utc=True, format="ISO8601")
+    dets["classification"] = [classify_chain(r, labels) for _, r in dets.iterrows()]
+
+    # Sensor inventory: only sensors with chains, ordered by count desc, tie-break alpha
+    counts = dets.groupby("sensor_id").size().reset_index(name="n")
+    counts = counts.sort_values(["n", "sensor_id"], ascending=[False, True])
+    sensors = [{"id": row["sensor_id"], "chain_count": int(row["n"])}
+               for _, row in counts.iterrows()]
+
+    chains = [{
+        "sensor_id": r["sensor_id"],
+        "fire_ts_ms": _ts_ms(r["first_fire_ts"]),
+        "start_ms": _ts_ms(r["start"]),
+        "end_ms":   _ts_ms(r["end"]),
+        "inferred_type": r["inferred_type"],
+        "score": float(r["score"]) if pd.notna(r["score"]) else 0.0,
+        "classification": r["classification"],
+    } for _, r in dets.iterrows()]
+
+    label_payload = [{
+        "sensor_id": r["sensor_id"],
+        "anomaly_type": r["anomaly_type"],
+        "start_ms": _ts_ms(r["start"]),
+        "end_ms":   _ts_ms(r["end"]),
+    } for _, r in labels.iterrows()] if not labels.empty else []
+
+    return {
+        "scenario": scenario,
+        "duration_sec": duration_sec,
+        "timeline_start_ms": timeline_start_ms,
+        "timeline_end_ms":   timeline_end_ms,
+        "sensors": sensors,
+        "labels":  label_payload,
+        "chains":  chains,
+    }
 
 
 def render_html(payload):
