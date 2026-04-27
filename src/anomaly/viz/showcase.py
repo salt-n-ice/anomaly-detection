@@ -34,7 +34,6 @@ def _is_binary(values: np.ndarray) -> bool:
 def _binary_labels(capability: str) -> list[str]:
     return {
         "water":  ["no flow", "flow"],
-        "motion": ["still", "motion"],
     }.get(capability, ["off", "on"])
 
 

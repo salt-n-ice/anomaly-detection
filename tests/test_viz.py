@@ -118,13 +118,13 @@ def test_render_summary_water_leak_honest():
 def test_render_summary_missed():
     from anomaly.viz.style import render_summary
     s = render_summary(
-        anomaly_type="unusual_occupancy",
-        sensor_friendly_name="Bedroom motion sensor",
+        anomaly_type="water_leak_sustained",
+        sensor_friendly_name="Basement leak sensor",
         is_missed=True, delta=None, duration_h=1.0, hour_str=None,
     )
     assert "did not detect" in s
-    assert "Bedroom motion sensor" in s
-    assert "unusual occupancy" in s
+    assert "Basement leak sensor" in s
+    assert "sustained water leak" in s
 
 
 def test_render_summary_unknown_type_fallback():
@@ -210,12 +210,12 @@ def test_context_build_excluded_sensors():
     from conftest import _minimal_viz_scenario
     events, labels, detections = _minimal_viz_scenario()
     ctx = Context.build(events, labels, detections,
-                        sensor_names={}, excluded_sensors=frozenset({"bedroom_motion"}),
+                        sensor_names={}, excluded_sensors=frozenset({"basement_leak"}),
                         title=None)
-    # Motion label dropped -> no FN
+    # FN-sensor label dropped -> no FN
     assert ctx.n_fn == 0
     assert ctx.n_total_labels == 1
-    assert "bedroom_motion" not in ctx.events
+    assert "basement_leak" not in ctx.events
 
 
 def test_context_best_chain_idx_valid_under_exclusion():
@@ -226,10 +226,10 @@ def test_context_best_chain_idx_valid_under_exclusion():
     from conftest import _minimal_viz_scenario
     events, labels, detections = _minimal_viz_scenario()
     # Exclude a sensor (none in the fixture have detections, so pretend
-    # we exclude bedroom_motion; what matters is reset_index runs on
+    # we exclude basement_leak; what matters is reset_index runs on
     # detections regardless).
     ctx = Context.build(events, labels, detections,
-                        sensor_names={}, excluded_sensors=frozenset({"bedroom_motion"}),
+                        sensor_names={}, excluded_sensors=frozenset({"basement_leak"}),
                         title=None)
     tp = ctx.labels[ctx.labels["is_tp"]].iloc[0]
     chain_idx = tp["best_chain_idx"]
@@ -257,7 +257,7 @@ def test_classify_labels_marks_tp_fn():
     tp_rows = out[out["is_tp"]]
     fn_rows = out[~out["is_tp"]]
     assert set(tp_rows["sensor_id"]) == {"outlet_tv_power"}
-    assert set(fn_rows["sensor_id"]) == {"bedroom_motion"}
+    assert set(fn_rows["sensor_id"]) == {"basement_leak"}
 
 
 def test_attach_best_chain_picks_user_visible():
@@ -448,7 +448,7 @@ def test_render_showcase_missed():
     fn_label = ctx.labels[~ctx.labels["is_tp"]].iloc[0]
     text = _render_one_page_to_text(showcase.render_showcase, ctx, fn_label)
     assert "MISSED" in text
-    assert "Bedroom motion sensor" in text
+    assert "Basement leak sensor" in text
     assert "did not detect" in text.lower()
 
 
@@ -466,7 +466,7 @@ def test_render_honest_smoke():
     text = _render_one_page_to_text(honest.render_honest, ctx)
     assert "MISSED" in text or "missed" in text.lower()
     assert "FALSE ALARM" in text or "false alarm" in text.lower()
-    assert "Bedroom motion sensor" in text  # FN tile
+    assert "Basement leak sensor" in text  # FN tile
 
 
 def test_render_honest_fp_overflow_indicator():
@@ -580,7 +580,7 @@ def test_render_excludes_sensors(tmp_path):
     out = tmp_path / "report.pdf"
     render(events, labels, detections, out,
            sensor_names={}, max_showcases=8,
-           excluded_sensors=frozenset({"bedroom_motion"}), title=None)
+           excluded_sensors=frozenset({"basement_leak"}), title=None)
     from pdfminer.high_level import extract_text
     text = extract_text(out)
-    assert "Bedroom motion sensor" not in text
+    assert "Basement leak sensor" not in text

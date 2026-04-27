@@ -47,11 +47,10 @@ DETECTOR_CLASSES: dict[str, str] = {
 
 
 # Capability → archetype heuristic. Pipeline Alerts don't carry archetype
-# directly; the inference covers the cases in the current configs (water/
-# motion → BINARY, voltage/temperature → CONTINUOUS, power → BURSTY).
+# directly; the inference covers the cases in the current configs (water →
+# BINARY, voltage/temperature → CONTINUOUS, power → BURSTY).
 _ARCHETYPE_BY_CAPABILITY: dict[str, str] = {
     "water":       "BINARY",
-    "motion":      "BINARY",
     "voltage":     "CONTINUOUS",
     "temperature": "CONTINUOUS",
     "power":       "BURSTY",

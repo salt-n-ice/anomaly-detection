@@ -104,12 +104,6 @@ def test_signals_archetype_inferred_from_capability_water():
     assert s.archetype == "BINARY"
 
 
-def test_signals_archetype_inferred_from_capability_motion():
-    a = _alert("state_transition", capability="motion")
-    s = Signals.from_alert(a)
-    assert s.archetype == "BINARY"
-
-
 def test_signals_archetype_inferred_from_capability_voltage():
     a = _alert("recent_shift", capability="voltage")
     s = Signals.from_alert(a)

@@ -27,16 +27,11 @@ def test_pretyped_state_transition_passes_through():
     assert classify_type(a) == "water_leak_sustained"
 
 
-# --- State (BINARY water/motion when not pre-typed) ---
+# --- State (BINARY water when not pre-typed) ---
 
 def test_state_water_returns_water_leak_sustained():
     a = _alert("state_transition", capability="water")  # not pre-typed
     assert classify_type(a) == "water_leak_sustained"
-
-
-def test_state_motion_returns_unusual_occupancy():
-    a = _alert("state_transition", capability="motion")
-    assert classify_type(a) == "unusual_occupancy"
 
 
 # --- Continuous magnitude (RecentShift / CUSUM / BOCPD) ---

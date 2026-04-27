@@ -1,8 +1,6 @@
 # household_full.yaml — used ONLY by the type-classifier training extractor
-# (research/extract_training_data.py). Same as household.yaml but includes
-# motion + basement_temp so the classifier trains on all sensor archetypes
-# for eventual re-introduction. Production eval uses household.yaml (motion
-# disabled during baseline work).
+# (research/extract_training_data.py). Same as household.yaml but adds
+# basement_temp so the classifier trains across all sensor archetypes.
 sensors:
   - id: outlet_fridge_power
     capability: power
@@ -39,10 +37,4 @@ sensors:
     archetype: binary
     expected_interval_sec: 7200
     heartbeat_sec: 7200
-    deterministic_trigger: true
-  - id: bedroom_motion
-    capability: motion
-    archetype: binary
-    expected_interval_sec: 1800
-    heartbeat_sec: 1800
     deterministic_trigger: true

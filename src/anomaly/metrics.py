@@ -183,6 +183,180 @@ def _load_with_fire_ts(df: pd.DataFrame) -> list[tuple[Interval, pd.Timestamp]]:
     return out
 
 
+def _parse_fire_ticks(raw, fallback: pd.Timestamp) -> list[pd.Timestamp]:
+    """Parse a `fire_ticks` cell (semicolon-joined ISO timestamps).
+
+    Falls back to `[fallback]` for legacy CSVs without the column or
+    rows where the cell is empty/NaN. Each tick is normalized to UTC.
+    """
+    if raw is None or (isinstance(raw, float) and pd.isna(raw)) or raw == "":
+        return [fallback]
+    parts = [p for p in str(raw).split(";") if p]
+    if not parts:
+        return [fallback]
+    return [pd.Timestamp(p, tz="UTC") if not isinstance(p, pd.Timestamp) else p
+            for p in parts]
+
+
+def _load_fires(df: pd.DataFrame) -> list[dict]:
+    """Flatten detection rows into one record per component fire-tick.
+
+    Each fire carries its parent chain's `sensor_id`, `inferred_type`,
+    `inferred_class`, and `detector` so per-fire grading (containment
+    in any GT, type correctness vs GT) can be done without re-joining
+    against the chain frame. Legacy CSVs without `fire_ticks` get one
+    fire per chain at `first_fire_ts` (or `start`) — coarser-grained
+    but the metric still works.
+    """
+    has_ticks = "fire_ticks" in df.columns
+    has_ffts = "first_fire_ts" in df.columns
+    out: list[dict] = []
+    for r in df.itertuples(index=False):
+        sid = r.sensor_id
+        if has_ffts and pd.notna(getattr(r, "first_fire_ts", None)):
+            fallback = (pd.Timestamp(r.first_fire_ts, tz="UTC")
+                        if not isinstance(r.first_fire_ts, pd.Timestamp)
+                        else r.first_fire_ts)
+        else:
+            fallback = (pd.Timestamp(r.start, tz="UTC")
+                        if not isinstance(r.start, pd.Timestamp)
+                        else r.start)
+        if has_ticks:
+            ticks = _parse_fire_ticks(getattr(r, "fire_ticks", None), fallback)
+        else:
+            ticks = [fallback]
+        inferred_type = getattr(r, "inferred_type", "") or ""
+        inferred_class = getattr(r, "inferred_class", "") or ""
+        detector = getattr(r, "detector", "") or ""
+        for t in ticks:
+            out.append({"sensor_id": sid, "tick": t,
+                        "inferred_type": inferred_type,
+                        "inferred_class": inferred_class,
+                        "detector": detector})
+    return out
+
+
+def _gt_for_tick(gt: list[Interval], sid: str, tick: pd.Timestamp) -> Interval | None:
+    """Return the earliest-starting GT label on `sid` containing `tick`,
+    or None if no label contains it. `_overlaps` semantics: half-open
+    [start, end) — the tick is "inside" iff `start <= tick < end`."""
+    best: Interval | None = None
+    for g in gt:
+        if g.sensor_id != sid:
+            continue
+        if g.start <= tick < g.end:
+            if best is None or g.start < best.start:
+                best = g
+    return best
+
+
+def compute_metrics_per_fire(gt_df: pd.DataFrame, det_df: pd.DataFrame,
+                              timeline_days: float) -> dict:
+    """Per-fire grading: each component fire-tick is independently graded
+    against GT containment + type correctness.
+
+    The pre-fusion fire is the unit a downstream LLM consumer actually
+    sees (each detector emission ≈ one LLM call). The fuser is a
+    notification-UX wrapper; eval should not let chain bridging across
+    label boundaries credit a pre-label tick for an in-label GT.
+
+    Definitions (per the user-stated value model):
+    - **fire_in_gt**: a fire-tick whose timestamp is contained in some
+      GT label on the same sensor. The chain's `inferred_class` filter
+      runs upstream (callers pass class-restricted `det_df`).
+    - **fire_purity** = fire_in_gt / total_fires. "Of all fires, what
+      fraction landed inside a real anomaly?" Higher is better.
+    - **type_acc** = (fire_in_gt AND inferred_type == gt.anomaly_type)
+      / fire_in_gt. "Of fires inside a GT, how many carried the right
+      type label?" Higher is better. Conditional on containment so a
+      detector that misses every GT but has zero in-GT fires gets
+      `type_acc = NaN`, not 1.0.
+    - **uv_fp_per_day** = (total_fires - fire_in_gt) / timeline_days.
+      The downstream LLM cost rate.
+
+    `timeline_days` is the scenario span used to normalize uv_fp/d;
+    callers pass `(events.timestamp.max() - .min()).days`.
+    """
+    gt = _load(gt_df)
+    fires = _load_fires(det_df)
+    total = len(fires)
+    in_gt = 0
+    type_correct = 0
+    for f in fires:
+        g = _gt_for_tick(gt, f["sensor_id"], f["tick"])
+        if g is None:
+            continue
+        in_gt += 1
+        if g.anomaly_type and f["inferred_type"] == g.anomaly_type:
+            type_correct += 1
+    fp_fires = total - in_gt
+    fire_purity = (in_gt / total) if total > 0 else 0.0
+    type_acc = (type_correct / in_gt) if in_gt > 0 else None
+    return {
+        "n_fires": int(total),
+        "n_in_gt": int(in_gt),
+        "n_type_correct": int(type_correct),
+        "n_fp_fires": int(fp_fires),
+        "fire_purity": round(float(fire_purity), 4),
+        "type_acc": None if type_acc is None else round(float(type_acc), 4),
+        "fp_fires_per_day": round(float(fp_fires / max(1e-6, timeline_days)),
+                                   3),
+    }
+
+
+def compute_metrics_lat_frac(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
+    """Fractional latency: per-label `lag / duration` aggregated across
+    matched labels.
+
+    Anomaly durations span 5+ orders of magnitude (~30s leak detection
+    to 30d level shifts). A flat seconds latency is meaningless across
+    this range — 600s on a 30-min leak is 33% (catastrophic), on a
+    28-day shift it's 0.025% (perfect). Fractional latency normalizes.
+
+    Critically, this uses the earliest fire-tick INSIDE the GT label,
+    not the chain's `first_fire_ts` (which can predate the label by
+    hours when the fuser bridges). A chain that fires at T-3h and T+1h
+    around a label starting at T0 gets `lag = 1h`, not `lag = 0` (no
+    pre-label credit). If no fire lands inside the label, the label
+    is unmatched and excluded from the percentile aggregate.
+
+    Returned values are bounded [0, 1] by the containment requirement.
+    """
+    gt = _load(gt_df)
+    fires = _load_fires(det_df)
+    # group fires by sensor for O(F + L) per-label scan
+    by_sensor: dict[str, list[pd.Timestamp]] = {}
+    for f in fires:
+        by_sensor.setdefault(f["sensor_id"], []).append(f["tick"])
+    fracs: list[float] = []
+    n_matched = 0
+    for g in gt:
+        duration = (g.end - g.start).total_seconds()
+        if duration <= 0:
+            continue
+        ticks = by_sensor.get(g.sensor_id, ())
+        in_label = [t for t in ticks if g.start <= t < g.end]
+        if not in_label:
+            continue
+        n_matched += 1
+        lag = (min(in_label) - g.start).total_seconds()
+        fracs.append(max(0.0, min(1.0, lag / duration)))
+    n_total = len(gt)
+    if not fracs:
+        return {"n_labels": int(n_total), "n_matched": int(n_matched),
+                "lat_frac_mean": None, "lat_frac_p50": None,
+                "lat_frac_p95": None, "lat_frac_max": None}
+    s = pd.Series(fracs)
+    return {
+        "n_labels": int(n_total),
+        "n_matched": int(n_matched),
+        "lat_frac_mean": round(float(s.mean()), 4),
+        "lat_frac_p50": round(float(s.median()), 4),
+        "lat_frac_p95": round(float(s.quantile(0.95)), 4),
+        "lat_frac_max": round(float(s.max()), 4),
+    }
+
+
 def compute_metrics_latency(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
     """Per-label first-alert latency, in seconds.
 
@@ -514,19 +688,35 @@ def _stratified_block(gt: pd.DataFrame, det: pd.DataFrame, klass: str,
     mtm = compute_metrics_time(sub_gt, sub_det)
     sub_det_nondqg = sub_det[sub_det["detector"] != "data_quality_gate"]
     mlat_nd = compute_metrics_latency(sub_gt, sub_det_nondqg)
+    # Per-fire metrics: each pre-fusion component tick is one LLM call
+    # downstream, so grade containment + type per fire, not per chain.
+    # Fractional latency is computed off in-GT fire-ticks too, so a
+    # bridging pre-label fire can't credit zero latency.
+    mpf = compute_metrics_per_fire(sub_gt, sub_det, timeline_days)
+    mlf = compute_metrics_lat_frac(sub_gt, sub_det)
     n_uv = _count_class_fps_no_overlap(det, gt, klass)
     return {
         "n_labels": int(len(sub_gt)),
+        # Headline metrics — surface in pipeline.py print.
+        "incident_recall": round(float(mpw["recall"]), 4),
         "evt_f1": round(float(mev["f1"]), 4),
+        "fire_purity": mpf["fire_purity"],
+        "type_acc": mpf["type_acc"],
+        "lat_frac_p95": mlf["lat_frac_p95"],
+        "user_visible_fps_per_day": round(
+            float(n_uv / max(1e-6, timeline_days)), 3),
+        # Sub-row breakdowns / regression-archaeology metrics.
         "evt_precision": round(float(mev["precision"]), 4),
         "evt_recall": round(float(mev["recall"]), 4),
         "time_f1": round(float(mtm["time_f1"]), 4),
         "time_precision": round(float(mtm["time_precision"]), 4),
         "time_recall": round(float(mtm["time_recall"]), 4),
-        "incident_recall": round(float(mpw["recall"]), 4),
+        "n_fires": mpf["n_fires"],
+        "n_in_gt_fires": mpf["n_in_gt"],
+        "fp_fires_per_day": mpf["fp_fires_per_day"],
+        "lat_frac_p50": mlf["lat_frac_p50"],
+        "lat_frac_max": mlf["lat_frac_max"],
         "n_user_visible_fps": int(n_uv),
-        "user_visible_fps_per_day": round(
-            float(n_uv / max(1e-6, timeline_days)), 3),
         "nondqg_latency_p95_s": _round_or_none(mlat_nd["latency_p95_s"], 1),
     }
 

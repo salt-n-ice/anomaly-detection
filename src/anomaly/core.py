@@ -58,3 +58,9 @@ class Alert:
     # contributed — which is what latency should measure. None on immediate
     # alerts (they aren't fused, so first_fire_ts == timestamp).
     first_fire_ts: pd.Timestamp | None = None
+    # All component fire ticks in a fused chain (sorted asc). For per-fire
+    # metrics: each tick is graded independently against GT containment,
+    # so fuser bridging across labels can't credit a pre-label fire as
+    # the matching tick for an in-label GT. Empty on immediate alerts —
+    # readers should fall back to `(timestamp,)`.
+    fire_ticks: tuple[pd.Timestamp, ...] = ()

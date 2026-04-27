@@ -1,5 +1,4 @@
 # leak_30d scenario: water leak focus + basement temp.
-# utility_motion temporarily commented out — same reason as household.yaml.
 sensors:
   - id: basement_leak
     capability: water
@@ -13,9 +12,3 @@ sensors:
     expected_interval_sec: 600
     min_value: -40
     max_value: 80
-  # - id: utility_motion  # TEMPORARILY DISABLED
-  #   capability: motion
-  #   archetype: binary
-  #   expected_interval_sec: 1800
-  #   heartbeat_sec: 1800
-  #   deterministic_trigger: true

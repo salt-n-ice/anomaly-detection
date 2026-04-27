@@ -63,7 +63,7 @@ Per-sensor instance, one of three subclasses by archetype:
   recent values, derives instantaneous + first-difference features.
 - **BURSTY** (e.g. outlet power, kettle): event-segmenter — detects
   rising/falling edges, tracks the current event's peak + duration.
-- **BINARY** (e.g. leak, motion, switch): state machine, emits
+- **BINARY** (e.g. leak, switch): state machine, emits
   transitions and tracks time-in-state.
 
 All adapters emit a uniform `(tick, event)` stream consumed by detectors.
@@ -79,7 +79,7 @@ Five active classes, registered per archetype in `profiles.py`:
 | `RecentShift` | CONTINUOUS | sustained shifts in the rolling-mean tail (level shifts, drifts) |
 | `DutyCycleShift` | BURSTY | fraction-of-time-on over a 6h window deviating from baseline |
 | `RollingMedianPeakShift` | BURSTY | per-event peak magnitude vs bootstrap median+MAD |
-| `StateTransition` | BINARY | 0→1 transitions on water/leak/motion sensors |
+| `StateTransition` | BINARY | 0→1 transitions on water/leak sensors |
 
 Each detector loads frozen bootstrap stats (median, MAD, quantiles)
 fitted on the first 7-14 days of normal traffic, and a small rolling

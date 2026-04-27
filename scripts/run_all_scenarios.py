@@ -1,17 +1,21 @@
-"""Run the anomaly pipeline across all bundled scenarios and report both metrics.
+"""Run the anomaly pipeline across all production scenarios and report the
+stratified BEHAVIOR / sensor_fault headline.
 
-Expects the companion `synthetic-generator/` project to be a sibling directory of
-`anomaly-detection/`, with scenarios already generated under
-`synthetic-generator/out/{outlet,outlet_tv,outlet_kettle,leak}/`. Override the
-generator output root via the SENSORGEN_OUT environment variable if needed.
+Expects the companion `synthetic-generator/` project to be a sibling
+directory of `anomaly-detection/`, with scenarios already generated under
+`synthetic-generator/out/{scenario_name}/`. Override the generator output
+root via the SENSORGEN_OUT environment variable if needed.
+
+Production scenarios (eval target): household_60d / household_120d /
+household_dense_90d / household_sparse_60d / leak_30d. Holdout
+(overfit-check, separate from tuning loop): holdout_household_45d.
 """
 from pathlib import Path
 import os, sys, time
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 import pandas as pd
 from anomaly.pipeline import run
-from anomaly.metrics import (compute_metrics, compute_metrics_pointwise,
-                             compute_metrics_event, compute_metrics_time)
+from anomaly.metrics import compute_stratified
 
 ROOT = Path(__file__).resolve().parent.parent
 GEN  = Path(os.environ.get("SENSORGEN_OUT", ROOT.parent / "synthetic-generator" / "out"))
@@ -19,64 +23,88 @@ CFG  = ROOT / "configs"
 OUT  = ROOT / "out"
 OUT.mkdir(exist_ok=True)
 
+# (label, scenario_dir_name, config_yaml).
+# Detection CSV is OUT/{scenario_dir_name}_detections.csv.
 SCENARIOS = [
-    ("outlet (fridge+voltage)",  GEN / "outlet" / "events.csv",        CFG / "outlet.yaml",        OUT / "outlet60_detections.csv",   GEN / "outlet" / "labels.csv"),
-    ("outlet-tv (tv+voltage)",   GEN / "outlet_tv" / "events.csv",     CFG / "outlet_tv.yaml",     OUT / "outlet_tv_detections.csv",  GEN / "outlet_tv" / "labels.csv"),
-    ("outlet-kettle (kettle+voltage)", GEN / "outlet_kettle" / "events.csv", CFG / "outlet_kettle.yaml", OUT / "outlet_kettle_detections.csv", GEN / "outlet_kettle" / "labels.csv"),
-    ("waterleak (water+temp+battery)", GEN / "leak" / "events.csv",    CFG / "waterleak.yaml",     OUT / "leak60_detections.csv",     GEN / "leak" / "labels.csv"),
-    ("outlet_short (fridge+voltage, clean)", GEN / "outlet_short" / "events.csv", CFG / "outlet.yaml", OUT / "outlet_short_detections.csv", GEN / "outlet_short" / "labels.csv"),
+    ("household_60d",        "household_60d",        CFG / "household.yaml"),
+    ("household_120d",       "household_120d",       CFG / "household.yaml"),
+    ("household_dense_90d",  "household_dense_90d",  CFG / "household.yaml"),
+    ("household_sparse_60d", "household_sparse_60d", CFG / "household.yaml"),
+    ("leak_30d",             "leak_30d",             CFG / "leak_30d.yaml"),
+    ("holdout_household_45d","holdout_household_45d",CFG / "household.yaml"),
 ]
 
 results = []
-for name, events_csv, cfg, det_csv, labels_csv in SCENARIOS:
+for name, scenario_dir, cfg in SCENARIOS:
+    events_csv = GEN / scenario_dir / "events.csv"
+    labels_csv = GEN / scenario_dir / "labels.csv"
+    det_csv    = OUT / f"{scenario_dir}_detections.csv"
+    if not events_csv.exists() or not labels_csv.exists():
+        print(f"\n=== {name} ===  SKIP (missing {events_csv} or {labels_csv})",
+              flush=True)
+        continue
     print(f"\n=== {name} ===", flush=True)
     t0 = time.time()
     run(events_csv, cfg, det_csv, bootstrap_days=14.0)
     elapsed = time.time() - t0
     gt = pd.read_csv(labels_csv)
     det = pd.read_csv(det_csv)
-    m11 = compute_metrics(gt, det)
-    mpw = compute_metrics_pointwise(gt, det)
-    mev = compute_metrics_event(gt, det)
-    mtm = compute_metrics_time(gt, det)
-    # Timeline duration from the events CSV (for FP_h/day normalization).
     ev_ts = pd.read_csv(events_csv, usecols=["timestamp"])["timestamp"]
     ev_ts = pd.to_datetime(ev_ts, utc=True, format="ISO8601")
     timeline_days = (ev_ts.max() - ev_ts.min()).total_seconds() / 86400 if len(ev_ts) else 0
-    fp_h_per_day = (mtm["fp_sec"] / 3600) / max(1e-6, timeline_days)
-    # incident_recall = fraction of GT labels covered by any detection (pointwise recall).
-    incident_recall = mpw["recall"]
-    # events_per_incident = detector events emitted per labeled incident (alert burden).
-    events_per_incident = mev["n_events"] / max(1, len(gt))
-    burden = (len(det) - mpw['fp']) / max(1, mpw['tp']) if mpw['tp'] else 0
+    m = compute_stratified(gt, det, timeline_days)
+    print(f"  elapsed={elapsed:.1f}s  labels={len(gt)}  dets={len(det)}  timeline={timeline_days:.1f}d")
+    for block_name in ("behavior", "sensor_fault"):
+        b = m[block_name]
+        if b.get("n_labels", 0) == 0:
+            print(f"  {block_name:<12} (no labels)")
+            continue
+        ta = b.get("type_acc")
+        ta_s = "  -" if ta is None else f"{ta:.3f}"
+        lf = b.get("lat_frac_p95")
+        lf_s = "  -" if lf is None else f"{lf:.3f}"
+        print(f"  {block_name:<12} n={b['n_labels']:>3d}  incR={b['incident_recall']:.3f}  "
+              f"evt_F1={b['evt_f1']:.3f}  fpur={b['fire_purity']:.3f}  "
+              f"tyAcc={ta_s}  uvfp/d={b['user_visible_fps_per_day']:.2f}  "
+              f"lat%P95={lf_s}")
     results.append({
         "scenario": name,
         "elapsed_s": elapsed,
         "n_labels": len(gt),
         "n_detections": len(det),
-        "n_events": mev["n_events"],
         "timeline_days": timeline_days,
-        "tp_1to1": m11["tp"], "fp_1to1": m11["fp"], "fn_1to1": m11["fn"],
-        "prec_1to1": m11["precision"], "recall_1to1": m11["recall"], "f1_1to1": m11["f1"],
-        "tp_ev": mev["tp"], "fp_ev": mev["fp"], "fn_ev": mev["fn"],
-        "prec_ev": mev["precision"], "recall_ev": mev["recall"], "f1_ev": mev["f1"],
-        "tp_pw": mpw["tp"], "fp_pw": mpw["fp"], "fn_pw": mpw["fn"],
-        "prec_pw": mpw["precision"], "recall_pw": mpw["recall"], "f1_pw": mpw["f1"],
-        "fp_h": mtm["fp_sec"] / 3600, "fn_h": mtm["fn_sec"] / 3600,
-        "time_f1": mtm["time_f1"],
-        "incident_recall": incident_recall,
-        "fp_h_per_day": fp_h_per_day,
-        "events_per_incident": events_per_incident,
-        "alerts_per_incident": burden,
+        "behavior": m["behavior"],
+        "sensor_fault": m["sensor_fault"],
     })
-    print(f"  elapsed={elapsed:.1f}s  labels={len(gt)}  dets={len(det)}  events={mev['n_events']}  timeline={timeline_days:.1f}d")
-    print(f"  1:1   TP={m11['tp']:>3} FP={m11['fp']:>4} FN={m11['fn']:>2}  P={m11['precision']:.3f} R={m11['recall']:.3f} F1={m11['f1']:.3f}")
-    print(f"  evt   TP={mev['tp']:>3} FP={mev['fp']:>4} FN={mev['fn']:>2}  P={mev['precision']:.3f} R={mev['recall']:.3f} F1={mev['f1']:.3f}")
-    print(f"  pw    TP={mpw['tp']:>3} FP={mpw['fp']:>4} FN={mpw['fn']:>2}  P={mpw['precision']:.3f} R={mpw['recall']:.3f} F1={mpw['f1']:.3f}")
-    print(f"  time  FP_h={mtm['fp_sec']/3600:>6.1f} FN_h={mtm['fn_sec']/3600:>5.1f}  P={mtm['time_precision']:.3f} R={mtm['time_recall']:.3f} F1={mtm['time_f1']:.3f}")
-    print(f"  incident_recall={incident_recall:.3f}  FP_h/day={fp_h_per_day:.2f}  events/incident={events_per_incident:.2f}  alerts/incident={burden:.2f}")
 
-print("\n\n=== SUMMARY ===")
-print(f"{'scenario':<40} {'dets':>5} {'evts':>5} {'evt F1':>7} {'time F1':>8} {'incR':>5} {'fp_h/d':>7} {'ev/inc':>7}")
+# -- Summary table --------------------------------------------------------
+# Grouped by block so the BEHAVIOR row vs sensor_fault row stays visually
+# distinct (behavior is the optimization target; sensor_fault is the
+# infrastructure side-channel).
+print("\n\n=== SUMMARY (BEHAVIOR) ===")
+print(f"{'scenario':<24} {'n_lbl':>5} {'incR':>6} {'evt_F1':>7} "
+      f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'lat%P95':>8}")
 for r in results:
-    print(f"{r['scenario']:<40} {r['n_detections']:>5} {r['n_events']:>5} {r['f1_ev']:>7.3f} {r['time_f1']:>8.3f} {r['incident_recall']:>5.3f} {r['fp_h_per_day']:>7.2f} {r['events_per_incident']:>7.2f}")
+    b = r["behavior"]
+    if b.get("n_labels", 0) == 0:
+        continue
+    ta = b.get("type_acc"); ta_s = "     -" if ta is None else f"{ta:>6.3f}"
+    lf = b.get("lat_frac_p95"); lf_s = "       -" if lf is None else f"{lf:>8.3f}"
+    print(f"{r['scenario']:<24} {b['n_labels']:>5d} "
+          f"{b['incident_recall']:>6.3f} {b['evt_f1']:>7.3f} "
+          f"{b['fire_purity']:>6.3f} {ta_s} "
+          f"{b['user_visible_fps_per_day']:>7.2f} {lf_s}")
+
+print("\n=== SUMMARY (SENSOR_FAULT) ===")
+print(f"{'scenario':<24} {'n_lbl':>5} {'incR':>6} {'evt_F1':>7} "
+      f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'lat%P95':>8}")
+for r in results:
+    b = r["sensor_fault"]
+    if b.get("n_labels", 0) == 0:
+        continue
+    ta = b.get("type_acc"); ta_s = "     -" if ta is None else f"{ta:>6.3f}"
+    lf = b.get("lat_frac_p95"); lf_s = "       -" if lf is None else f"{lf:>8.3f}"
+    print(f"{r['scenario']:<24} {b['n_labels']:>5d} "
+          f"{b['incident_recall']:>6.3f} {b['evt_f1']:>7.3f} "
+          f"{b['fire_purity']:>6.3f} {ta_s} "
+          f"{b['user_visible_fps_per_day']:>7.2f} {lf_s}")
