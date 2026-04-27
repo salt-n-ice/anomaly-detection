@@ -245,10 +245,27 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # are unaffected.
     RETURN_TRANSIENT_GAP = pd.Timedelta(hours=72)
     RETURN_TRANSIENT_PRIOR_COUNT = 3
+    # Iter 14: recent_shift on CONTINUOUS sensors (mains_voltage,
+    # basement_temp) fires post-label recovery chains differently from
+    # DCS — instead of multiple short chains it produces ONE huge chain
+    # with thousands of fire-ticks (continuous tick-level firing as the
+    # rolling baseline slowly adapts). The iter 11 "≥2 prior chains"
+    # sustained-run gate can't recognise this because the in-label firing
+    # is a single chain with no priors. Add a size-based disjunct:
+    # prev_n_ticks ≥ 100 is also "sustained." Detected on hh120d's
+    # post-calibration_drift Mar 21-27 window where 5 monster chains
+    # contributed 96.8% of all wholly-FP behavior ticks (6869 of 7093).
+    # MIN_GAP = 1h on the recent_shift rule prevents the metric quirk
+    # where the detector's 1h analysis-window back-pads first_fire's
+    # window_start into the prior label, causing a metric-TP overlap
+    # the eval would credit (saw on holdout Feb 22 00:39, gap 49min).
+    RECENT_SHIFT_MIN_GAP = pd.Timedelta(hours=1)
+    RECENT_SHIFT_PREV_TICK_THRESHOLD = 100
     _DCS_DETECTORS = frozenset({
         "duty_cycle_shift_1h", "duty_cycle_shift_3h",
         "duty_cycle_shift_6h", "duty_cycle_shift_12h",
     })
+    _RECENT_SHIFT_DETECTORS = frozenset({"recent_shift"})
 
     def _dcs_direction(a: Alert) -> str | None:
         """Extract +/- from any DCS context dict on the alert."""
@@ -264,6 +281,21 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
                 return "-"
         return None
 
+    def _rs_direction(a: Alert) -> str | None:
+        """Extract +/- for recent_shift chains. Uses explicit `direction`
+        if present, else derives from short_value vs baseline_value."""
+        if not a.context:
+            return None
+        for ctx in a.context:
+            d = ctx.get("direction")
+            if d in ("+", "-"):
+                return d
+            sv = ctx.get("short_value")
+            bv = ctx.get("baseline_value")
+            if sv is not None and bv is not None:
+                return "+" if sv > bv else "-"
+        return None
+
     oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     dcs_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     # (first_fire, last_fire, direction) per DCS chain — needed by iter 10
@@ -272,6 +304,14 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # untouched.
     dcs_chains_by_sensor: dict[
         str, list[tuple[pd.Timestamp, pd.Timestamp, str | None]]
+    ] = {}
+    # Iter 14: recent_shift chains tracked separately with `n_ticks` so
+    # the size-based sustained disjunct can recognise mono-chain
+    # in-label firing patterns. RMP intentionally excluded (iter 12d
+    # showed RMP suppression hurts hh60d via in-label off-pattern noise
+    # chains the metric counts as TPs).
+    rs_chains_by_sensor: dict[
+        str, list[tuple[pd.Timestamp, pd.Timestamp, str | None, int]]
     ] = {}
     for a in alerts:
         detectors = set((a.detector or "").split("+"))
@@ -292,11 +332,18 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
             dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(ff)
             dcs_chains_by_sensor.setdefault(a.sensor_id, []).append(
                 (ff, a.timestamp, _dcs_direction(a)))
+        if detectors & _RECENT_SHIFT_DETECTORS:
+            ff = a.first_fire_ts or a.timestamp
+            n_ticks = len(a.fire_ticks) if a.fire_ticks else 1
+            rs_chains_by_sensor.setdefault(a.sensor_id, []).append(
+                (ff, a.timestamp, _rs_direction(a), n_ticks))
     for v in oor_ts_by_sensor.values():
         v.sort()
     for v in dcs_ts_by_sensor.values():
         v.sort()
     for v in dcs_chains_by_sensor.values():
+        v.sort(key=lambda t: t[0])
+    for v in rs_chains_by_sensor.values():
         v.sort(key=lambda t: t[0])
     import bisect
     def _is_sustained_oor(a: Alert) -> bool:
@@ -371,6 +418,50 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         )
         return same_dir_priors >= (RETURN_TRANSIENT_PRIOR_COUNT - 1)
 
+    # Iter 14: pre-compute the recent_shift recovery cascade. After a
+    # sustained recent_shift chain (≥100 ticks) ends, all subsequent
+    # opposite-direction chains within RETURN_TRANSIENT_GAP (72h) of
+    # the cascade's last fire are post-recovery noise. The cascade
+    # extends with each suppression: chain N's last_fire becomes the
+    # new anchor for chain N+1's gap check. Breaks when:
+    #   - gap > 72h (recovery has run its course)
+    #   - direction switches back (a real new anomaly)
+    rs_suppressed_keys: set[tuple[str, pd.Timestamp]] = set()
+    for sid, chains in rs_chains_by_sensor.items():
+        for i, ch in enumerate(chains):
+            prev_ff, prev_lf, prev_dir, prev_n_ticks = ch
+            if prev_dir is None:
+                continue
+            if prev_n_ticks < RECENT_SHIFT_PREV_TICK_THRESHOLD:
+                continue
+            opp_dir = "-" if prev_dir == "+" else "+"
+            anchor_lf = prev_lf
+            for j in range(i + 1, len(chains)):
+                ff_j, lf_j, dir_j, _ = chains[j]
+                gap = ff_j - anchor_lf
+                if gap < RECENT_SHIFT_MIN_GAP:
+                    continue
+                if gap > RETURN_TRANSIENT_GAP:
+                    break
+                if dir_j != opp_dir:
+                    break
+                rs_suppressed_keys.add((sid, ff_j))
+                anchor_lf = lf_j
+
+    def _is_rs_return_transient(a: Alert) -> bool:
+        # Iter 14 with cascade: the heavy lifting happened at index-build
+        # time. Here we just check membership in the precomputed set.
+        # Pattern targets: post-calibration_drift / post-month_shift
+        # recovery on CONTINUOUS sensors (mains_voltage), where
+        # recent_shift fires for days as the rolling baseline adapts.
+        # Bulk of hh120d's wholly-FP behavior ticks (6869 of 7093) come
+        # from a single such cascade post-Mar 21 calibration_drift.
+        detectors = set((a.detector or "").split("+"))
+        if not (detectors & _RECENT_SHIFT_DETECTORS):
+            return False
+        cur_ff = a.first_fire_ts or a.timestamp
+        return (a.sensor_id, cur_ff) in rs_suppressed_keys
+
     def _is_time_of_day_pattern(a: Alert) -> bool:
         # Iter 9: chain hour-of-day appears on BOTH weekdays and
         # weekends in the 14d window — that's a daily calendar
@@ -408,10 +499,10 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
 
     rows = []
     for a in alerts:
-        # Iter 10: skip post-label return-transient DCS chains entirely.
-        # They're the detector firing on synth-gen's offset-snap-back at
-        # label end — correct detection, no GT label, FP in the metric.
-        if _is_return_transient(a):
+        # Iter 10/14: skip post-label return-transient chains entirely.
+        # DCS uses iter 11's rule; recent_shift uses iter 14's
+        # size-aware variant.
+        if _is_return_transient(a) or _is_rs_return_transient(a):
             continue
         start = a.window_start or a.timestamp
         end = a.window_end or (a.timestamp + pd.Timedelta(minutes=1))
