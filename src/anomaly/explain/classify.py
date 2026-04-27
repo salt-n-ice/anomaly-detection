@@ -440,6 +440,24 @@ def _classify_duty(s: Signals) -> str:
         if s.is_weekend and s.duration_sec < 3 * 86400:
             return "weekend_anomaly"
         return "level_shift"
+    # Bucket signal weak (bt=normal or direction mismatch) — bucket
+    # percentile rank can be uninformative when the bootstrap is
+    # noisy across hours (e.g., dense_90d kettle, where event density
+    # smears each hour's duty). Fall back to chain-duration:
+    #   - A direction-up chain bounded under ~12h cannot be a sustained
+    #     level_shift, which would extend across the DCS 6h window
+    #     repeatedly and span at least a day. Most synth-gen short
+    #     direction-up signatures are calendar patterns (time_of_day at
+    #     specific hours, weekend_anomaly per-day chunks).
+    if s.direction == "+" and s.duration_sec < 12 * 3600:
+        if s.is_off_hours:
+            return "time_of_day"
+        if s.is_weekend:
+            return "weekend_anomaly"
+        # Weekday daytime short chain — defaults to time_of_day per
+        # synth-gen prior (kettle 10-12 / 14-18 daily injections are
+        # the dominant pattern in this signature).
+        return "time_of_day"
     # Existing fall-through for "normal" buckets and non-matching directions.
     if s.is_weekend:
         return "weekend_anomaly"
