@@ -195,6 +195,63 @@ def run(events_csv: Path, config_yaml: Path, out_csv: Path, bootstrap_days: floa
 
 
 def _write_detections(alerts: list[Alert], path: Path) -> None:
+    # Pre-pass: flag DQG out_of_range fires that recur on the same sensor
+    # AND are corroborated by a behavior detector (DCS / RMP / EventRate)
+    # firing on the same sensor within ±12h. DQG bypasses the fuser so
+    # chain-side corroboration isn't available; the co-fire check is
+    # explicit. Sustained-OOR alone isn't enough — synth-gen's level_shift
+    # offset can persist past the label window, producing a stream of
+    # post-label OOR fires that have no behavior-detector corroboration
+    # (because the appliance's duty / event-peak pattern returned to
+    # normal even though raw values are still offset). Behavior co-fire
+    # is the signal that the OOR represents a real behavior shift, not
+    # an artifact.
+    SUSTAINED_OOR_WINDOW = pd.Timedelta(hours=6)
+    SUSTAINED_OOR_COUNT = 3
+    COFIRE_WINDOW = pd.Timedelta(hours=12)
+    _BEHAVIOR_DETECTORS = frozenset({
+        "duty_cycle_shift_1h", "duty_cycle_shift_3h",
+        "duty_cycle_shift_6h", "duty_cycle_shift_12h",
+        "rolling_median_peak_shift", "event_peak_shift",
+        "event_rate_shift",
+    })
+    oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
+    behavior_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
+    for a in alerts:
+        detectors = set((a.detector or "").split("+"))
+        if (a.anomaly_type == "out_of_range"
+                and a.capability == "power"
+                and "data_quality_gate" in detectors):
+            oor_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
+        if detectors & _BEHAVIOR_DETECTORS:
+            behavior_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
+    for v in oor_ts_by_sensor.values():
+        v.sort()
+    for v in behavior_ts_by_sensor.values():
+        v.sort()
+    import bisect
+    def _is_sustained_oor(a: Alert) -> bool:
+        sid = a.sensor_id
+        ts_list = oor_ts_by_sensor.get(sid)
+        if not ts_list:
+            return False
+        ts = a.timestamp
+        lo = ts - SUSTAINED_OOR_WINDOW
+        hi = ts + SUSTAINED_OOR_WINDOW
+        l = bisect.bisect_left(ts_list, lo)
+        r = bisect.bisect_right(ts_list, hi)
+        if (r - l) < SUSTAINED_OOR_COUNT:
+            return False
+        # Behavior-detector corroboration (±12h window).
+        bts = behavior_ts_by_sensor.get(sid)
+        if not bts:
+            return False
+        blo = ts - COFIRE_WINDOW
+        bhi = ts + COFIRE_WINDOW
+        bl = bisect.bisect_left(bts, blo)
+        br = bisect.bisect_right(bts, bhi)
+        return br > bl
+
     rows = []
     for a in alerts:
         start = a.window_start or a.timestamp
@@ -219,7 +276,9 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         # harness can prevent a DQG `dropout` claim from being credited
         # as TP against a `water_leak_sustained` GT label on the same
         # sensor (and vice versa).
-        inferred_type = classify_type(a)
+        sustained_oor = (a.anomaly_type == "out_of_range"
+                         and _is_sustained_oor(a))
+        inferred_type = classify_type(a, sustained_oor=sustained_oor)
         inferred_class = type_to_class(inferred_type)
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),

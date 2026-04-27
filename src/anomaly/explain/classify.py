@@ -178,6 +178,32 @@ def _maybe_dqg_dropout_override(alert: Alert,
     return None
 
 
+def _maybe_dqg_oor_sustained_override(alert: Alert) -> str | None:
+    """Re-classify a DQG ``out_of_range`` pre-typed alert as ``level_shift``
+    when the pipeline flags it as sustained — i.e., multiple OOR fires on
+    the same sensor within a 6h sliding window.
+
+    A real OOR sensor fault is typically transient (calibration glitch,
+    momentary overload, single noise burst). A sustained OOR pattern
+    across hours is much more likely a behavioral level shift — synth-gen's
+    ``level_shift offset=-N`` on power sensors drives the off-state below
+    the configured min, producing a stream of OOR fires every cooldown.
+    The pipeline path pre-computes the sustained flag from the alert
+    sequence (DQG fires bypass the fuser, so this can't be derived
+    chain-side); the bundle explain path falls back to shwz-based override.
+
+    Returns the inferred type, or ``None`` to fall through to the normal
+    pre-typed short-circuit.
+    """
+    if alert.anomaly_type != "out_of_range":
+        return None
+    if alert.capability != "power":
+        return None
+    if "data_quality_gate" not in alert.detector.split("+"):
+        return None
+    return "level_shift"
+
+
 def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
                               temporal: dict | None) -> str | None:
     """Re-classify a DQG ``extreme_value`` pre-typed alert as ``spike`` /
@@ -223,7 +249,8 @@ def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
 
 
 def classify(alert: Alert, mag: dict | None = None,
-             temporal: dict | None = None) -> ClassificationResult:
+             temporal: dict | None = None,
+             sustained_oor: bool = False) -> ClassificationResult:
     """Rich classifier result. `bundle.explain` feeds this into the
     structured `classification` block; `classify_type` wraps it.
 
@@ -235,6 +262,13 @@ def classify(alert: Alert, mag: dict | None = None,
     The optional ``temporal`` parameter (the temporal block, including
     ``same_hour_weekday_z``) drives the DQG-override branch — see
     ``_maybe_dqg_spike_override``.
+
+    The optional ``sustained_oor`` flag (pre-computed by
+    ``pipeline._write_detections`` from the alert sequence) routes
+    repeated DQG ``out_of_range`` fires on the same sensor to the
+    ``level_shift`` override; a sustained OOR pattern is the level-shift
+    signature when synth-gen's offset drives the off-state below the
+    configured min.
 
     Confidence rules:
       - Pre-typed alerts (DQG, StateTransition) → "high"; signal_classes []
@@ -255,6 +289,14 @@ def classify(alert: Alert, mag: dict | None = None,
             confidence="low",
             signal_classes=["dqg", "duty"],
         )
+    if sustained_oor:
+        overridden = _maybe_dqg_oor_sustained_override(alert)
+        if overridden is not None:
+            return ClassificationResult(
+                type=overridden,
+                confidence="high",
+                signal_classes=["dqg", "duty"],
+            )
     overridden = _maybe_dqg_spike_override(alert, mag, temporal)
     if overridden is not None:
         return ClassificationResult(
@@ -295,8 +337,10 @@ def classify(alert: Alert, mag: dict | None = None,
 
 
 def classify_type(alert: Alert, mag: dict | None = None,
-                  temporal: dict | None = None) -> str:
-    return classify(alert, mag=mag, temporal=temporal).type
+                  temporal: dict | None = None,
+                  sustained_oor: bool = False) -> str:
+    return classify(alert, mag=mag, temporal=temporal,
+                    sustained_oor=sustained_oor).type
 
 
 def _dispatch(s: Signals) -> str:
@@ -346,7 +390,23 @@ def _classify_continuous(s: Signals) -> str:
 
 
 def _classify_duty(s: Signals) -> str:
-    """BURSTY duty-cycle. Branches on peak/rate co-presence + calendar."""
+    """BURSTY duty-cycle. Branches on peak/rate co-presence + calendar.
+
+    The duty-alone branch consults DutyCycleShift's per-bucket calendar
+    baseline (``s.bucket_typical``) to disambiguate calendar-pattern
+    anomalies from sustained level shifts. Synth-gen's weekend_anomaly
+    and time_of_day labels can land on weekday or weekend timestamps
+    independent of which calendar pattern they're injecting:
+      - ``target=weekend`` injects weekend-shape on weekdays — fires
+        carry weekday timestamps with direction "+" in a typically-low
+        bucket.
+      - ``target=weekday`` injects weekday-shape on weekends — fires
+        carry weekend timestamps with direction "-" in a typically-high
+        bucket.
+    Raw-timestamp ``is_weekend`` / ``is_off_hours`` cannot tell those
+    apart from a sustained level shift; ``bucket_typical`` × direction
+    can.
+    """
     has_peak = "peak" in s.classes
     has_rate = "rate" in s.classes
     if has_peak and has_rate:
@@ -359,7 +419,46 @@ def _classify_duty(s: Signals) -> str:
         return "level_shift"
     if has_rate:
         return "frequency_change"
-    # Duty alone: either calendar-type or rate-class.
+    # Duty alone: bucket-typical × direction routes calendar patterns.
+    bt = s.bucket_typical or "normal"
+    if bt == "low" and s.direction == "+":
+        # Behavior elevated during a typically-quiet calendar position.
+        # Off-hours and short hour-specific chains route to time_of_day;
+        # multi-hour daytime chains route to weekend_anomaly (target=
+        # weekend on weekday signature: TV-style afternoon/evening
+        # behavior on weekday).
+        if s.is_off_hours:
+            return "time_of_day"
+        if s.duration_sec < 6 * 3600:
+            return "time_of_day"
+        return "weekend_anomaly"
+    if bt == "high" and s.direction == "-":
+        # Behavior depressed during a typically-busy calendar position.
+        # Weekend-positioned short chains are target=weekday on weekend;
+        # longer chains and weekday-positioned ones are level shifts
+        # (e.g. vacation, kettle replaced).
+        if s.is_weekend and s.duration_sec < 3 * 86400:
+            return "weekend_anomaly"
+        return "level_shift"
+    # Bucket signal weak (bt=normal or direction mismatch) — bucket
+    # percentile rank can be uninformative when the bootstrap is
+    # noisy across hours (e.g., dense_90d kettle, where event density
+    # smears each hour's duty). Fall back to chain-duration:
+    #   - A direction-up chain bounded under ~12h cannot be a sustained
+    #     level_shift, which would extend across the DCS 6h window
+    #     repeatedly and span at least a day. Most synth-gen short
+    #     direction-up signatures are calendar patterns (time_of_day at
+    #     specific hours, weekend_anomaly per-day chunks).
+    if s.direction == "+" and s.duration_sec < 12 * 3600:
+        if s.is_off_hours:
+            return "time_of_day"
+        if s.is_weekend:
+            return "weekend_anomaly"
+        # Weekday daytime short chain — defaults to time_of_day per
+        # synth-gen prior (kettle 10-12 / 14-18 daily injections are
+        # the dominant pattern in this signature).
+        return "time_of_day"
+    # Existing fall-through for "normal" buckets and non-matching directions.
     if s.is_weekend:
         return "weekend_anomaly"
     if s.is_off_hours:

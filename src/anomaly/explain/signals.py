@@ -64,6 +64,24 @@ def _is_off_hours(hour: int) -> bool:
     return any(lo <= hour < hi for lo, hi in _OFF_HOURS_RANGES)
 
 
+def _bucket_typical_from_context(context: list[dict] | None) -> str | None:
+    """Walk per-detector context dicts looking for a bucket-typical marker.
+
+    Emitted by DutyCycleShift; carries the calendar-position percentile
+    rank of the firing window's (is_weekend, hour) bucket relative to all
+    bootstrap buckets ("low" / "normal" / "high"). Used by the duty-branch
+    classifier to disambiguate calendar-pattern anomalies from level
+    shifts.
+    """
+    if not context:
+        return None
+    for ctx in context:
+        bt = ctx.get("bucket_typical")
+        if bt:
+            return bt
+    return None
+
+
 def _direction_from_context(context: list[dict] | None,
                             mag: dict | None = None) -> str | None:
     """Walk per-detector context dicts looking for a direction signal.
@@ -112,6 +130,7 @@ class Signals:
     is_weekend: bool
     is_off_hours: bool
     pre_typed: str | None
+    bucket_typical: str | None  # "low" / "normal" / "high" / None (no DCS context)
 
     @classmethod
     def from_alert(cls, alert: Alert, mag: dict | None = None) -> "Signals":
@@ -135,4 +154,5 @@ class Signals:
             is_weekend=bool(ts.dayofweek >= 5),
             is_off_hours=_is_off_hours(int(ts.hour)),
             pre_typed=alert.anomaly_type,
+            bucket_typical=_bucket_typical_from_context(alert.context),
         )
