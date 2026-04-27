@@ -15,18 +15,25 @@ from .bundle import explain
 # preceding 1-hour and 24-hour windows. Surfaced in the prompt body as a
 # "Rate context" line so the LLM has evidence to detect rate-shift patterns
 # (frequency_change GTs) that single-chain bundles cannot otherwise convey.
+# Iter 009: scenario-wide typical DQG fires/24h on the same sensor+capability
+# alongside the recent counts, so the LLM has an interpretive anchor — a
+# given recent_24h is dramatic only relative to what's normal for that sensor.
 _DQG_DETECTOR_NAME = "data_quality_gate"
 
 
 def _compute_rate_context(alert: Alert,
-                          sensor_dets: pd.DataFrame) -> dict | None:
+                          sensor_dets: pd.DataFrame,
+                          scenario_duration_days: float) -> dict | None:
     """Count DQG fires for the alert's sensor+capability in the 1h and 24h
     windows preceding the alert's window_start (inclusive of the alert
-    itself when it falls in the window).
+    itself when it falls in the window), and report the scenario-wide
+    typical fires/24h on the same sensor+capability for context.
 
     ``sensor_dets`` must already be filtered to the alert's sensor and
-    have a parsed-UTC ``start`` column. Returns ``None`` if there are no
-    matching detections for the sensor+capability.
+    have a parsed-UTC ``start`` column. ``scenario_duration_days`` is the
+    span of the events frame in days; when ``<= 0`` the typical field is
+    omitted. Returns ``None`` if there are no matching detections for the
+    sensor+capability.
     """
     if len(sensor_dets) == 0:
         return None
@@ -44,7 +51,11 @@ def _compute_rate_context(alert: Alert,
                 & (starts <= ts)).sum())
     n_24h = int(((starts >= ts - pd.Timedelta(hours=24))
                  & (starts <= ts)).sum())
-    return {"recent_dqg_fires_1h": n_1h, "recent_dqg_fires_24h": n_24h}
+    rc = {"recent_dqg_fires_1h": n_1h, "recent_dqg_fires_24h": n_24h}
+    if scenario_duration_days > 0:
+        rc["typical_dqg_fires_per_24h"] = round(
+            len(sub) / scenario_duration_days, 2)
+    return rc
 
 
 def _detections_to_alerts(det_df: pd.DataFrame) -> list[Alert]:
@@ -95,6 +106,15 @@ def explain_detections_csv(events_csv, detections_csv, out_jsonl) -> int:
         sid: g.reset_index(drop=True) for sid, g in events.groupby("sensor_id")
     }
     empty_events = events.iloc[0:0]
+    # Scenario duration in days, computed once from the events frame and
+    # passed into _compute_rate_context for the iter-009 typical-rate field.
+    if len(events):
+        scenario_duration_days = float(
+            (events["timestamp"].max() - events["timestamp"].min()).total_seconds()
+            / 86400.0
+        )
+    else:
+        scenario_duration_days = 0.0
     dets = pd.read_csv(detections_csv)
     dets["start"] = pd.to_datetime(dets["start"], utc=True, format="ISO8601")
     dets_by_sensor: dict[str, pd.DataFrame] = {
@@ -109,7 +129,7 @@ def explain_detections_csv(events_csv, detections_csv, out_jsonl) -> int:
             sensor_events = events_by_sensor.get(a.sensor_id, empty_events)
             bundle = explain(a, sensor_events)
             sensor_dets = dets_by_sensor.get(a.sensor_id, empty_dets)
-            rc = _compute_rate_context(a, sensor_dets)
+            rc = _compute_rate_context(a, sensor_dets, scenario_duration_days)
             if rc is not None:
                 bundle["rate_context"] = rc
             f.write(_json.dumps(bundle, default=str) + "\n")

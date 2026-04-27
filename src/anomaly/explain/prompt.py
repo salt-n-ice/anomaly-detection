@@ -94,14 +94,17 @@ _SIGNAL_CLASS_LABELS: dict[str, str] = {
 
 
 def _rate_context_line(bundle: dict) -> str | None:
-    """Render the iter-008 rate-context block as a single line.
+    """Render the rate-context block as a single line.
 
     The bundle's ``rate_context`` field (when present) carries
-    ``recent_dqg_fires_1h`` and ``recent_dqg_fires_24h`` — counts of
-    data_quality_gate fires for this sensor+capability in the 1-hour and
-    24-hour windows preceding the alert. Surfaced descriptively, not
-    as a verdict — the LLM weighs it alongside other evidence to detect
-    rate-shift patterns absent from a single-chain bundle.
+    ``recent_dqg_fires_1h``, ``recent_dqg_fires_24h``, and (iter 009)
+    ``typical_dqg_fires_per_24h`` — recent counts of data_quality_gate
+    fires for this sensor+capability in the 1-hour and 24-hour windows
+    preceding the alert, plus the scenario-wide typical fires per 24h on
+    the same sensor+capability for interpretive contrast. Surfaced
+    descriptively, not as a verdict — the LLM weighs the recent-vs-typical
+    contrast alongside other evidence to detect rate-shift patterns absent
+    from a single-chain bundle.
     """
     rc = bundle.get("rate_context")
     if not rc:
@@ -110,9 +113,13 @@ def _rate_context_line(bundle: dict) -> str | None:
     n24h = rc.get("recent_dqg_fires_24h")
     if n1h is None or n24h is None:
         return None
-    return (f"**Rate context:** data_quality_gate has fired {n1h} time(s) "
+    base = (f"**Rate context:** data_quality_gate has fired {n1h} time(s) "
             f"in the last 1 hour and {n24h} time(s) in the last 24 hours "
-            f"on this sensor.")
+            f"on this sensor")
+    typical = rc.get("typical_dqg_fires_per_24h")
+    if typical is None:
+        return base + "."
+    return base + f"; typical is {typical:g} fire(s) per 24h on this sensor."
 
 
 def _signal_class_narrative(bundle: dict) -> str | None:
