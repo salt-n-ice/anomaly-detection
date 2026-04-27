@@ -250,7 +250,8 @@ def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
 
 def classify(alert: Alert, mag: dict | None = None,
              temporal: dict | None = None,
-             sustained_oor: bool = False) -> ClassificationResult:
+             sustained_oor: bool = False,
+             sustained_dcs: bool = False) -> ClassificationResult:
     """Rich classifier result. `bundle.explain` feeds this into the
     structured `classification` block; `classify_type` wraps it.
 
@@ -324,6 +325,18 @@ def classify(alert: Alert, mag: dict | None = None,
             signal_classes=[],
         )
     s = Signals.from_alert(alert, mag=mag)
+    if sustained_dcs and "duty" in s.classes and s.direction == "+":
+        # Iter 4: cross-chain hour-spread says DCS is firing across many
+        # hours-of-day on this sensor in a 14d window — that's a sustained
+        # level shift on an always-on appliance, not a per-day calendar
+        # pattern. The dispatch's normal duty branch would route to
+        # time_of_day / weekend_anomaly per chain hour; we override to
+        # level_shift instead.
+        return ClassificationResult(
+            type="level_shift",
+            confidence="high",
+            signal_classes=sorted(s.classes | {"sustained"}),
+        )
     type_ = _dispatch(s)
     confidence = "low" if type_ == "statistical_anomaly" else "high"
     if type_ in ("spike", "dip") and s.direction is None:
@@ -338,9 +351,11 @@ def classify(alert: Alert, mag: dict | None = None,
 
 def classify_type(alert: Alert, mag: dict | None = None,
                   temporal: dict | None = None,
-                  sustained_oor: bool = False) -> str:
+                  sustained_oor: bool = False,
+                  sustained_dcs: bool = False) -> str:
     return classify(alert, mag=mag, temporal=temporal,
-                    sustained_oor=sustained_oor).type
+                    sustained_oor=sustained_oor,
+                    sustained_dcs=sustained_dcs).type
 
 
 def _dispatch(s: Signals) -> str:

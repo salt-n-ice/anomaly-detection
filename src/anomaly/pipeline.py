@@ -207,14 +207,40 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # the suite (TV/kettle level_shift labels with no DCS co-fire).
     SUSTAINED_OOR_WINDOW = pd.Timedelta(hours=6)
     SUSTAINED_OOR_COUNT = 3
+    # Iter 4: cross-chain DCS hour-spread → level_shift override.
+    # A long-running level_shift on an always-on power appliance (e.g.,
+    # +150W offset on the kettle) doesn't push it below the OOR floor
+    # (so the sustained-OOR override doesn't fire), but it does drive
+    # DCS to fire roughly every cooldown across the label window. The
+    # cooldown is decoupled from 24h, so successive fires drift through
+    # all hours of the day — and the per-chain classifier sees each as
+    # a short calendar pattern (time_of_day / weekend_anomaly). True
+    # calendar anomalies cluster DCS fires at a tight band of hours
+    # (kettle 10-12 time_of_day produces chains all near hour 10-12).
+    # Two conditions separate them in a 14d window:
+    #   - DISTINCT_HOURS ≥ 5: the firing positions span the day.
+    #   - MAX_HOUR_PCT  < 0.35: no single hour dominates (else it's
+    #     a concentrated calendar pattern with noise on the side).
+    SUSTAINED_DCS_WINDOW = pd.Timedelta(days=14)
+    SUSTAINED_DCS_DISTINCT_HOURS = 5
+    SUSTAINED_DCS_MAX_HOUR_PCT = 0.35
+    _DCS_DETECTORS = frozenset({
+        "duty_cycle_shift_1h", "duty_cycle_shift_3h",
+        "duty_cycle_shift_6h", "duty_cycle_shift_12h",
+    })
     oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
+    dcs_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     for a in alerts:
         detectors = set((a.detector or "").split("+"))
         if (a.anomaly_type == "out_of_range"
                 and a.capability == "power"
                 and "data_quality_gate" in detectors):
             oor_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
+        if detectors & _DCS_DETECTORS:
+            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
     for v in oor_ts_by_sensor.values():
+        v.sort()
+    for v in dcs_ts_by_sensor.values():
         v.sort()
     import bisect
     def _is_sustained_oor(a: Alert) -> bool:
@@ -228,6 +254,26 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         l = bisect.bisect_left(ts_list, lo)
         r = bisect.bisect_right(ts_list, hi)
         return (r - l) >= SUSTAINED_OOR_COUNT
+    def _is_sustained_dcs(a: Alert) -> bool:
+        sid = a.sensor_id
+        ts_list = dcs_ts_by_sensor.get(sid)
+        if not ts_list:
+            return False
+        ts = a.timestamp
+        lo = ts - SUSTAINED_DCS_WINDOW
+        hi = ts + SUSTAINED_DCS_WINDOW
+        l = bisect.bisect_left(ts_list, lo)
+        r = bisect.bisect_right(ts_list, hi)
+        n = r - l
+        if n < SUSTAINED_DCS_DISTINCT_HOURS:
+            return False
+        hour_counts: dict[int, int] = {}
+        for i in range(l, r):
+            h = ts_list[i].hour
+            hour_counts[h] = hour_counts.get(h, 0) + 1
+        if len(hour_counts) < SUSTAINED_DCS_DISTINCT_HOURS:
+            return False
+        return max(hour_counts.values()) / n < SUSTAINED_DCS_MAX_HOUR_PCT
 
     rows = []
     for a in alerts:
@@ -255,7 +301,10 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         # sensor (and vice versa).
         sustained_oor = (a.anomaly_type == "out_of_range"
                          and _is_sustained_oor(a))
-        inferred_type = classify_type(a, sustained_oor=sustained_oor)
+        detectors = set((a.detector or "").split("+"))
+        sustained_dcs = bool(detectors & _DCS_DETECTORS) and _is_sustained_dcs(a)
+        inferred_type = classify_type(a, sustained_oor=sustained_oor,
+                                       sustained_dcs=sustained_dcs)
         inferred_class = type_to_class(inferred_type)
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),
