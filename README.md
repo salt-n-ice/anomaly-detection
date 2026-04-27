@@ -50,6 +50,10 @@ python -m anomaly explain `
   --events ..\synthetic-generator\out\household_60d\events.csv `
   --detections out\household_60d_detections.csv `
   --out out\household_60d_bundles.jsonl
+
+# 6. Replay — self-contained HTML animation of chains streaming chronologically
+python scripts\replay_demo.py --scenario household_60d
+#   writes out\replay_household_60d.html (open in any browser; full timeline plays in 60s)
 ```
 
 Run the full 3-scenario suite (`household_60d` + `household_120d` +
@@ -335,6 +339,39 @@ CSV batch path reconstructs it from the events frame
 evidence. See `CHANGES.md` for the evidence extensions and their
 rationale.
 
+## Replay (`scripts/replay_demo.py`)
+
+Deployment-style HTML animation. Streams the pre-computed detection chains
+from `out/<scenario>_detections.csv` chronologically by `first_fire_ts` so a
+reviewer experiences the alert pace as the system would emit it in
+production. Self-contained single file (~200–250 KB), no JS framework, no
+new deps.
+
+```powershell
+python scripts\replay_demo.py --scenario household_120d
+#   writes out\replay_household_120d.html (default duration 60s at 1x speed)
+
+# Other scenarios + customising playback:
+python scripts\replay_demo.py --scenario household_60d
+python scripts\replay_demo.py --scenario household_dense_90d --duration-sec 90
+python scripts\replay_demo.py --scenario leak_30d --out out\demo.html
+```
+
+Output features per lane: a downsampled signal sparkline (~600 buckets) with
+warm-orange columns where the bucket value is in the top 5% of
+`|bucket − bucket_median|`; soft GT label tints behind; pin pills dropping
+on `first_fire_ts` with color encoding TP / ambiguous / FP via simple-overlap
++ type-match. Header carries clock + ½×/1×/2×/4× speed + GT-bands toggle;
+counter row reads alerts/day (7-day rolling), type-mix, and 24h hottest
+sensor; a burst banner appears when any sensor fires ≥6 chains in 6h.
+
+Reads `synthetic-generator\out\<scenario>\events.csv` (timeline bounds +
+sparklines) and `\labels.csv` (GT band tints) plus
+`out\<scenario>_detections.csv` (chain stream). Override the synth-gen root
+via `SENSORGEN_OUT`. The demo deliberately shows no aggregated quality
+metrics — pin colors carry the FP-vs-TP signal locally so the on-screen
+numbers can never disagree with the eval PDFs.
+
 ## Project structure
 
 ```
@@ -354,6 +391,7 @@ configs/                          sample sensor configurations (household / leak
 research/run_research_eval.py     canonical scorer — behavior-stratified metrics, JSON snapshots, BASELINE.json diff
 research/BASELINE.md              frozen baseline narrative + ratchet history
 scripts/run_all_scenarios.py      legacy sweep over old scenarios (outlet / tv / kettle / waterleak)
+scripts/replay_demo.py            deployment-style HTML replay animation (per-scenario)
 tests/                            unit + integration tests
 pipeline.md                       full design spec (algorithms, suppression matrix, bootstrap phases)
 CHANGES.md                        tuning-session log (detector / fusion / metric evolution)
