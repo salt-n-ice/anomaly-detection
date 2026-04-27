@@ -218,11 +218,18 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # calendar anomalies cluster DCS fires at a tight band of hours
     # (kettle 10-12 time_of_day produces chains all near hour 10-12).
     # Two conditions separate them in a 14d window:
-    #   - DISTINCT_HOURS ≥ 5: the firing positions span the day.
+    #   - DISTINCT_HOURS ≥ 4: the firing positions span the day.
     #   - MAX_HOUR_PCT  < 0.35: no single hour dominates (else it's
     #     a concentrated calendar pattern with noise on the side).
+    # Iter 8: lowered from 5 → 4. The dense_90d 30d kettle level_shift
+    # produces 8 chains drifting through hours every 4d, so the FIRST
+    # two chains only see 4 prior chains in the symmetric 14d window
+    # — threshold 5 missed them and they fell through to time_of_day.
+    # Concentration ceiling (0.35) blocks holdout's multi-anomaly
+    # contamination case at the lower threshold (concentration there
+    # is 0.44 → still gated).
     SUSTAINED_DCS_WINDOW = pd.Timedelta(days=14)
-    SUSTAINED_DCS_DISTINCT_HOURS = 5
+    SUSTAINED_DCS_DISTINCT_HOURS = 4
     SUSTAINED_DCS_MAX_HOUR_PCT = 0.35
     _DCS_DETECTORS = frozenset({
         "duty_cycle_shift_1h", "duty_cycle_shift_3h",
@@ -237,7 +244,16 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
                 and "data_quality_gate" in detectors):
             oor_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
         if detectors & _DCS_DETECTORS:
-            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
+            # Iter 8: index DCS chains by first_fire_ts (earliest tick
+            # in the chain). a.timestamp uses the LAST tick of the
+            # fused chain, which for DCS_6h means all chains land
+            # ~6h after their start — so two chains starting at hours
+            # 0 and 2 both end at hours 6 and 8. The last-tick hour
+            # collapses the natural cooldown drift, hurting the
+            # distinct-hour count. first_fire_ts preserves the
+            # actual chain-start drift.
+            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(
+                a.first_fire_ts or a.timestamp)
     for v in oor_ts_by_sensor.values():
         v.sort()
     for v in dcs_ts_by_sensor.values():
@@ -259,7 +275,7 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         ts_list = dcs_ts_by_sensor.get(sid)
         if not ts_list:
             return False
-        ts = a.timestamp
+        ts = a.first_fire_ts or a.timestamp
         lo = ts - SUSTAINED_DCS_WINDOW
         hi = ts + SUSTAINED_DCS_WINDOW
         l = bisect.bisect_left(ts_list, lo)
