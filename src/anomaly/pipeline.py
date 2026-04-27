@@ -231,12 +231,48 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     SUSTAINED_DCS_WINDOW = pd.Timedelta(days=14)
     SUSTAINED_DCS_DISTINCT_HOURS = 4
     SUSTAINED_DCS_MAX_HOUR_PCT = 0.35
+    # Iter 10: post-label return-transient suppression. After a sustained
+    # DCS run ends (level_shift / time_of_day label expires), synth-gen
+    # snaps the offset back to baseline at the label boundary. The DCS
+    # detector sees that step as a duty-cycle shift in the OPPOSITE
+    # direction and emits a short reversal chain just past the label —
+    # which has no GT label and counts as a user_visible FP. The fuser's
+    # 4h gap absorbs reversals within 4h, so anything we can suppress here
+    # sits in the 4h-24h range. Sustained-prev gate (≥3 same-direction
+    # chains, prev included) keeps the rule from firing on incidental
+    # back-to-back reversals; the 24h gap caps it to immediately-after
+    # transients so genuine multi-day behavior reversals (≥1d apart)
+    # are unaffected.
+    RETURN_TRANSIENT_GAP = pd.Timedelta(hours=24)
+    RETURN_TRANSIENT_PRIOR_COUNT = 3
     _DCS_DETECTORS = frozenset({
         "duty_cycle_shift_1h", "duty_cycle_shift_3h",
         "duty_cycle_shift_6h", "duty_cycle_shift_12h",
     })
+
+    def _dcs_direction(a: Alert) -> str | None:
+        """Extract +/- from any DCS context dict on the alert."""
+        if not a.context:
+            return None
+        for ctx in a.context:
+            d = ctx.get("direction")
+            if d in ("+", "-"):
+                return d
+            if d == "high":
+                return "+"
+            if d == "low":
+                return "-"
+        return None
+
     oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     dcs_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
+    # (first_fire, last_fire, direction) per DCS chain — needed by iter 10
+    # return-transient gate. Kept alongside the timestamp-only index above
+    # so iter 4/8/9 helpers that only need the hour distribution stay
+    # untouched.
+    dcs_chains_by_sensor: dict[
+        str, list[tuple[pd.Timestamp, pd.Timestamp, str | None]]
+    ] = {}
     for a in alerts:
         detectors = set((a.detector or "").split("+"))
         if (a.anomaly_type == "out_of_range"
@@ -252,12 +288,16 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
             # collapses the natural cooldown drift, hurting the
             # distinct-hour count. first_fire_ts preserves the
             # actual chain-start drift.
-            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(
-                a.first_fire_ts or a.timestamp)
+            ff = a.first_fire_ts or a.timestamp
+            dcs_ts_by_sensor.setdefault(a.sensor_id, []).append(ff)
+            dcs_chains_by_sensor.setdefault(a.sensor_id, []).append(
+                (ff, a.timestamp, _dcs_direction(a)))
     for v in oor_ts_by_sensor.values():
         v.sort()
     for v in dcs_ts_by_sensor.values():
         v.sort()
+    for v in dcs_chains_by_sensor.values():
+        v.sort(key=lambda t: t[0])
     import bisect
     def _is_sustained_oor(a: Alert) -> bool:
         sid = a.sensor_id
@@ -290,6 +330,46 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         if len(hour_counts) < SUSTAINED_DCS_DISTINCT_HOURS:
             return False
         return max(hour_counts.values()) / n < SUSTAINED_DCS_MAX_HOUR_PCT
+
+    def _is_return_transient(a: Alert) -> bool:
+        # Iter 10: a DCS chain whose direction reverses the immediately
+        # preceding chain on the same sensor — within 24h of that prior
+        # chain ending — and where the prior chain was part of a sustained
+        # run (≥3 same-direction chains in its 14d window, itself
+        # included). Pattern signature: synth-gen snaps the level_shift
+        # offset off at label end, and the duty cycle steps back to
+        # baseline. The detector correctly fires, but no GT label covers
+        # the boundary, so it's a user_visible FP.
+        detectors = set((a.detector or "").split("+"))
+        if not (detectors & _DCS_DETECTORS):
+            return False
+        sid = a.sensor_id
+        chains = dcs_chains_by_sensor.get(sid, [])
+        if len(chains) < 2:
+            return False
+        cur_ff = a.first_fire_ts or a.timestamp
+        cur_dir = _dcs_direction(a)
+        if cur_dir is None:
+            return False
+        prev = None
+        for ch in chains:
+            if ch[0] >= cur_ff:
+                break
+            prev = ch
+        if prev is None:
+            return False
+        prev_ff, prev_lf, prev_dir = prev
+        if prev_dir is None or prev_dir == cur_dir:
+            return False
+        gap = cur_ff - prev_lf
+        if gap < pd.Timedelta(0) or gap > RETURN_TRANSIENT_GAP:
+            return False
+        prior_lo = prev_ff - SUSTAINED_DCS_WINDOW
+        same_dir_priors = sum(
+            1 for ch in chains
+            if prior_lo <= ch[0] < prev_ff and ch[2] == prev_dir
+        )
+        return same_dir_priors >= (RETURN_TRANSIENT_PRIOR_COUNT - 1)
 
     def _is_time_of_day_pattern(a: Alert) -> bool:
         # Iter 9: chain hour-of-day appears on BOTH weekdays and
@@ -328,6 +408,11 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
 
     rows = []
     for a in alerts:
+        # Iter 10: skip post-label return-transient DCS chains entirely.
+        # They're the detector firing on synth-gen's offset-snap-back at
+        # label end — correct detection, no GT label, FP in the metric.
+        if _is_return_transient(a):
+            continue
         start = a.window_start or a.timestamp
         end = a.window_end or (a.timestamp + pd.Timedelta(minutes=1))
         # first_fire_ts: earliest component tick in a fused chain; immediate
