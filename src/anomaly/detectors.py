@@ -543,15 +543,24 @@ class DutyCycleShift:
         self._boot_q01: float = 0.0
         self._boot_q99: float = 1.0
         self._mad_at_floor: bool = False
+        # Per-bucket calendar baseline (populated by fit). Empty until fit
+        # runs; classify falls back to "normal" for unfitted instances.
+        self._bucket_typical: dict[tuple[bool, int], str] = {}
         # Live: (ts, above) pairs in rolling window
         self._window: deque = deque()
         self._last_fire_ts: pd.Timestamp | None = None
 
     def _compute_bootstrap_windows(self, rows):
-        """Slide a `window_s` window across bootstrap rows; compute duty per window."""
+        """Slide a `window_s` window across bootstrap rows; compute duty per window.
+
+        Returns list of (window_end_ts, duty) tuples. Window-end timestamp
+        anchors each duty sample to the same calendar position the live
+        update() will use at fire time, so per-bucket baselines computed here
+        line up with live bucket lookups in update().
+        """
         if not rows:
             return []
-        duties: list[float] = []
+        duties_with_ts: list[tuple[pd.Timestamp, float]] = []
         # Bin rows by sliding window start, stepped by window_s/2 for overlap
         step = self.window_s // 2
         first_ts = rows[0][0]
@@ -578,14 +587,15 @@ class DutyCycleShift:
                 prev_ts = ts
                 prev_above = above
             if total_s > 0:
-                duties.append(above_s / total_s)
+                duties_with_ts.append((w_end_ts, above_s / total_s))
             w_start_ts += pd.Timedelta(seconds=step)
-        return duties
+        return duties_with_ts
 
     def fit(self, rows):
-        duties = self._compute_bootstrap_windows(rows)
-        if len(duties) < self.min_bootstrap_windows:
+        duties_with_ts = self._compute_bootstrap_windows(rows)
+        if len(duties_with_ts) < self.min_bootstrap_windows:
             return
+        duties = [d for _, d in duties_with_ts]
         arr = np.asarray(duties)
         self._boot_median = float(np.median(arr))
         mad = float(np.median(np.abs(arr - self._boot_median)))
@@ -600,6 +610,43 @@ class DutyCycleShift:
         self._boot_q01 = float(np.quantile(arr, 0.01))
         self._boot_q99 = float(np.quantile(arr, 0.99))
         self._mad_at_floor = (mad <= 0.005)
+
+        # Per-bucket calendar baseline. Buckets are (is_weekend, hour) → 48
+        # cells. Each bootstrap window is assigned to the bucket of its
+        # window-end timestamp; per-bucket median is then split into
+        # low/normal/high tertiles by percentile rank across bucket medians.
+        # The classifier reads bucket_typical to disambiguate:
+        #   - "low" + direction "+" → behavior elevated in typically-quiet
+        #     time → calendar-pattern anomaly (target=weekend on weekday,
+        #     time_of_day at unusual hour).
+        #   - "high" + direction "-" → behavior depressed in typically-busy
+        #     time → calendar-pattern anomaly (target=weekday on weekend).
+        # Falls back to "normal" for buckets with too few bootstrap samples
+        # or when the global classification can't be computed (< 6 buckets).
+        bucket_duties: dict[tuple[bool, int], list[float]] = {}
+        for ts, d in duties_with_ts:
+            key = (bool(ts.dayofweek >= 5), int(ts.hour))
+            bucket_duties.setdefault(key, []).append(d)
+        bucket_medians: dict[tuple[bool, int], float] = {}
+        for key, vals in bucket_duties.items():
+            if len(vals) >= 3:
+                bucket_medians[key] = float(np.median(vals))
+        self._bucket_typical: dict[tuple[bool, int], str] = {}
+        if len(bucket_medians) >= 6:
+            sorted_medians = sorted(bucket_medians.values())
+            n = len(sorted_medians)
+            p30_idx = max(0, int(n * 0.3) - 1)
+            p70_idx = min(n - 1, int(n * 0.7))
+            p30 = sorted_medians[p30_idx]
+            p70 = sorted_medians[p70_idx]
+            for key, m in bucket_medians.items():
+                if m <= p30:
+                    self._bucket_typical[key] = "low"
+                elif m >= p70:
+                    self._bucket_typical[key] = "high"
+                else:
+                    self._bucket_typical[key] = "normal"
+
         self.live = True
 
     def update(self, ts, feat):
@@ -653,6 +700,8 @@ class DutyCycleShift:
             self._last_fire_ts = ts
             direction = "high" if z > 0 else "low"
             score = abs(z)
+            bucket_key = (bool(ts.dayofweek >= 5), int(ts.hour))
+            bucket_typical = self._bucket_typical.get(bucket_key, "normal")
             return [_alert(self.config, ts, self.name, score, self.z_threshold,
                            None, float(duty),
                            w0=ts - pd.Timedelta(minutes=1), w1=ts,
@@ -662,7 +711,8 @@ class DutyCycleShift:
                                     "bootstrap_mad": self._boot_mad,
                                     "z": float(z),
                                     "direction": direction,
-                                    "window_s": self.window_s})]
+                                    "window_s": self.window_s,
+                                    "bucket_typical": bucket_typical})]
         return []
 
 
