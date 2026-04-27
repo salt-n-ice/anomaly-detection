@@ -243,7 +243,7 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # back-to-back reversals; the 24h gap caps it to immediately-after
     # transients so genuine multi-day behavior reversals (≥1d apart)
     # are unaffected.
-    RETURN_TRANSIENT_GAP = pd.Timedelta(hours=24)
+    RETURN_TRANSIENT_GAP = pd.Timedelta(hours=72)
     RETURN_TRANSIENT_PRIOR_COUNT = 3
     _DCS_DETECTORS = frozenset({
         "duty_cycle_shift_1h", "duty_cycle_shift_3h",
