@@ -9,6 +9,7 @@ the raw Alert — keeps the dispatch table testable in isolation.
 """
 from __future__ import annotations
 from dataclasses import dataclass
+import pandas as pd
 
 from ..core import Alert
 
@@ -131,6 +132,14 @@ class Signals:
     is_off_hours: bool
     pre_typed: str | None
     bucket_typical: str | None  # "low" / "normal" / "high" / None (no DCS context)
+    # Iter 6: chain spans only weekdays (Mon-Fri) — never crosses a
+    # Saturday or Sunday day. False if window_start/window_end are
+    # missing or the chain length is < 1 day. Used by `_classify_duty`
+    # to detect the synth-gen `weekend_anomaly target=weekday`
+    # signature (magnitude added on weekdays only, so a fused DCS
+    # chain that bridges across Sat/Sun would gap and split — only
+    # weekday-resident chains reach multi-day duration).
+    chain_weekday_only: bool
 
     @classmethod
     def from_alert(cls, alert: Alert, mag: dict | None = None) -> "Signals":
@@ -155,4 +164,19 @@ class Signals:
             is_off_hours=_is_off_hours(int(ts.hour)),
             pre_typed=alert.anomaly_type,
             bucket_typical=_bucket_typical_from_context(alert.context),
+            chain_weekday_only=_chain_weekday_only(
+                alert.window_start, alert.window_end),
         )
+
+
+def _chain_weekday_only(w0, w1) -> bool:
+    """True iff every calendar day in [w0, w1] is Mon-Fri."""
+    if w0 is None or w1 is None:
+        return False
+    d = w0.normalize()
+    end = w1.normalize()
+    while d <= end:
+        if d.dayofweek >= 5:
+            return False
+        d += pd.Timedelta(days=1)
+    return True

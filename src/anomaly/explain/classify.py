@@ -328,12 +328,18 @@ def classify(alert: Alert, mag: dict | None = None,
     if sustained_dcs and "duty" in s.classes and s.direction == "+":
         # Iter 4: cross-chain hour-spread says DCS is firing across many
         # hours-of-day on this sensor in a 14d window — that's a sustained
-        # level shift on an always-on appliance, not a per-day calendar
-        # pattern. The dispatch's normal duty branch would route to
-        # time_of_day / weekend_anomaly per chain hour; we override to
-        # level_shift instead.
+        # behavioral anomaly, not a per-day calendar pattern.
+        # Iter 6: a multi-day fused chain confined to weekdays is the
+        # synth-gen `weekend_anomaly target=weekday` signature (magnitude
+        # added Mon-Fri only); a chain that crosses Sat/Sun is the
+        # always-on level_shift signature.
+        if (s.chain_weekday_only
+                and s.duration_sec > 12 * 3600):
+            sustained_type = "weekend_anomaly"
+        else:
+            sustained_type = "level_shift"
         return ClassificationResult(
-            type="level_shift",
+            type=sustained_type,
             confidence="high",
             signal_classes=sorted(s.classes | {"sustained"}),
         )
@@ -473,6 +479,16 @@ def _classify_duty(s: Signals) -> str:
         # synth-gen prior (kettle 10-12 / 14-18 daily injections are
         # the dominant pattern in this signature).
         return "time_of_day"
+    # Iter 6: multi-day chain confined to weekdays → weekend_anomaly
+    # target=weekday. Synth-gen weekend_anomaly target=weekday adds
+    # magnitude on Mon-Fri only, so weekend duty returns to baseline
+    # and the fuser splits the chain at Sat/Sun. A multi-day fused
+    # chain that never crosses a weekend day is the signature.
+    if (s.duration_sec > 12 * 3600
+            and s.duration_sec < 7 * 86400
+            and s.direction == "+"
+            and s.chain_weekday_only):
+        return "weekend_anomaly"
     # Existing fall-through for "normal" buckets and non-matching directions.
     if s.is_weekend:
         return "weekend_anomaly"
