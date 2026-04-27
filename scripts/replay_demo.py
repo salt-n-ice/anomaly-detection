@@ -97,11 +97,67 @@ def main() -> int:
 # ----------------------------- payload shaping -----------------------------
 
 
+SPARKLINE_BUCKETS = 600  # ~1 sample per 4.8h for 120d span
+
+
 def _ts_ms(s) -> int:
     """Convert a timestamp-like value to integer epoch milliseconds (UTC)."""
     if isinstance(s, pd.Timestamp):
         return int(s.timestamp() * 1000)
     return int(pd.Timestamp(s, tz="UTC").timestamp() * 1000)
+
+
+def _build_sparklines(events_csv, sensor_ids, timeline_start_ms, timeline_end_ms):
+    """Return {sensor_id: {"y": [...], "outliers": [...]}}.
+
+    y: 600-element list, each in [0,1] or None for empty buckets (per-sensor normalized).
+    outliers: 600-element list of bools, True where bucket value > 3*MAD from sensor median.
+    """
+    df = pd.read_csv(events_csv, usecols=["timestamp", "sensor_id", "value"])
+    df = df[df["sensor_id"].isin(sensor_ids)].copy()
+    # ISO8601 sometimes lands as us-precision in pandas 2.x; force ns so the
+    # int64 cast below has a known scale.
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True, format="ISO8601").dt.as_unit("ns")
+    df["ts_ms"] = df["timestamp"].astype("int64") // 1_000_000  # ns -> ms
+
+    span_ms = max(1, timeline_end_ms - timeline_start_ms)
+    bucket_ms = span_ms / SPARKLINE_BUCKETS
+    df["bucket"] = ((df["ts_ms"] - timeline_start_ms) / bucket_ms).astype(int).clip(0, SPARKLINE_BUCKETS - 1)
+
+    out = {}
+    for sensor_id, sg in df.groupby("sensor_id"):
+        bmean = sg.groupby("bucket")["value"].mean()
+        y_raw = [None] * SPARKLINE_BUCKETS
+        for b, v in bmean.items():
+            y_raw[int(b)] = float(v)
+
+        # Outlier rule: bucket mean is in the top 5% of |bucket - bucket_median|.
+        # MAD-based 3-sigma fails on bimodal sensors (TV/fridge: idle vs on),
+        # where MAD collapses to ~0 and any non-idle reading flags. The
+        # percentile-of-deviations rule is distribution-shape-agnostic and
+        # always flags a bounded ~5% of buckets, regardless of sensor type.
+        valid = [y for y in y_raw if y is not None]
+        if len(valid) >= 20:
+            bucket_med = sorted(valid)[len(valid) // 2]
+            deltas = sorted(abs(y - bucket_med) for y in valid)
+            p95_delta = deltas[int(0.95 * len(deltas))]
+            outliers = [
+                (y is not None and p95_delta > 0 and abs(y - bucket_med) > p95_delta)
+                for y in y_raw
+            ]
+        else:
+            outliers = [False] * SPARKLINE_BUCKETS
+
+        # Normalize y to [0,1] per sensor
+        valid = [y for y in y_raw if y is not None]
+        if valid:
+            lo, hi = min(valid), max(valid)
+            rng = max(1e-9, hi - lo)
+            ynorm = [None if y is None else round((y - lo) / rng, 4) for y in y_raw]
+        else:
+            ynorm = [None] * SPARKLINE_BUCKETS
+        out[sensor_id] = {"y": ynorm, "outliers": outliers}
+    return out
 
 
 def build_payload(events_csv, labels_csv, det_csv, scenario, duration_sec):
@@ -128,6 +184,13 @@ def build_payload(events_csv, labels_csv, det_csv, scenario, duration_sec):
     counts = counts.sort_values(["n", "sensor_id"], ascending=[False, True])
     sensors = [{"id": row["sensor_id"], "chain_count": int(row["n"])}
                for _, row in counts.iterrows()]
+
+    # Sparkline (downsampled signal + outlier flags) per lane
+    sparklines = _build_sparklines(events_csv, [s["id"] for s in sensors],
+                                    timeline_start_ms, timeline_end_ms)
+    for s in sensors:
+        s["sparkline"] = sparklines.get(
+            s["id"], {"y": [None]*SPARKLINE_BUCKETS, "outliers": [False]*SPARKLINE_BUCKETS})
 
     chains = [{
         "sensor_id": r["sensor_id"],
@@ -300,8 +363,16 @@ TEMPLATE = r"""<!doctype html>
     position: absolute; top: 6px; bottom: 6px;
     border-radius: 3px;
     transition: opacity 180ms ease;
+    z-index: 1;
   }
   .lanes.no-gt .gt-band { opacity: 0; }
+
+  .sparkline {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
 
   .pin {
     position: absolute; top: 50%; transform: translate(-50%, -50%) scale(0.7);
@@ -429,7 +500,45 @@ PAYLOAD.sensors.forEach(s => {
      <div class="lane-track" data-sensor="${s.id}"></div>`;
   lanesEl.appendChild(lane);
   laneEls[s.id] = { root: lane, track: lane.querySelector(".lane-track") };
+  buildSparkline(s, laneEls[s.id].track);
 });
+
+function buildSparkline(sensor, track) {
+  const sl = sensor.sparkline;
+  if (!sl || !sl.y) return;
+  const N = sl.y.length;
+  const W = 1000, H = 100;
+  const TOP_PAD = 14, BOT_PAD = 8;
+  const drawY = v => v == null ? null : TOP_PAD + (1 - v) * (H - TOP_PAD - BOT_PAD);
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class", "sparkline");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+
+  // Outlier columns first (so they sit behind the line within the SVG)
+  let rectsSvg = "";
+  for (let i = 0; i < N; i++) {
+    if (sl.outliers[i]) {
+      const x = (i / N) * W;
+      const w = Math.max(W / N, 1.2);
+      rectsSvg += `<rect x="${x.toFixed(2)}" y="2" width="${w.toFixed(2)}" height="${H-4}" fill="rgba(224,160,80,0.22)"/>`;
+    }
+  }
+  // Build line path; break on null buckets
+  const segs = [];
+  let started = false;
+  for (let i = 0; i < N; i++) {
+    const yv = drawY(sl.y[i]);
+    if (yv == null) { started = false; continue; }
+    const x = (i / N) * W;
+    segs.push(`${started ? "L" : "M"}${x.toFixed(2)} ${yv.toFixed(2)}`);
+    started = true;
+  }
+  svg.innerHTML = rectsSvg +
+    `<path d="${segs.join(" ")}" fill="none" stroke="rgba(216,221,230,0.32)" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+  track.appendChild(svg);
+}
 
 // Add an axis row at the bottom of the lanes column
 const axis = document.createElement("div");
