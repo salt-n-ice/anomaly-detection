@@ -1,0 +1,1312 @@
+{
+  "timestamp": "2026-04-26T21:31:51+00:00",
+  "git_hash": "9bd799f",
+  "git_dirty": false,
+  "suite_filter": "all",
+  "scenarios": [
+    {
+      "name": "household_60d",
+      "elapsed_s": 197.14,
+      "n_labels": 14,
+      "n_detections": 2428,
+      "n_events": 83,
+      "timeline_days": 60.0,
+      "behavior": {
+        "n_labels": 12,
+        "evt_f1": 0.7533,
+        "evt_precision": 0.6393,
+        "evt_recall": 0.9167,
+        "evt_tp": 11,
+        "evt_fp": 22,
+        "evt_fn": 1,
+        "n_events": 61,
+        "time_f1": 0.3723,
+        "time_precision": 0.8863,
+        "time_recall": 0.2356,
+        "fn_h": 1138.95,
+        "n_user_visible_fps": 29,
+        "user_visible_fps_per_day": 0.483,
+        "incident_recall": 0.9167,
+        "events_per_incident": 5.083,
+        "latency_mean_s": 15780.0,
+        "latency_p95_s": 71190.0,
+        "latency_max_s": 78240.0,
+        "nondqg_latency_mean_s": 15780.0,
+        "nondqg_latency_p95_s": 71190.0,
+        "nondqg_latency_max_s": 78240.0,
+        "onset_matched_labels": 11,
+        "onset_missed_labels": 1,
+        "onset_early_labels": 1,
+        "onset_late_labels": 8,
+        "onset_early_lead_mean_s": 6114.5,
+        "onset_early_lead_p95_s": 33630.0,
+        "onset_early_lead_max_s": 67260.0,
+        "onset_late_start_mean_s": 15780.0,
+        "onset_late_start_p95_s": 71190.0,
+        "onset_late_start_max_s": 78240.0,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 5,
+            "n_matched": 5,
+            "incident_recall": 1.0,
+            "time_recall": 0.225,
+            "lat_frac_p95": 0.2871,
+            "lat_frac_max": 0.3
+          },
+          "long": {
+            "n_labels": 7,
+            "n_matched": 6,
+            "incident_recall": 0.8571,
+            "time_recall": 0.2329,
+            "lat_frac_p95": 0.0957,
+            "lat_frac_max": 0.1061
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 5,
+            "n_matched": 5,
+            "incident_recall": 1.0,
+            "time_recall": 0.225,
+            "lat_frac_p95": 0.2871,
+            "lat_frac_max": 0.3
+          },
+          "long": {
+            "n_labels": 7,
+            "n_matched": 6,
+            "incident_recall": 0.8571,
+            "time_recall": 0.2329,
+            "lat_frac_p95": 0.0957,
+            "lat_frac_max": 0.1061
+          }
+        }
+      },
+      "sensor_fault": {
+        "n_labels": 2,
+        "evt_f1": 0.5,
+        "evt_precision": 0.5,
+        "evt_recall": 0.5,
+        "evt_tp": 1,
+        "evt_fp": 1,
+        "evt_fn": 1,
+        "n_events": 2,
+        "time_f1": 0.0301,
+        "time_precision": 0.7377,
+        "time_recall": 0.0154,
+        "fn_h": 48.0,
+        "n_user_visible_fps": 1720,
+        "user_visible_fps_per_day": 28.667,
+        "incident_recall": 0.5,
+        "events_per_incident": 1.0,
+        "latency_mean_s": 2701.0,
+        "latency_p95_s": 2701.0,
+        "latency_max_s": 2701.0,
+        "nondqg_latency_mean_s": null,
+        "nondqg_latency_p95_s": null,
+        "nondqg_latency_max_s": null,
+        "onset_matched_labels": 0,
+        "onset_missed_labels": 2,
+        "onset_early_labels": 0,
+        "onset_late_labels": 0,
+        "onset_early_lead_mean_s": null,
+        "onset_early_lead_p95_s": null,
+        "onset_early_lead_max_s": null,
+        "onset_late_start_mean_s": null,
+        "onset_late_start_p95_s": null,
+        "onset_late_start_max_s": null,
+        "by_bucket": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 1.0,
+            "lat_frac_p95": 1.0004,
+            "lat_frac_max": 1.0004
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        }
+      },
+      "overall_evt_f1": 0.6449,
+      "overall_time_f1": 0.3867,
+      "overall_incident_recall": 0.9286,
+      "overall_fp_h": 173.87,
+      "overall_fp_h_per_day": 2.898,
+      "suite": "production",
+      "events_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_60d\\events.csv",
+      "labels_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_60d\\labels.csv",
+      "detections_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\out\\household_60d_detections.csv",
+      "config": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\configs\\household.yaml"
+    },
+    {
+      "name": "household_120d",
+      "elapsed_s": 442.44,
+      "n_labels": 26,
+      "n_detections": 7917,
+      "n_events": 186,
+      "timeline_days": 120.0,
+      "behavior": {
+        "n_labels": 23,
+        "evt_f1": 0.6953,
+        "evt_precision": 0.5614,
+        "evt_recall": 0.913,
+        "evt_tp": 21,
+        "evt_fp": 50,
+        "evt_fn": 2,
+        "n_events": 114,
+        "time_f1": 0.2591,
+        "time_precision": 0.6877,
+        "time_recall": 0.1596,
+        "fn_h": 3213.74,
+        "n_user_visible_fps": 57,
+        "user_visible_fps_per_day": 0.475,
+        "incident_recall": 0.913,
+        "events_per_incident": 4.957,
+        "latency_mean_s": 219817.7,
+        "latency_p95_s": 1634880.0,
+        "latency_max_s": 2124011.0,
+        "nondqg_latency_mean_s": 230808.5,
+        "nondqg_latency_p95_s": 1659336.6,
+        "nondqg_latency_max_s": 2124011.0,
+        "onset_matched_labels": 20,
+        "onset_missed_labels": 3,
+        "onset_early_labels": 2,
+        "onset_late_labels": 15,
+        "onset_early_lead_mean_s": 4812.0,
+        "onset_early_lead_p95_s": 17070.0,
+        "onset_early_lead_max_s": 82620.0,
+        "onset_late_start_mean_s": 230808.5,
+        "onset_late_start_p95_s": 1659336.6,
+        "onset_late_start_max_s": 2124011.0,
+        "by_bucket": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 0.2,
+            "lat_frac_p95": 0.0,
+            "lat_frac_max": 0.0
+          },
+          "medium": {
+            "n_labels": 8,
+            "n_matched": 7,
+            "incident_recall": 0.875,
+            "time_recall": 0.1333,
+            "lat_frac_p95": 0.5033,
+            "lat_frac_max": 0.5833
+          },
+          "long": {
+            "n_labels": 14,
+            "n_matched": 13,
+            "incident_recall": 0.9286,
+            "time_recall": 0.1503,
+            "lat_frac_p95": 0.7567,
+            "lat_frac_max": 0.878
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          },
+          "medium": {
+            "n_labels": 8,
+            "n_matched": 7,
+            "incident_recall": 0.875,
+            "time_recall": 0.1333,
+            "lat_frac_p95": 0.5033,
+            "lat_frac_max": 0.5833
+          },
+          "long": {
+            "n_labels": 14,
+            "n_matched": 13,
+            "incident_recall": 0.9286,
+            "time_recall": 0.1503,
+            "lat_frac_p95": 0.7567,
+            "lat_frac_max": 0.878
+          }
+        }
+      },
+      "sensor_fault": {
+        "n_labels": 3,
+        "evt_f1": 0.5714,
+        "evt_precision": 0.5,
+        "evt_recall": 0.6667,
+        "evt_tp": 2,
+        "evt_fp": 8,
+        "evt_fn": 1,
+        "n_events": 16,
+        "time_f1": 0.0814,
+        "time_precision": 0.081,
+        "time_recall": 0.0819,
+        "fn_h": 66.8,
+        "n_user_visible_fps": 4763,
+        "user_visible_fps_per_day": 39.692,
+        "incident_recall": 0.6667,
+        "events_per_incident": 5.333,
+        "latency_mean_s": 3877.5,
+        "latency_p95_s": 4831.1,
+        "latency_max_s": 4937.0,
+        "nondqg_latency_mean_s": null,
+        "nondqg_latency_p95_s": null,
+        "nondqg_latency_max_s": null,
+        "onset_matched_labels": 0,
+        "onset_missed_labels": 3,
+        "onset_early_labels": 0,
+        "onset_late_labels": 0,
+        "onset_early_lead_mean_s": null,
+        "onset_early_lead_p95_s": null,
+        "onset_early_lead_max_s": null,
+        "onset_late_start_mean_s": null,
+        "onset_late_start_p95_s": null,
+        "onset_late_start_max_s": null,
+        "by_bucket": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 1.0,
+            "lat_frac_p95": 1.0437,
+            "lat_frac_max": 1.0437
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 2,
+            "n_matched": 1,
+            "incident_recall": 0.5,
+            "time_recall": 0.0723,
+            "lat_frac_p95": 0.0571,
+            "lat_frac_max": 0.0571
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 2,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        }
+      },
+      "overall_evt_f1": 0.5469,
+      "overall_time_f1": 0.2918,
+      "overall_incident_recall": 1.0,
+      "overall_fp_h": 307.05,
+      "overall_fp_h_per_day": 2.559,
+      "suite": "production",
+      "events_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_120d\\events.csv",
+      "labels_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_120d\\labels.csv",
+      "detections_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\out\\household_120d_detections.csv",
+      "config": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\configs\\household.yaml"
+    },
+    {
+      "name": "leak_30d",
+      "elapsed_s": 13.32,
+      "n_labels": 8,
+      "n_detections": 10,
+      "n_events": 10,
+      "timeline_days": 30.0,
+      "behavior": {
+        "n_labels": 7,
+        "evt_f1": 0.7059,
+        "evt_precision": 0.6,
+        "evt_recall": 0.8571,
+        "evt_tp": 6,
+        "evt_fp": 4,
+        "evt_fn": 1,
+        "n_events": 10,
+        "time_f1": 0.3205,
+        "time_precision": 0.3297,
+        "time_recall": 0.3119,
+        "fn_h": 15.48,
+        "n_user_visible_fps": 2,
+        "user_visible_fps_per_day": 0.067,
+        "incident_recall": 0.8571,
+        "events_per_incident": 1.429,
+        "latency_mean_s": 480.0,
+        "latency_p95_s": 2160.0,
+        "latency_max_s": 2880.0,
+        "nondqg_latency_mean_s": 480.0,
+        "nondqg_latency_p95_s": 2160.0,
+        "nondqg_latency_max_s": 2880.0,
+        "onset_matched_labels": 6,
+        "onset_missed_labels": 1,
+        "onset_early_labels": 1,
+        "onset_late_labels": 1,
+        "onset_early_lead_mean_s": 1210.0,
+        "onset_early_lead_p95_s": 5445.0,
+        "onset_early_lead_max_s": 7260.0,
+        "onset_late_start_mean_s": 480.0,
+        "onset_late_start_p95_s": 2160.0,
+        "onset_late_start_max_s": 2880.0,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 7,
+            "n_matched": 6,
+            "incident_recall": 0.8571,
+            "time_recall": 0.3119,
+            "lat_frac_p95": 0.15,
+            "lat_frac_max": 0.2
+          },
+          "long": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 7,
+            "n_matched": 6,
+            "incident_recall": 0.8571,
+            "time_recall": 0.3119,
+            "lat_frac_p95": 0.15,
+            "lat_frac_max": 0.2
+          },
+          "long": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          }
+        }
+      },
+      "sensor_fault": {
+        "n_labels": 1,
+        "evt_f1": 0.0,
+        "evt_precision": 0.0,
+        "evt_recall": 0.0,
+        "evt_tp": 0,
+        "evt_fp": 0,
+        "evt_fn": 1,
+        "n_events": 0,
+        "time_f1": 0.0,
+        "time_precision": 0.0,
+        "time_recall": 0.0,
+        "fn_h": 48.0,
+        "n_user_visible_fps": 0,
+        "user_visible_fps_per_day": 0.0,
+        "incident_recall": 0.0,
+        "events_per_incident": 0.0,
+        "latency_mean_s": null,
+        "latency_p95_s": null,
+        "latency_max_s": null,
+        "nondqg_latency_mean_s": null,
+        "nondqg_latency_p95_s": null,
+        "nondqg_latency_max_s": null,
+        "onset_matched_labels": 0,
+        "onset_missed_labels": 1,
+        "onset_early_labels": 0,
+        "onset_late_labels": 0,
+        "onset_early_lead_mean_s": null,
+        "onset_early_lead_p95_s": null,
+        "onset_early_lead_max_s": null,
+        "onset_late_start_mean_s": null,
+        "onset_late_start_p95_s": null,
+        "onset_late_start_max_s": null,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        }
+      },
+      "overall_evt_f1": 0.8358,
+      "overall_time_f1": 0.288,
+      "overall_incident_recall": 0.875,
+      "overall_fp_h": 8.07,
+      "overall_fp_h_per_day": 0.269,
+      "suite": "production",
+      "events_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\leak_30d\\events.csv",
+      "labels_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\leak_30d\\labels.csv",
+      "detections_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\out\\leak_30d_detections.csv",
+      "config": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\configs\\leak_30d.yaml"
+    },
+    {
+      "name": "holdout_household_45d",
+      "elapsed_s": 138.47,
+      "n_labels": 11,
+      "n_detections": 831,
+      "n_events": 50,
+      "timeline_days": 45.0,
+      "behavior": {
+        "n_labels": 10,
+        "evt_f1": 0.766,
+        "evt_precision": 0.6667,
+        "evt_recall": 0.9,
+        "evt_tp": 9,
+        "evt_fp": 15,
+        "evt_fn": 1,
+        "n_events": 45,
+        "time_f1": 0.4358,
+        "time_precision": 0.9062,
+        "time_recall": 0.2869,
+        "fn_h": 660.02,
+        "n_user_visible_fps": 31,
+        "user_visible_fps_per_day": 0.689,
+        "incident_recall": 0.9,
+        "events_per_incident": 4.5,
+        "latency_mean_s": 20186.7,
+        "latency_p95_s": 78996.0,
+        "latency_max_s": 91380.0,
+        "nondqg_latency_mean_s": 20186.7,
+        "nondqg_latency_p95_s": 78996.0,
+        "nondqg_latency_max_s": 91380.0,
+        "onset_matched_labels": 9,
+        "onset_missed_labels": 1,
+        "onset_early_labels": 0,
+        "onset_late_labels": 7,
+        "onset_early_lead_mean_s": 0.0,
+        "onset_early_lead_p95_s": 0.0,
+        "onset_early_lead_max_s": 0.0,
+        "onset_late_start_mean_s": 20186.7,
+        "onset_late_start_p95_s": 78996.0,
+        "onset_late_start_max_s": 91380.0,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 4,
+            "n_matched": 4,
+            "incident_recall": 1.0,
+            "time_recall": 0.2679,
+            "lat_frac_p95": 0.1958,
+            "lat_frac_max": 0.2167
+          },
+          "long": {
+            "n_labels": 6,
+            "n_matched": 5,
+            "incident_recall": 0.8333,
+            "time_recall": 0.2871,
+            "lat_frac_p95": 0.2581,
+            "lat_frac_max": 0.2644
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 4,
+            "n_matched": 4,
+            "incident_recall": 1.0,
+            "time_recall": 0.2679,
+            "lat_frac_p95": 0.1958,
+            "lat_frac_max": 0.2167
+          },
+          "long": {
+            "n_labels": 6,
+            "n_matched": 5,
+            "incident_recall": 0.8333,
+            "time_recall": 0.2871,
+            "lat_frac_p95": 0.2581,
+            "lat_frac_max": 0.2644
+          }
+        }
+      },
+      "sensor_fault": {
+        "n_labels": 1,
+        "evt_f1": 0.0,
+        "evt_precision": 0.0,
+        "evt_recall": 0.0,
+        "evt_tp": 0,
+        "evt_fp": 0,
+        "evt_fn": 1,
+        "n_events": 0,
+        "time_f1": 0.0,
+        "time_precision": 0.0,
+        "time_recall": 0.0,
+        "fn_h": 48.0,
+        "n_user_visible_fps": 565,
+        "user_visible_fps_per_day": 12.556,
+        "incident_recall": 0.0,
+        "events_per_incident": 0.0,
+        "latency_mean_s": null,
+        "latency_p95_s": null,
+        "latency_max_s": null,
+        "nondqg_latency_mean_s": null,
+        "nondqg_latency_p95_s": null,
+        "nondqg_latency_max_s": null,
+        "onset_matched_labels": 0,
+        "onset_missed_labels": 1,
+        "onset_early_labels": 0,
+        "onset_late_labels": 0,
+        "onset_early_lead_mean_s": null,
+        "onset_early_lead_p95_s": null,
+        "onset_early_lead_max_s": null,
+        "onset_late_start_mean_s": null,
+        "onset_late_start_p95_s": null,
+        "onset_late_start_max_s": null,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        }
+      },
+      "overall_evt_f1": 0.7372,
+      "overall_time_f1": 0.4633,
+      "overall_incident_recall": 0.9091,
+      "overall_fp_h": 65.93,
+      "overall_fp_h_per_day": 1.465,
+      "suite": "holdout",
+      "events_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\holdout_household_45d\\events.csv",
+      "labels_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\holdout_household_45d\\labels.csv",
+      "detections_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\out\\holdout_household_45d_detections.csv",
+      "config": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\configs\\household.yaml"
+    },
+    {
+      "name": "single_outlet_fridge_30d",
+      "elapsed_s": 28.74,
+      "n_labels": 4,
+      "n_detections": 26,
+      "n_events": 16,
+      "timeline_days": 30.0,
+      "behavior": {
+        "n_labels": 3,
+        "evt_f1": 0.9333,
+        "evt_precision": 0.875,
+        "evt_recall": 1.0,
+        "evt_tp": 3,
+        "evt_fp": 2,
+        "evt_fn": 0,
+        "n_events": 16,
+        "time_f1": 0.0299,
+        "time_precision": 0.6213,
+        "time_recall": 0.0153,
+        "fn_h": 425.38,
+        "n_user_visible_fps": 2,
+        "user_visible_fps_per_day": 0.067,
+        "incident_recall": 1.0,
+        "events_per_incident": 5.333,
+        "latency_mean_s": 78680.0,
+        "latency_p95_s": 197586.0,
+        "latency_max_s": 218280.0,
+        "nondqg_latency_mean_s": 78680.0,
+        "nondqg_latency_p95_s": 197586.0,
+        "nondqg_latency_max_s": 218280.0,
+        "onset_matched_labels": 3,
+        "onset_missed_labels": 0,
+        "onset_early_labels": 0,
+        "onset_late_labels": 3,
+        "onset_early_lead_mean_s": 0.0,
+        "onset_early_lead_p95_s": 0.0,
+        "onset_early_lead_max_s": 0.0,
+        "onset_late_start_mean_s": 78680.0,
+        "onset_late_start_p95_s": 197586.0,
+        "onset_late_start_max_s": 218280.0,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 0.0028,
+            "lat_frac_p95": 0.2972,
+            "lat_frac_max": 0.2972
+          },
+          "long": {
+            "n_labels": 2,
+            "n_matched": 2,
+            "incident_recall": 1.0,
+            "time_recall": 0.0127,
+            "lat_frac_p95": 0.6004,
+            "lat_frac_max": 0.6316
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 0.0028,
+            "lat_frac_p95": 0.2972,
+            "lat_frac_max": 0.2972
+          },
+          "long": {
+            "n_labels": 2,
+            "n_matched": 2,
+            "incident_recall": 1.0,
+            "time_recall": 0.0127,
+            "lat_frac_p95": 0.6004,
+            "lat_frac_max": 0.6316
+          }
+        }
+      },
+      "sensor_fault": {
+        "n_labels": 1,
+        "evt_f1": 0.0,
+        "evt_precision": 0.0,
+        "evt_recall": 0.0,
+        "evt_tp": 0,
+        "evt_fp": 1,
+        "evt_fn": 1,
+        "n_events": 1,
+        "time_f1": 0.0,
+        "time_precision": 0.0,
+        "time_recall": 0.0,
+        "fn_h": 0.5,
+        "n_user_visible_fps": 0,
+        "user_visible_fps_per_day": 0.0,
+        "incident_recall": 0.0,
+        "events_per_incident": 1.0,
+        "latency_mean_s": null,
+        "latency_p95_s": null,
+        "latency_max_s": null,
+        "nondqg_latency_mean_s": null,
+        "nondqg_latency_p95_s": null,
+        "nondqg_latency_max_s": null,
+        "onset_matched_labels": 0,
+        "onset_missed_labels": 1,
+        "onset_early_labels": 0,
+        "onset_late_labels": 0,
+        "onset_early_lead_mean_s": null,
+        "onset_early_lead_p95_s": null,
+        "onset_early_lead_max_s": null,
+        "onset_late_start_mean_s": null,
+        "onset_late_start_p95_s": null,
+        "onset_late_start_max_s": null,
+        "by_bucket": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          }
+        }
+      },
+      "overall_evt_f1": 0.9333,
+      "overall_time_f1": 0.0306,
+      "overall_incident_recall": 1.0,
+      "overall_fp_h": 4.03,
+      "overall_fp_h_per_day": 0.134,
+      "suite": "holdout",
+      "events_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\single_outlet_fridge_30d\\events.csv",
+      "labels_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\single_outlet_fridge_30d\\labels.csv",
+      "detections_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\out\\single_outlet_fridge_30d_detections.csv",
+      "config": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\configs\\single_outlet_fridge.yaml"
+    },
+    {
+      "name": "household_sparse_60d",
+      "elapsed_s": 198.06,
+      "n_labels": 4,
+      "n_detections": 2953,
+      "n_events": 71,
+      "timeline_days": 60.0,
+      "behavior": {
+        "n_labels": 4,
+        "evt_f1": 0.375,
+        "evt_precision": 0.25,
+        "evt_recall": 0.75,
+        "evt_tp": 3,
+        "evt_fp": 9,
+        "evt_fn": 1,
+        "n_events": 12,
+        "time_f1": 0.1222,
+        "time_precision": 0.648,
+        "time_recall": 0.0675,
+        "fn_h": 359.95,
+        "n_user_visible_fps": 34,
+        "user_visible_fps_per_day": 0.567,
+        "incident_recall": 0.75,
+        "events_per_incident": 3.0,
+        "latency_mean_s": 170160.0,
+        "latency_p95_s": 458952.0,
+        "latency_max_s": 509880.0,
+        "nondqg_latency_mean_s": 170160.0,
+        "nondqg_latency_p95_s": 458952.0,
+        "nondqg_latency_max_s": 509880.0,
+        "onset_matched_labels": 3,
+        "onset_missed_labels": 1,
+        "onset_early_labels": 0,
+        "onset_late_labels": 2,
+        "onset_early_lead_mean_s": 0.0,
+        "onset_early_lead_p95_s": 0.0,
+        "onset_early_lead_max_s": 0.0,
+        "onset_late_start_mean_s": 170160.0,
+        "onset_late_start_p95_s": 458952.0,
+        "onset_late_start_max_s": 509880.0,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 0.0083,
+            "lat_frac_p95": 0.0,
+            "lat_frac_max": 0.0
+          },
+          "long": {
+            "n_labels": 3,
+            "n_matched": 2,
+            "incident_recall": 0.6667,
+            "time_recall": 0.0678,
+            "lat_frac_p95": 0.8011,
+            "lat_frac_max": 0.8431
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 0.0083,
+            "lat_frac_p95": 0.0,
+            "lat_frac_max": 0.0
+          },
+          "long": {
+            "n_labels": 3,
+            "n_matched": 2,
+            "incident_recall": 0.6667,
+            "time_recall": 0.0678,
+            "lat_frac_p95": 0.8011,
+            "lat_frac_max": 0.8431
+          }
+        }
+      },
+      "sensor_fault": {
+        "n_labels": 0
+      },
+      "overall_evt_f1": 0.3864,
+      "overall_time_f1": 0.1434,
+      "overall_incident_recall": 1.0,
+      "overall_fp_h": 84.3,
+      "overall_fp_h_per_day": 1.405,
+      "suite": "holdout",
+      "events_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_sparse_60d\\events.csv",
+      "labels_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_sparse_60d\\labels.csv",
+      "detections_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\out\\household_sparse_60d_detections.csv",
+      "config": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\configs\\household.yaml"
+    },
+    {
+      "name": "household_dense_90d",
+      "elapsed_s": 321.84,
+      "n_labels": 16,
+      "n_detections": 3139,
+      "n_events": 52,
+      "timeline_days": 90.0,
+      "behavior": {
+        "n_labels": 14,
+        "evt_f1": 0.6655,
+        "evt_precision": 0.623,
+        "evt_recall": 0.7143,
+        "evt_tp": 10,
+        "evt_fp": 23,
+        "evt_fn": 4,
+        "n_events": 61,
+        "time_f1": 0.2833,
+        "time_precision": 0.8957,
+        "time_recall": 0.1682,
+        "fn_h": 1665.25,
+        "n_user_visible_fps": 39,
+        "user_visible_fps_per_day": 0.433,
+        "incident_recall": 0.7143,
+        "events_per_incident": 4.357,
+        "latency_mean_s": 237786.0,
+        "latency_p95_s": 1279098.0,
+        "latency_max_s": 2244240.0,
+        "nondqg_latency_mean_s": 264206.7,
+        "nondqg_latency_p95_s": 1386336.0,
+        "nondqg_latency_max_s": 2244240.0,
+        "onset_matched_labels": 9,
+        "onset_missed_labels": 5,
+        "onset_early_labels": 0,
+        "onset_late_labels": 6,
+        "onset_early_lead_mean_s": 0.0,
+        "onset_early_lead_p95_s": 0.0,
+        "onset_early_lead_max_s": 0.0,
+        "onset_late_start_mean_s": 264206.7,
+        "onset_late_start_p95_s": 1386336.0,
+        "onset_late_start_max_s": 2244240.0,
+        "by_bucket": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 1,
+            "incident_recall": 1.0,
+            "time_recall": 0.2,
+            "lat_frac_p95": 0.0,
+            "lat_frac_max": 0.0
+          },
+          "medium": {
+            "n_labels": 5,
+            "n_matched": 4,
+            "incident_recall": 0.8,
+            "time_recall": 0.0569,
+            "lat_frac_p95": 0.3258,
+            "lat_frac_max": 0.3833
+          },
+          "long": {
+            "n_labels": 8,
+            "n_matched": 5,
+            "incident_recall": 0.625,
+            "time_recall": 0.1687,
+            "lat_frac_p95": 0.7091,
+            "lat_frac_max": 0.8658
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 1,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          },
+          "medium": {
+            "n_labels": 5,
+            "n_matched": 4,
+            "incident_recall": 0.8,
+            "time_recall": 0.0569,
+            "lat_frac_p95": 0.3258,
+            "lat_frac_max": 0.3833
+          },
+          "long": {
+            "n_labels": 8,
+            "n_matched": 5,
+            "incident_recall": 0.625,
+            "time_recall": 0.1687,
+            "lat_frac_p95": 0.7091,
+            "lat_frac_max": 0.8658
+          }
+        }
+      },
+      "sensor_fault": {
+        "n_labels": 2,
+        "evt_f1": 0.3448,
+        "evt_precision": 0.2632,
+        "evt_recall": 0.5,
+        "evt_tp": 1,
+        "evt_fp": 14,
+        "evt_fn": 1,
+        "n_events": 19,
+        "time_f1": 0.047,
+        "time_precision": 0.0552,
+        "time_recall": 0.041,
+        "fn_h": 69.05,
+        "n_user_visible_fps": 899,
+        "user_visible_fps_per_day": 9.989,
+        "incident_recall": 0.5,
+        "events_per_incident": 9.5,
+        "latency_mean_s": 2137.0,
+        "latency_p95_s": 2137.0,
+        "latency_max_s": 2137.0,
+        "nondqg_latency_mean_s": null,
+        "nondqg_latency_p95_s": null,
+        "nondqg_latency_max_s": null,
+        "onset_matched_labels": 0,
+        "onset_missed_labels": 2,
+        "onset_early_labels": 0,
+        "onset_late_labels": 0,
+        "onset_early_lead_mean_s": null,
+        "onset_early_lead_p95_s": null,
+        "onset_early_lead_max_s": null,
+        "onset_late_start_mean_s": null,
+        "onset_late_start_p95_s": null,
+        "onset_late_start_max_s": null,
+        "by_bucket": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 2,
+            "n_matched": 1,
+            "incident_recall": 0.5,
+            "time_recall": 0.041,
+            "lat_frac_p95": 0.0247,
+            "lat_frac_max": 0.0247
+          }
+        },
+        "by_bucket_nondqg": {
+          "short": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "medium": {
+            "n_labels": 0,
+            "incident_recall": null,
+            "time_recall": null,
+            "lat_frac_p95": null,
+            "lat_frac_max": null,
+            "n_matched": 0
+          },
+          "long": {
+            "n_labels": 2,
+            "n_matched": 0,
+            "incident_recall": 0.0,
+            "time_recall": 0.0,
+            "lat_frac_p95": null,
+            "lat_frac_max": null
+          }
+        }
+      },
+      "overall_evt_f1": 0.6206,
+      "overall_time_f1": 0.3224,
+      "overall_incident_recall": 0.875,
+      "overall_fp_h": 140.5,
+      "overall_fp_h_per_day": 1.561,
+      "suite": "holdout",
+      "events_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_dense_90d\\events.csv",
+      "labels_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\synthetic-generator\\out\\household_dense_90d\\labels.csv",
+      "detections_csv": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\out\\household_dense_90d_detections.csv",
+      "config": "C:\\Projects\\Sensor-data-anomaly-detection\\anomaly-detection\\configs\\household.yaml"
+    }
+  ],
+  "skipped": [],
+  "aggregate": {
+    "all": {
+      "n": 7,
+      "behavior_mean_evt_f1": 0.6992,
+      "behavior_mean_time_f1": 0.2604,
+      "behavior_mean_incident_recall": 0.8644,
+      "behavior_mean_user_visible_fps_per_day": 0.3973,
+      "behavior_total_n_user_visible_fps": 194,
+      "behavior_worst_evt_f1": 0.375,
+      "behavior_worst_incident_recall": 0.7143,
+      "behavior_worst_nondqg_latency_p95_s": 1659336.6,
+      "behavior_mean_nondqg_latency_mean_s": 111471.7,
+      "behavior_mean_onset_early_labels": 0.5714,
+      "behavior_mean_onset_late_labels": 6.0,
+      "behavior_worst_onset_early_lead_p95_s": 33630.0,
+      "behavior_worst_onset_late_start_p95_s": 1659336.6,
+      "fault_mean_evt_f1": 0.236,
+      "fault_mean_incident_recall": 0.2778
+    },
+    "production": {
+      "n": 3,
+      "behavior_mean_evt_f1": 0.7182,
+      "behavior_mean_time_f1": 0.3173,
+      "behavior_mean_incident_recall": 0.8956,
+      "behavior_mean_user_visible_fps_per_day": 0.3417,
+      "behavior_total_n_user_visible_fps": 88,
+      "behavior_worst_evt_f1": 0.6953,
+      "behavior_worst_incident_recall": 0.8571,
+      "behavior_worst_nondqg_latency_p95_s": 1659336.6,
+      "behavior_mean_nondqg_latency_mean_s": 82356.1667,
+      "behavior_mean_onset_early_labels": 1.3333,
+      "behavior_mean_onset_late_labels": 8.0,
+      "behavior_worst_onset_early_lead_p95_s": 33630.0,
+      "behavior_worst_onset_late_start_p95_s": 1659336.6,
+      "fault_mean_evt_f1": 0.3571,
+      "fault_mean_incident_recall": 0.3889
+    },
+    "holdout": {
+      "n": 4,
+      "behavior_mean_evt_f1": 0.6849,
+      "behavior_mean_time_f1": 0.2178,
+      "behavior_mean_incident_recall": 0.8411,
+      "behavior_mean_user_visible_fps_per_day": 0.439,
+      "behavior_total_n_user_visible_fps": 106,
+      "behavior_worst_evt_f1": 0.375,
+      "behavior_worst_incident_recall": 0.7143,
+      "behavior_worst_nondqg_latency_p95_s": 1386336.0,
+      "behavior_mean_nondqg_latency_mean_s": 133308.35,
+      "behavior_mean_onset_early_labels": 0.0,
+      "behavior_mean_onset_late_labels": 4.5,
+      "behavior_worst_onset_early_lead_p95_s": 0.0,
+      "behavior_worst_onset_late_start_p95_s": 1386336.0,
+      "fault_mean_evt_f1": 0.1149,
+      "fault_mean_incident_recall": 0.1667
+    }
+  }
+}

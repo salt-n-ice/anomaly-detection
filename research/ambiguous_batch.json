@@ -1,0 +1,2165 @@
+[
+  {
+    "scenario": "household_60d",
+    "row_idx": 977,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-21T13:40:00+00:00",
+      "window_end": "2026-02-21T15:09:00+00:00",
+      "first_fire_ts": "2026-02-21T14:40:00+00:00",
+      "duration_hours": 1.483,
+      "first_fire_hour": 14,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 1.268,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1082,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-17T19:32:00+00:00",
+      "window_end": "2026-03-17T21:01:00+00:00",
+      "first_fire_ts": "2026-03-17T20:32:00+00:00",
+      "duration_hours": 1.483,
+      "first_fire_hour": 20,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.2853,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1447,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-18T22:56:00+00:00",
+      "window_end": "2026-03-22T23:56:00+00:00",
+      "first_fire_ts": "2026-03-18T23:56:00+00:00",
+      "duration_hours": 97.0,
+      "first_fire_hour": 23,
+      "first_fire_dow": 2,
+      "first_fire_month": 3,
+      "score": 7.5066,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1583,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-22T22:57:00+00:00",
+      "window_end": "2026-03-24T06:19:00+00:00",
+      "first_fire_ts": "2026-03-22T23:57:00+00:00",
+      "duration_hours": 31.367,
+      "first_fire_hour": 23,
+      "first_fire_dow": 6,
+      "first_fire_month": 3,
+      "score": 3.5229,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1631,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T06:18:00+00:00",
+      "window_end": "2026-03-24T17:23:00+00:00",
+      "first_fire_ts": "2026-03-24T07:18:00+00:00",
+      "duration_hours": 11.083,
+      "first_fire_hour": 7,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 2.0755,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1656,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T18:01:00+00:00",
+      "window_end": "2026-03-24T22:03:00+00:00",
+      "first_fire_ts": "2026-03-24T19:01:00+00:00",
+      "duration_hours": 4.033,
+      "first_fire_hour": 19,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.7409,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1667,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T23:56:00+00:00",
+      "window_end": "2026-03-25T01:05:00+00:00",
+      "first_fire_ts": "2026-03-25T00:56:00+00:00",
+      "duration_hours": 1.15,
+      "first_fire_hour": 0,
+      "first_fire_dow": 2,
+      "first_fire_month": 3,
+      "score": 1.1231,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2368,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-25T02:44:00+00:00",
+      "window_end": "2026-03-25T04:39:00+00:00",
+      "first_fire_ts": "2026-03-25T03:44:00+00:00",
+      "duration_hours": 1.917,
+      "first_fire_hour": 3,
+      "first_fire_dow": 2,
+      "first_fire_month": 3,
+      "score": 1.4042,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1486,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-18T23:06:00+00:00",
+      "window_end": "2026-03-23T00:06:00+00:00",
+      "first_fire_ts": "2026-03-19T00:06:00+00:00",
+      "duration_hours": 97.0,
+      "first_fire_hour": 0,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 6.5019,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1643,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-22T23:07:00+00:00",
+      "window_end": "2026-03-24T14:02:00+00:00",
+      "first_fire_ts": "2026-03-23T00:07:00+00:00",
+      "duration_hours": 38.917,
+      "first_fire_hour": 0,
+      "first_fire_dow": 0,
+      "first_fire_month": 3,
+      "score": 2.9607,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1648,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T13:19:00+00:00",
+      "window_end": "2026-03-24T14:53:00+00:00",
+      "first_fire_ts": "2026-03-24T14:19:00+00:00",
+      "duration_hours": 1.567,
+      "first_fire_hour": 14,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.4782,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1653,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T14:15:00+00:00",
+      "window_end": "2026-03-24T15:19:00+00:00",
+      "first_fire_ts": "2026-03-24T15:15:00+00:00",
+      "duration_hours": 1.067,
+      "first_fire_hour": 15,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.1114,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1661,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T14:55:00+00:00",
+      "window_end": "2026-03-24T16:53:00+00:00",
+      "first_fire_ts": "2026-03-24T15:55:00+00:00",
+      "duration_hours": 1.967,
+      "first_fire_hour": 15,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.4586,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1671,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T17:07:00+00:00",
+      "window_end": "2026-03-24T19:50:00+00:00",
+      "first_fire_ts": "2026-03-24T18:07:00+00:00",
+      "duration_hours": 2.717,
+      "first_fire_hour": 18,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 2.109,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1677,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T19:23:00+00:00",
+      "window_end": "2026-03-24T20:31:00+00:00",
+      "first_fire_ts": "2026-03-24T20:23:00+00:00",
+      "duration_hours": 1.133,
+      "first_fire_hour": 20,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.1317,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1682,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T20:42:00+00:00",
+      "window_end": "2026-03-24T22:42:00+00:00",
+      "first_fire_ts": "2026-03-24T21:42:00+00:00",
+      "duration_hours": 2.0,
+      "first_fire_hour": 21,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.2373,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3996,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-24T22:02:00+00:00",
+      "window_end": "2026-03-24T23:20:00+00:00",
+      "first_fire_ts": "2026-03-24T23:02:00+00:00",
+      "duration_hours": 1.3,
+      "first_fire_hour": 23,
+      "first_fire_dow": 1,
+      "first_fire_month": 3,
+      "score": 1.1224,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4302,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-19T23:17:00+00:00",
+      "window_end": "2026-04-23T09:06:00+00:00",
+      "first_fire_ts": "2026-04-20T00:17:00+00:00",
+      "duration_hours": 81.817,
+      "first_fire_hour": 0,
+      "first_fire_dow": 0,
+      "first_fire_month": 4,
+      "score": 3.0054,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4314,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-23T08:23:00+00:00",
+      "window_end": "2026-04-23T10:53:00+00:00",
+      "first_fire_ts": "2026-04-23T09:23:00+00:00",
+      "duration_hours": 2.5,
+      "first_fire_hour": 9,
+      "first_fire_dow": 3,
+      "first_fire_month": 4,
+      "score": 1.5611,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4341,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-23T11:04:00+00:00",
+      "window_end": "2026-04-23T17:40:00+00:00",
+      "first_fire_ts": "2026-04-23T12:04:00+00:00",
+      "duration_hours": 6.6,
+      "first_fire_hour": 12,
+      "first_fire_dow": 3,
+      "first_fire_month": 4,
+      "score": 2.3021,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4366,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-23T17:38:00+00:00",
+      "window_end": "2026-04-23T22:48:00+00:00",
+      "first_fire_ts": "2026-04-23T18:38:00+00:00",
+      "duration_hours": 5.167,
+      "first_fire_hour": 18,
+      "first_fire_dow": 3,
+      "first_fire_month": 4,
+      "score": 1.9186,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4375,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-23T23:39:00+00:00",
+      "window_end": "2026-04-24T02:20:00+00:00",
+      "first_fire_ts": "2026-04-24T00:39:00+00:00",
+      "duration_hours": 2.683,
+      "first_fire_hour": 0,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.6286,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4378,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T01:43:00+00:00",
+      "window_end": "2026-04-24T03:01:00+00:00",
+      "first_fire_ts": "2026-04-24T02:43:00+00:00",
+      "duration_hours": 1.3,
+      "first_fire_hour": 2,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.1599,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4387,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T02:18:00+00:00",
+      "window_end": "2026-04-24T04:39:00+00:00",
+      "first_fire_ts": "2026-04-24T03:18:00+00:00",
+      "duration_hours": 2.35,
+      "first_fire_hour": 3,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.5083,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4404,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T04:42:00+00:00",
+      "window_end": "2026-04-24T07:01:00+00:00",
+      "first_fire_ts": "2026-04-24T05:42:00+00:00",
+      "duration_hours": 2.317,
+      "first_fire_hour": 5,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.5385,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4413,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T08:43:00+00:00",
+      "window_end": "2026-04-24T09:49:00+00:00",
+      "first_fire_ts": "2026-04-24T09:43:00+00:00",
+      "duration_hours": 1.1,
+      "first_fire_hour": 9,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.1248,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4422,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T10:54:00+00:00",
+      "window_end": "2026-04-24T12:49:00+00:00",
+      "first_fire_ts": "2026-04-24T11:54:00+00:00",
+      "duration_hours": 1.917,
+      "first_fire_hour": 11,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.4648,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4429,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T12:53:00+00:00",
+      "window_end": "2026-04-24T14:09:00+00:00",
+      "first_fire_ts": "2026-04-24T13:53:00+00:00",
+      "duration_hours": 1.267,
+      "first_fire_hour": 13,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.1689,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4444,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T14:15:00+00:00",
+      "window_end": "2026-04-24T16:25:00+00:00",
+      "first_fire_ts": "2026-04-24T15:15:00+00:00",
+      "duration_hours": 2.167,
+      "first_fire_hour": 15,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.3856,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4460,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T18:28:00+00:00",
+      "window_end": "2026-04-24T20:20:00+00:00",
+      "first_fire_ts": "2026-04-24T19:28:00+00:00",
+      "duration_hours": 1.867,
+      "first_fire_hour": 19,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.389,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4463,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T22:20:00+00:00",
+      "window_end": "2026-04-24T23:40:00+00:00",
+      "first_fire_ts": "2026-04-24T23:20:00+00:00",
+      "duration_hours": 1.333,
+      "first_fire_hour": 23,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.2266,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4467,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T22:57:00+00:00",
+      "window_end": "2026-04-25T00:19:00+00:00",
+      "first_fire_ts": "2026-04-24T23:57:00+00:00",
+      "duration_hours": 1.367,
+      "first_fire_hour": 23,
+      "first_fire_dow": 4,
+      "first_fire_month": 4,
+      "score": 1.293,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4987,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-24T23:41:00+00:00",
+      "window_end": "2026-04-25T00:58:00+00:00",
+      "first_fire_ts": "2026-04-25T00:41:00+00:00",
+      "duration_hours": 1.283,
+      "first_fire_hour": 0,
+      "first_fire_dow": 5,
+      "first_fire_month": 4,
+      "score": 1.2179,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5264,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-30T23:28:00+00:00",
+      "window_end": "2026-05-04T01:11:00+00:00",
+      "first_fire_ts": "2026-05-01T00:28:00+00:00",
+      "duration_hours": 73.717,
+      "first_fire_hour": 0,
+      "first_fire_dow": 4,
+      "first_fire_month": 5,
+      "score": 3.0323,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5279,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-04T00:52:00+00:00",
+      "window_end": "2026-05-04T05:08:00+00:00",
+      "first_fire_ts": "2026-05-04T01:52:00+00:00",
+      "duration_hours": 4.267,
+      "first_fire_hour": 1,
+      "first_fire_dow": 0,
+      "first_fire_month": 5,
+      "score": 2.025,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5334,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-04T04:28:00+00:00",
+      "window_end": "2026-05-04T16:38:00+00:00",
+      "first_fire_ts": "2026-05-04T05:28:00+00:00",
+      "duration_hours": 12.167,
+      "first_fire_hour": 5,
+      "first_fire_dow": 0,
+      "first_fire_month": 5,
+      "score": 1.8922,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5349,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-04T18:06:00+00:00",
+      "window_end": "2026-05-04T22:01:00+00:00",
+      "first_fire_ts": "2026-05-04T19:06:00+00:00",
+      "duration_hours": 3.917,
+      "first_fire_hour": 19,
+      "first_fire_dow": 0,
+      "first_fire_month": 5,
+      "score": 1.3517,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5368,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-04T21:35:00+00:00",
+      "window_end": "2026-05-05T03:03:00+00:00",
+      "first_fire_ts": "2026-05-04T22:35:00+00:00",
+      "duration_hours": 5.467,
+      "first_fire_hour": 22,
+      "first_fire_dow": 0,
+      "first_fire_month": 5,
+      "score": 1.7776,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5375,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-05T02:40:00+00:00",
+      "window_end": "2026-05-05T04:44:00+00:00",
+      "first_fire_ts": "2026-05-05T03:40:00+00:00",
+      "duration_hours": 2.067,
+      "first_fire_hour": 3,
+      "first_fire_dow": 1,
+      "first_fire_month": 5,
+      "score": 1.332,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5388,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-05T04:10:00+00:00",
+      "window_end": "2026-05-05T08:07:00+00:00",
+      "first_fire_ts": "2026-05-05T05:10:00+00:00",
+      "duration_hours": 3.95,
+      "first_fire_hour": 5,
+      "first_fire_dow": 1,
+      "first_fire_month": 5,
+      "score": 2.0211,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5392,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-05T07:23:00+00:00",
+      "window_end": "2026-05-05T08:31:00+00:00",
+      "first_fire_ts": "2026-05-05T08:23:00+00:00",
+      "duration_hours": 1.133,
+      "first_fire_hour": 8,
+      "first_fire_dow": 1,
+      "first_fire_month": 5,
+      "score": 1.1274,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5428,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-05T08:07:00+00:00",
+      "window_end": "2026-05-05T09:38:00+00:00",
+      "first_fire_ts": "2026-05-05T09:07:00+00:00",
+      "duration_hours": 1.517,
+      "first_fire_hour": 9,
+      "first_fire_dow": 1,
+      "first_fire_month": 5,
+      "score": 1.2681,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5431,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-05T16:42:00+00:00",
+      "window_end": "2026-05-05T18:05:00+00:00",
+      "first_fire_ts": "2026-05-05T17:42:00+00:00",
+      "duration_hours": 1.383,
+      "first_fire_hour": 17,
+      "first_fire_dow": 1,
+      "first_fire_month": 5,
+      "score": 1.1185,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5456,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-05T17:27:00+00:00",
+      "window_end": "2026-05-05T18:58:00+00:00",
+      "first_fire_ts": "2026-05-05T18:27:00+00:00",
+      "duration_hours": 1.517,
+      "first_fire_hour": 18,
+      "first_fire_dow": 1,
+      "first_fire_month": 5,
+      "score": 1.215,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5907,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-05T23:37:00+00:00",
+      "window_end": "2026-05-06T00:41:00+00:00",
+      "first_fire_ts": "2026-05-06T00:37:00+00:00",
+      "duration_hours": 1.067,
+      "first_fire_hour": 0,
+      "first_fire_dow": 2,
+      "first_fire_month": 5,
+      "score": 1.1051,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7824,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-10T20:34:00+00:00",
+      "window_end": "2026-05-10T21:42:00+00:00",
+      "first_fire_ts": "2026-05-10T21:34:00+00:00",
+      "duration_hours": 1.133,
+      "first_fire_hour": 21,
+      "first_fire_dow": 6,
+      "first_fire_month": 5,
+      "score": 1.133,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 3,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "basement_temp",
+      "capability": "temperature",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-16T02:48:00+00:00",
+      "window_end": "2026-02-16T04:33:00+00:00",
+      "first_fire_ts": "2026-02-16T03:48:00+00:00",
+      "duration_hours": 1.75,
+      "first_fire_hour": 3,
+      "first_fire_dow": 0,
+      "first_fire_month": 2,
+      "score": 1.2085,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 4,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "basement_temp",
+      "capability": "temperature",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-24T23:37:00+00:00",
+      "window_end": "2026-02-25T02:31:00+00:00",
+      "first_fire_ts": "2026-02-25T00:37:00+00:00",
+      "duration_hours": 2.9,
+      "first_fire_hour": 0,
+      "first_fire_dow": 2,
+      "first_fire_month": 2,
+      "score": 1.2421,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 5,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "basement_temp",
+      "capability": "temperature",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-25T23:08:00+00:00",
+      "window_end": "2026-02-26T01:48:00+00:00",
+      "first_fire_ts": "2026-02-26T00:08:00+00:00",
+      "duration_hours": 2.667,
+      "first_fire_hour": 0,
+      "first_fire_dow": 3,
+      "first_fire_month": 2,
+      "score": 1.1637,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 7,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "basement_temp",
+      "capability": "temperature",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-26T22:59:00+00:00",
+      "window_end": "2026-02-27T07:24:00+00:00",
+      "first_fire_ts": "2026-02-26T23:59:00+00:00",
+      "duration_hours": 8.417,
+      "first_fire_hour": 23,
+      "first_fire_dow": 3,
+      "first_fire_month": 2,
+      "score": 2.0162,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 8,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "basement_temp",
+      "capability": "temperature",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-27T22:35:00+00:00",
+      "window_end": "2026-02-28T02:08:00+00:00",
+      "first_fire_ts": "2026-02-27T23:35:00+00:00",
+      "duration_hours": 3.55,
+      "first_fire_hour": 23,
+      "first_fire_dow": 4,
+      "first_fire_month": 2,
+      "score": 1.1777,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 9,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "basement_temp",
+      "capability": "temperature",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-28T22:58:00+00:00",
+      "window_end": "2026-03-01T00:54:00+00:00",
+      "first_fire_ts": "2026-02-28T23:58:00+00:00",
+      "duration_hours": 1.933,
+      "first_fire_hour": 23,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 1.1091,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 360,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-19T23:38:00+00:00",
+      "window_end": "2026-02-20T11:58:00+00:00",
+      "first_fire_ts": "2026-02-20T00:38:00+00:00",
+      "duration_hours": 12.333,
+      "first_fire_hour": 0,
+      "first_fire_dow": 4,
+      "first_fire_month": 2,
+      "score": 2.1064,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 364,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-20T11:29:00+00:00",
+      "window_end": "2026-02-20T12:53:00+00:00",
+      "first_fire_ts": "2026-02-20T12:29:00+00:00",
+      "duration_hours": 1.4,
+      "first_fire_hour": 12,
+      "first_fire_dow": 4,
+      "first_fire_month": 2,
+      "score": 1.2103,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 369,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-20T13:05:00+00:00",
+      "window_end": "2026-02-20T15:50:00+00:00",
+      "first_fire_ts": "2026-02-20T14:05:00+00:00",
+      "duration_hours": 2.75,
+      "first_fire_hour": 14,
+      "first_fire_dow": 4,
+      "first_fire_month": 2,
+      "score": 1.752,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 374,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-20T15:09:00+00:00",
+      "window_end": "2026-02-20T17:56:00+00:00",
+      "first_fire_ts": "2026-02-20T16:09:00+00:00",
+      "duration_hours": 2.783,
+      "first_fire_hour": 16,
+      "first_fire_dow": 4,
+      "first_fire_month": 2,
+      "score": 1.442,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 385,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-20T17:17:00+00:00",
+      "window_end": "2026-02-20T21:29:00+00:00",
+      "first_fire_ts": "2026-02-20T18:17:00+00:00",
+      "duration_hours": 4.2,
+      "first_fire_hour": 18,
+      "first_fire_dow": 4,
+      "first_fire_month": 2,
+      "score": 1.8732,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 401,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-20T22:24:00+00:00",
+      "window_end": "2026-02-21T05:33:00+00:00",
+      "first_fire_ts": "2026-02-20T23:24:00+00:00",
+      "duration_hours": 7.15,
+      "first_fire_hour": 23,
+      "first_fire_dow": 4,
+      "first_fire_month": 2,
+      "score": 1.708,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 410,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-21T05:41:00+00:00",
+      "window_end": "2026-02-21T10:42:00+00:00",
+      "first_fire_ts": "2026-02-21T06:41:00+00:00",
+      "duration_hours": 5.017,
+      "first_fire_hour": 6,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 1.8041,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 419,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-21T10:01:00+00:00",
+      "window_end": "2026-02-21T12:58:00+00:00",
+      "first_fire_ts": "2026-02-21T11:01:00+00:00",
+      "duration_hours": 2.95,
+      "first_fire_hour": 11,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 1.618,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 424,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-21T14:05:00+00:00",
+      "window_end": "2026-02-21T16:06:00+00:00",
+      "first_fire_ts": "2026-02-21T15:05:00+00:00",
+      "duration_hours": 2.017,
+      "first_fire_hour": 15,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 1.4597,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 430,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-21T16:10:00+00:00",
+      "window_end": "2026-02-21T18:03:00+00:00",
+      "first_fire_ts": "2026-02-21T17:10:00+00:00",
+      "duration_hours": 1.883,
+      "first_fire_hour": 17,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 1.3088,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 439,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-21T18:38:00+00:00",
+      "window_end": "2026-02-21T22:21:00+00:00",
+      "first_fire_ts": "2026-02-21T19:38:00+00:00",
+      "duration_hours": 3.717,
+      "first_fire_hour": 19,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 2.0126,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 445,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-21T22:29:00+00:00",
+      "window_end": "2026-02-22T01:35:00+00:00",
+      "first_fire_ts": "2026-02-21T23:29:00+00:00",
+      "duration_hours": 3.1,
+      "first_fire_hour": 23,
+      "first_fire_dow": 5,
+      "first_fire_month": 2,
+      "score": 1.2975,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 447,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T00:51:00+00:00",
+      "window_end": "2026-02-22T01:58:00+00:00",
+      "first_fire_ts": "2026-02-22T01:51:00+00:00",
+      "duration_hours": 1.117,
+      "first_fire_hour": 1,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.1504,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 450,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T01:26:00+00:00",
+      "window_end": "2026-02-22T03:20:00+00:00",
+      "first_fire_ts": "2026-02-22T02:26:00+00:00",
+      "duration_hours": 1.9,
+      "first_fire_hour": 2,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.4004,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 456,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T02:50:00+00:00",
+      "window_end": "2026-02-22T05:10:00+00:00",
+      "first_fire_ts": "2026-02-22T03:50:00+00:00",
+      "duration_hours": 2.333,
+      "first_fire_hour": 3,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 2.0528,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 461,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T05:13:00+00:00",
+      "window_end": "2026-02-22T06:31:00+00:00",
+      "first_fire_ts": "2026-02-22T06:13:00+00:00",
+      "duration_hours": 1.3,
+      "first_fire_hour": 6,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.1871,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 467,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T07:00:00+00:00",
+      "window_end": "2026-02-22T08:30:00+00:00",
+      "first_fire_ts": "2026-02-22T08:00:00+00:00",
+      "duration_hours": 1.5,
+      "first_fire_hour": 8,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.3381,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 471,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T09:28:00+00:00",
+      "window_end": "2026-02-22T10:39:00+00:00",
+      "first_fire_ts": "2026-02-22T10:28:00+00:00",
+      "duration_hours": 1.183,
+      "first_fire_hour": 10,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.1566,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 479,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T11:15:00+00:00",
+      "window_end": "2026-02-22T14:03:00+00:00",
+      "first_fire_ts": "2026-02-22T12:15:00+00:00",
+      "duration_hours": 2.8,
+      "first_fire_hour": 12,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.6883,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 492,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T14:33:00+00:00",
+      "window_end": "2026-02-22T18:18:00+00:00",
+      "first_fire_ts": "2026-02-22T15:33:00+00:00",
+      "duration_hours": 3.75,
+      "first_fire_hour": 15,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.6893,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 499,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-22T21:07:00+00:00",
+      "window_end": "2026-02-22T22:57:00+00:00",
+      "first_fire_ts": "2026-02-22T22:07:00+00:00",
+      "duration_hours": 1.833,
+      "first_fire_hour": 22,
+      "first_fire_dow": 6,
+      "first_fire_month": 2,
+      "score": 1.3832,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 502,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-23T00:10:00+00:00",
+      "window_end": "2026-02-23T01:39:00+00:00",
+      "first_fire_ts": "2026-02-23T01:10:00+00:00",
+      "duration_hours": 1.483,
+      "first_fire_hour": 1,
+      "first_fire_dow": 0,
+      "first_fire_month": 2,
+      "score": 1.1398,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 504,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-23T00:59:00+00:00",
+      "window_end": "2026-02-23T02:06:00+00:00",
+      "first_fire_ts": "2026-02-23T01:59:00+00:00",
+      "duration_hours": 1.117,
+      "first_fire_hour": 1,
+      "first_fire_dow": 0,
+      "first_fire_month": 2,
+      "score": 1.119,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 510,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-23T01:26:00+00:00",
+      "window_end": "2026-02-23T03:25:00+00:00",
+      "first_fire_ts": "2026-02-23T02:26:00+00:00",
+      "duration_hours": 1.983,
+      "first_fire_hour": 2,
+      "first_fire_dow": 0,
+      "first_fire_month": 2,
+      "score": 1.3467,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 524,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-23T03:56:00+00:00",
+      "window_end": "2026-02-23T05:41:00+00:00",
+      "first_fire_ts": "2026-02-23T04:56:00+00:00",
+      "duration_hours": 1.75,
+      "first_fire_hour": 4,
+      "first_fire_dow": 0,
+      "first_fire_month": 2,
+      "score": 1.3144,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 549,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-23T10:50:00+00:00",
+      "window_end": "2026-02-23T12:12:00+00:00",
+      "first_fire_ts": "2026-02-23T11:50:00+00:00",
+      "duration_hours": 1.367,
+      "first_fire_hour": 11,
+      "first_fire_dow": 0,
+      "first_fire_month": 2,
+      "score": 1.2256,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 570,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-23T22:53:00+00:00",
+      "window_end": "2026-02-24T01:13:00+00:00",
+      "first_fire_ts": "2026-02-23T23:53:00+00:00",
+      "duration_hours": 2.333,
+      "first_fire_hour": 23,
+      "first_fire_dow": 0,
+      "first_fire_month": 2,
+      "score": 1.3038,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 597,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-24T09:10:00+00:00",
+      "window_end": "2026-02-24T10:44:00+00:00",
+      "first_fire_ts": "2026-02-24T10:10:00+00:00",
+      "duration_hours": 1.567,
+      "first_fire_hour": 10,
+      "first_fire_dow": 1,
+      "first_fire_month": 2,
+      "score": 1.283,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 788,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-02-24T22:21:00+00:00",
+      "window_end": "2026-02-24T23:27:00+00:00",
+      "first_fire_ts": "2026-02-24T23:21:00+00:00",
+      "duration_hours": 1.1,
+      "first_fire_hour": 23,
+      "first_fire_dow": 1,
+      "first_fire_month": 2,
+      "score": 1.1169,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 415,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-13T22:16:00+00:00",
+      "window_end": "2026-03-13T23:34:00+00:00",
+      "first_fire_ts": "2026-03-13T23:16:00+00:00",
+      "duration_hours": 1.3,
+      "first_fire_hour": 23,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.2682,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1310,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-19T14:13:00+00:00",
+      "window_end": "2026-03-19T15:18:00+00:00",
+      "first_fire_ts": "2026-03-19T15:13:00+00:00",
+      "duration_hours": 1.083,
+      "first_fire_hour": 15,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.1202,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2150,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-29T10:51:00+00:00",
+      "window_end": "2026-03-29T11:53:00+00:00",
+      "first_fire_ts": "2026-03-29T11:51:00+00:00",
+      "duration_hours": 1.033,
+      "first_fire_hour": 11,
+      "first_fire_dow": 6,
+      "first_fire_month": 3,
+      "score": 1.1066,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2167,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-07T15:02:00+00:00",
+      "window_end": "2026-04-07T16:10:00+00:00",
+      "first_fire_ts": "2026-04-07T16:02:00+00:00",
+      "duration_hours": 1.133,
+      "first_fire_hour": 16,
+      "first_fire_dow": 1,
+      "first_fire_month": 4,
+      "score": 1.1542,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2921,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-04-07T19:08:00+00:00",
+      "window_end": "2026-04-07T20:14:00+00:00",
+      "first_fire_ts": "2026-04-07T20:08:00+00:00",
+      "duration_hours": 1.1,
+      "first_fire_hour": 20,
+      "first_fire_dow": 1,
+      "first_fire_month": 4,
+      "score": 1.1328,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 690,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-21T23:07:00+00:00",
+      "window_end": "2026-03-26T00:07:00+00:00",
+      "first_fire_ts": "2026-03-22T00:07:00+00:00",
+      "duration_hours": 97.0,
+      "first_fire_hour": 0,
+      "first_fire_dow": 6,
+      "first_fire_month": 3,
+      "score": 4.7352,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 709,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-25T23:08:00+00:00",
+      "window_end": "2026-03-26T08:15:00+00:00",
+      "first_fire_ts": "2026-03-26T00:08:00+00:00",
+      "duration_hours": 9.117,
+      "first_fire_hour": 0,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 2.4273,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 711,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-26T07:55:00+00:00",
+      "window_end": "2026-03-26T09:02:00+00:00",
+      "first_fire_ts": "2026-03-26T08:55:00+00:00",
+      "duration_hours": 1.117,
+      "first_fire_hour": 8,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.1218,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 713,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-26T08:37:00+00:00",
+      "window_end": "2026-03-26T09:39:00+00:00",
+      "first_fire_ts": "2026-03-26T09:37:00+00:00",
+      "duration_hours": 1.033,
+      "first_fire_hour": 9,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.102,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 716,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-26T09:02:00+00:00",
+      "window_end": "2026-03-26T12:28:00+00:00",
+      "first_fire_ts": "2026-03-26T10:02:00+00:00",
+      "duration_hours": 3.433,
+      "first_fire_hour": 10,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.9144,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 722,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-26T11:52:00+00:00",
+      "window_end": "2026-03-26T14:23:00+00:00",
+      "first_fire_ts": "2026-03-26T12:52:00+00:00",
+      "duration_hours": 2.517,
+      "first_fire_hour": 12,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.5233,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 733,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-26T14:25:00+00:00",
+      "window_end": "2026-03-26T19:51:00+00:00",
+      "first_fire_ts": "2026-03-26T15:25:00+00:00",
+      "duration_hours": 5.433,
+      "first_fire_hour": 15,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.9321,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 739,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-26T19:11:00+00:00",
+      "window_end": "2026-03-26T22:03:00+00:00",
+      "first_fire_ts": "2026-03-26T20:11:00+00:00",
+      "duration_hours": 2.867,
+      "first_fire_hour": 20,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.6154,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 748,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-26T21:59:00+00:00",
+      "window_end": "2026-03-27T01:26:00+00:00",
+      "first_fire_ts": "2026-03-26T22:59:00+00:00",
+      "duration_hours": 3.45,
+      "first_fire_hour": 22,
+      "first_fire_dow": 3,
+      "first_fire_month": 3,
+      "score": 1.8466,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 753,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-27T01:25:00+00:00",
+      "window_end": "2026-03-27T04:18:00+00:00",
+      "first_fire_ts": "2026-03-27T02:25:00+00:00",
+      "duration_hours": 2.883,
+      "first_fire_hour": 2,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.9581,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 756,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-27T03:36:00+00:00",
+      "window_end": "2026-03-27T04:45:00+00:00",
+      "first_fire_ts": "2026-03-27T04:36:00+00:00",
+      "duration_hours": 1.15,
+      "first_fire_hour": 4,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.124,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 766,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-27T04:22:00+00:00",
+      "window_end": "2026-03-27T05:30:00+00:00",
+      "first_fire_ts": "2026-03-27T05:22:00+00:00",
+      "duration_hours": 1.133,
+      "first_fire_hour": 5,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.1435,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 772,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-27T08:55:00+00:00",
+      "window_end": "2026-03-27T10:51:00+00:00",
+      "first_fire_ts": "2026-03-27T09:55:00+00:00",
+      "duration_hours": 1.933,
+      "first_fire_hour": 9,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.4836,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 775,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-27T13:07:00+00:00",
+      "window_end": "2026-03-27T14:29:00+00:00",
+      "first_fire_ts": "2026-03-27T14:07:00+00:00",
+      "duration_hours": 1.367,
+      "first_fire_hour": 14,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.1797,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 786,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-27T14:22:00+00:00",
+      "window_end": "2026-03-27T16:33:00+00:00",
+      "first_fire_ts": "2026-03-27T15:22:00+00:00",
+      "duration_hours": 2.183,
+      "first_fire_hour": 15,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.5417,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2669,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-03-27T19:12:00+00:00",
+      "window_end": "2026-03-27T20:40:00+00:00",
+      "first_fire_ts": "2026-03-27T20:12:00+00:00",
+      "duration_hours": 1.467,
+      "first_fire_hour": 20,
+      "first_fire_dow": 4,
+      "first_fire_month": 3,
+      "score": 1.2972,
+      "threshold": 0.0
+    }
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3085,
+    "current_inferred_type": "statistical_anomaly",
+    "bundle": {
+      "sensor_id": "mains_voltage",
+      "capability": "voltage",
+      "detector_set": [
+        "recent_shift"
+      ],
+      "window_start": "2026-05-06T22:05:00+00:00",
+      "window_end": "2026-05-06T23:12:00+00:00",
+      "first_fire_ts": "2026-05-06T23:05:00+00:00",
+      "duration_hours": 1.117,
+      "first_fire_hour": 23,
+      "first_fire_dow": 2,
+      "first_fire_month": 5,
+      "score": 1.1196,
+      "threshold": 0.0
+    }
+  }
+]
