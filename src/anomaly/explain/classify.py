@@ -251,7 +251,8 @@ def _maybe_dqg_spike_override(alert: Alert, mag: dict | None,
 def classify(alert: Alert, mag: dict | None = None,
              temporal: dict | None = None,
              sustained_oor: bool = False,
-             sustained_dcs: bool = False) -> ClassificationResult:
+             sustained_dcs: bool = False,
+             time_of_day_pattern: bool = False) -> ClassificationResult:
     """Rich classifier result. `bundle.explain` feeds this into the
     structured `classification` block; `classify_type` wraps it.
 
@@ -325,6 +326,17 @@ def classify(alert: Alert, mag: dict | None = None,
             signal_classes=[],
         )
     s = Signals.from_alert(alert, mag=mag)
+    if time_of_day_pattern and "duty" in s.classes and s.direction == "+":
+        # Iter 9: cross-day hour-consistent DCS firing. Chain hour
+        # appears on both weekdays and weekends in the 14d window —
+        # that's a daily calendar pattern (kettle 10-12 daily, label
+        # spans multiple weeks). Overrides the per-chain is_weekend
+        # routing that would push weekend chains to weekend_anomaly.
+        return ClassificationResult(
+            type="time_of_day",
+            confidence="high",
+            signal_classes=sorted(s.classes | {"calendar"}),
+        )
     if sustained_dcs and "duty" in s.classes and s.direction == "+":
         # Iter 4: cross-chain hour-spread says DCS is firing across many
         # hours-of-day on this sensor in a 14d window — that's a sustained
@@ -358,10 +370,12 @@ def classify(alert: Alert, mag: dict | None = None,
 def classify_type(alert: Alert, mag: dict | None = None,
                   temporal: dict | None = None,
                   sustained_oor: bool = False,
-                  sustained_dcs: bool = False) -> str:
+                  sustained_dcs: bool = False,
+                  time_of_day_pattern: bool = False) -> str:
     return classify(alert, mag=mag, temporal=temporal,
                     sustained_oor=sustained_oor,
-                    sustained_dcs=sustained_dcs).type
+                    sustained_dcs=sustained_dcs,
+                    time_of_day_pattern=time_of_day_pattern).type
 
 
 def _dispatch(s: Signals) -> str:

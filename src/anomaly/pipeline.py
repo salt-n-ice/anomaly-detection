@@ -291,6 +291,41 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
             return False
         return max(hour_counts.values()) / n < SUSTAINED_DCS_MAX_HOUR_PCT
 
+    def _is_time_of_day_pattern(a: Alert) -> bool:
+        # Iter 9: chain hour-of-day appears on BOTH weekdays and
+        # weekends in the 14d window — that's a daily calendar
+        # pattern (kettle 10-12 daily) which fires DCS every day at
+        # the same hour. The chain itself might be a weekend day
+        # within a multi-week label, so the per-chain
+        # `is_weekend` check would route to weekend_anomaly. The
+        # cross-day hour-of-day signature corrects that to
+        # time_of_day.
+        sid = a.sensor_id
+        ts_list = dcs_ts_by_sensor.get(sid)
+        if not ts_list:
+            return False
+        ts = a.first_fire_ts or a.timestamp
+        target_hour = ts.hour
+        lo = ts - SUSTAINED_DCS_WINDOW
+        hi = ts + SUSTAINED_DCS_WINDOW
+        l = bisect.bisect_left(ts_list, lo)
+        r = bisect.bisect_right(ts_list, hi)
+        weekday_count = 0
+        weekend_count = 0
+        for i in range(l, r):
+            t = ts_list[i]
+            # ±1h band to absorb cooldown jitter on the same daily peak
+            if abs(t.hour - target_hour) > 1:
+                # also handle 23 ↔ 0 wrap
+                if not (target_hour == 0 and t.hour == 23) and \
+                   not (target_hour == 23 and t.hour == 0):
+                    continue
+            if t.dayofweek >= 5:
+                weekend_count += 1
+            else:
+                weekday_count += 1
+        return weekday_count >= 2 and weekend_count >= 1
+
     rows = []
     for a in alerts:
         start = a.window_start or a.timestamp
@@ -318,9 +353,12 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         sustained_oor = (a.anomaly_type == "out_of_range"
                          and _is_sustained_oor(a))
         detectors = set((a.detector or "").split("+"))
-        sustained_dcs = bool(detectors & _DCS_DETECTORS) and _is_sustained_dcs(a)
+        is_dcs = bool(detectors & _DCS_DETECTORS)
+        sustained_dcs = is_dcs and _is_sustained_dcs(a)
+        time_of_day_pattern = is_dcs and _is_time_of_day_pattern(a)
         inferred_type = classify_type(a, sustained_oor=sustained_oor,
-                                       sustained_dcs=sustained_dcs)
+                                       sustained_dcs=sustained_dcs,
+                                       time_of_day_pattern=time_of_day_pattern)
         inferred_class = type_to_class(inferred_type)
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),
