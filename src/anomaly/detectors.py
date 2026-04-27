@@ -546,8 +546,14 @@ class DutyCycleShift:
         # Per-bucket calendar baseline (populated by fit). Empty until fit
         # runs; classify falls back to "normal" for unfitted instances.
         self._bucket_typical: dict[tuple[bool, int], str] = {}
-        # Live: (ts, above) pairs in rolling window
+        # Live: (ts, above) pairs in rolling window. Duty over the window
+        # is maintained incrementally via running sums — appending a tick
+        # adds the (prev → current) interval; evicting an old tick subtracts
+        # the (old → next-oldest) interval. Cuts per-tick cost from O(N)
+        # window scan to O(1) (modulo eviction loops, amortized O(1) too).
         self._window: deque = deque()
+        self._above_s_running: float = 0.0
+        self._total_s_running: float = 0.0
         self._last_fire_ts: pd.Timestamp | None = None
 
     def _compute_bootstrap_windows(self, rows):
@@ -656,28 +662,36 @@ class DutyCycleShift:
         if v is None or (isinstance(v, float) and math.isnan(v)):
             return []
         above = float(v) > self.on_threshold
+        # Incremental running-sum update: the new tick closes the interval
+        # from the previous tick to itself, contributing prev_above × dt
+        # to above_s and dt to total_s. Eviction below subtracts the
+        # symmetric contribution from the oldest interval.
+        if self._window:
+            ts_prev, above_prev = self._window[-1]
+            dt = (ts - ts_prev).total_seconds()
+            self._total_s_running += dt
+            if above_prev:
+                self._above_s_running += dt
         self._window.append((ts, above))
         cutoff = ts - pd.Timedelta(seconds=self.window_s)
         while self._window and self._window[0][0] < cutoff:
-            self._window.popleft()
-        # Compute duty cycle on window: sum of dt where state is ON / total dt
+            ts_old, above_old = self._window.popleft()
+            if self._window:
+                ts_next = self._window[0][0]
+                dt_old = (ts_next - ts_old).total_seconds()
+                self._total_s_running -= dt_old
+                if above_old:
+                    self._above_s_running -= dt_old
+            else:
+                # Window emptied; reset running sums to clean zero (avoid
+                # accumulated float drift across many evictions).
+                self._above_s_running = 0.0
+                self._total_s_running = 0.0
         if len(self._window) < 10:
             return []
-        above_s = 0.0
-        total_s = 0.0
-        prev_ts = None
-        prev_above = False
-        for wts, wabove in self._window:
-            if prev_ts is not None:
-                dt = (wts - prev_ts).total_seconds()
-                total_s += dt
-                if prev_above:
-                    above_s += dt
-            prev_ts = wts
-            prev_above = wabove
-        if total_s <= 0:
+        if self._total_s_running <= 0:
             return []
-        duty = above_s / total_s
+        duty = self._above_s_running / self._total_s_running
         z = (duty - self._boot_median) / self._boot_mad
         cooldown_ok = (self._last_fire_ts is None
                        or (ts - self._last_fire_ts).total_seconds() >= self.cooldown_s)
