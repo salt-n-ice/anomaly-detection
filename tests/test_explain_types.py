@@ -8,7 +8,7 @@ def test_user_behavior_types_includes_canonical_set():
                 "degradation_trajectory", "frequency_change",
                 "seasonality_loss", "time_of_day", "weekend_anomaly",
                 "month_shift", "seasonal_mismatch",
-                "water_leak_sustained", "unusual_occupancy"}
+                "water_leak_sustained"}
     assert USER_BEHAVIOR_TYPES == frozenset(expected)
 
 

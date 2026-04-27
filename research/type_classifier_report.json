@@ -1,0 +1,230 @@
+{
+  "min_samples": 5,
+  "kept_classes": [
+    "calibration_drift",
+    "degradation_trajectory",
+    "dip",
+    "level_shift",
+    "month_shift",
+    "time_of_day",
+    "trend",
+    "unusual_occupancy",
+    "water_leak_sustained",
+    "weekend_anomaly"
+  ],
+  "n_training_rows": 353,
+  "cv_rows": [
+    {
+      "scenario": "holdout_household_45d",
+      "model": "random_forest",
+      "weighted_f1": 0.8685,
+      "n_test": 45
+    },
+    {
+      "scenario": "household_120d",
+      "model": "random_forest",
+      "weighted_f1": 0.5535,
+      "n_test": 142
+    },
+    {
+      "scenario": "household_60d",
+      "model": "random_forest",
+      "weighted_f1": 0.9582,
+      "n_test": 58
+    },
+    {
+      "scenario": "household_dense_90d",
+      "model": "random_forest",
+      "weighted_f1": 0.5571,
+      "n_test": 26
+    },
+    {
+      "scenario": "household_sparse_60d",
+      "model": "random_forest",
+      "weighted_f1": 0.7963,
+      "n_test": 9
+    },
+    {
+      "scenario": "leak_30d",
+      "model": "random_forest",
+      "weighted_f1": 0.6667,
+      "n_test": 6
+    },
+    {
+      "scenario": "single_outlet_fridge_30d",
+      "model": "random_forest",
+      "weighted_f1": 0.5714,
+      "n_test": 5
+    },
+    {
+      "scenario": "training_patterns_60d",
+      "model": "decision_tree",
+      "weighted_f1": 0.279,
+      "n_test": 27
+    },
+    {
+      "scenario": "training_rich_60d",
+      "model": "random_forest",
+      "weighted_f1": 0.1792,
+      "n_test": 35
+    }
+  ],
+  "per_class": {
+    "calibration_drift": {
+      "precision": 0.36363636363636365,
+      "recall": 0.3333333333333333,
+      "f1-score": 0.34782608695652173,
+      "support": 12
+    },
+    "degradation_trajectory": {
+      "precision": 0.18604651162790697,
+      "recall": 0.47058823529411764,
+      "f1-score": 0.26666666666666666,
+      "support": 17
+    },
+    "dip": {
+      "precision": 0.8333333333333334,
+      "recall": 0.4166666666666667,
+      "f1-score": 0.5555555555555556,
+      "support": 12
+    },
+    "level_shift": {
+      "precision": 0.5873015873015873,
+      "recall": 0.5362318840579711,
+      "f1-score": 0.5606060606060606,
+      "support": 69
+    },
+    "month_shift": {
+      "precision": 0.4,
+      "recall": 0.2777777777777778,
+      "f1-score": 0.32786885245901637,
+      "support": 36
+    },
+    "time_of_day": {
+      "precision": 0.911504424778761,
+      "recall": 0.9279279279279279,
+      "f1-score": 0.9196428571428571,
+      "support": 111
+    },
+    "trend": {
+      "precision": 0.08333333333333333,
+      "recall": 0.125,
+      "f1-score": 0.1,
+      "support": 16
+    },
+    "unusual_occupancy": {
+      "precision": 0.9333333333333333,
+      "recall": 1.0,
+      "f1-score": 0.9655172413793104,
+      "support": 14
+    },
+    "water_leak_sustained": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 11
+    },
+    "weekend_anomaly": {
+      "precision": 0.42857142857142855,
+      "recall": 0.32727272727272727,
+      "f1-score": 0.3711340206185567,
+      "support": 55
+    }
+  },
+  "macro_avg": {
+    "precision": 0.5727060315916048,
+    "recall": 0.5414798552330521,
+    "f1-score": 0.5414817341384545
+  },
+  "weighted_avg": {
+    "precision": 0.6305910943540831,
+    "recall": 0.6005665722379604,
+    "f1-score": 0.6075608486402524
+  },
+  "feature_importance": [
+    {
+      "feature": "score_over_thresh",
+      "importance": 0.12732375176061825
+    },
+    {
+      "feature": "sensor_code",
+      "importance": 0.12030387505104122
+    },
+    {
+      "feature": "duration_log",
+      "importance": 0.11146022668955974
+    },
+    {
+      "feature": "pca_err_over_thr",
+      "importance": 0.08587814360665716
+    },
+    {
+      "feature": "arch_code",
+      "importance": 0.07115272075376057
+    },
+    {
+      "feature": "capability_code",
+      "importance": 0.0655340712128446
+    },
+    {
+      "feature": "month",
+      "importance": 0.062046785731524196
+    },
+    {
+      "feature": "cusum_sp_over_sigma",
+      "importance": 0.05978878553202673
+    },
+    {
+      "feature": "hour",
+      "importance": 0.0564342341027934
+    },
+    {
+      "feature": "det_sub_pca",
+      "importance": 0.043682876952871236
+    },
+    {
+      "feature": "det_temporal_profile",
+      "importance": 0.03326986163651728
+    },
+    {
+      "feature": "cusum_sn_over_sigma",
+      "importance": 0.02847689547967363
+    },
+    {
+      "feature": "drift_dir",
+      "importance": 0.027714376955609805
+    },
+    {
+      "feature": "det_recent_shift",
+      "importance": 0.027534198213759072
+    },
+    {
+      "feature": "det_multivariate_pca",
+      "importance": 0.026911340902275697
+    },
+    {
+      "feature": "dow",
+      "importance": 0.02252039042819803
+    },
+    {
+      "feature": "det_cusum",
+      "importance": 0.021197441113580504
+    },
+    {
+      "feature": "is_weekend",
+      "importance": 0.008298222196749418
+    },
+    {
+      "feature": "det_data_quality_gate",
+      "importance": 0.00047180167993955913
+    },
+    {
+      "feature": "det_state_transition",
+      "importance": 0.0
+    },
+    {
+      "feature": "temporal_z",
+      "importance": 0.0
+    }
+  ]
+}

@@ -319,8 +319,6 @@ def _dispatch(s: Signals) -> str:
 def _classify_state(s: Signals) -> str:
     if s.capability == "water":
         return "water_leak_sustained"
-    if s.capability == "motion":
-        return "unusual_occupancy"
     return "statistical_anomaly"
 
 

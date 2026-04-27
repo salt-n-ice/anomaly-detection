@@ -672,12 +672,9 @@ class StateTransition:
     truthy. Extracted from inline code in pipeline.py."""
     name = "state_transition"
     live = True
-    _MOTION_IDLE_LOOKBACK_MIN_GAP = pd.Timedelta(minutes=45)
-    _MOTION_IDLE_LOOKBACK_CAP = pd.Timedelta(minutes=17)
 
     def __init__(self, config: SensorConfig):
         self.config = config
-        self._last_trigger_ts: pd.Timestamp | None = None
 
     def fit(self, rows): pass
 
@@ -689,32 +686,11 @@ class StateTransition:
         # exact start fails `_overlaps`' strict-less-than check (`ts < ts` is
         # False) and would not count as overlapping a label that starts at
         # the same tick. The 1-minute tail makes overlap semantically correct.
-        w0 = None
-        w1 = None
-        if (self.config.capability == "motion"
-                and self._last_trigger_ts is not None):
-            gap = ts - self._last_trigger_ts
-            if gap >= self._MOTION_IDLE_LOOKBACK_MIN_GAP:
-                # First trigger after a quiet spell: let the alert cover a
-                # bounded slice of the idle gap so midnight / regime-boundary
-                # motion labels don't require multi-day pre-label fused chains
-                # just to score near-zero onset latency.
-                w0 = max(self._last_trigger_ts, ts - self._MOTION_IDLE_LOOKBACK_CAP)
-                w1 = ts + pd.Timedelta(minutes=1)
-        self._last_trigger_ts = ts
-        # Capability-appropriate type: water → water_leak_sustained,
-        # motion → unusual_occupancy. Previous hardcoded "water_leak_sustained"
-        # on every trigger was correct-by-class (both user_behavior) but
-        # wrong-by-type — surfaced by NAB's type-matching metric where a motion
-        # trigger claiming "water_leak_sustained" is a confidently wrong
-        # explanation and counts as FP.
         if self.config.capability == "water":
             atype = "water_leak_sustained"
-        elif self.config.capability == "motion":
-            atype = "unusual_occupancy"
         else:
             atype = self.name  # fallback — shouldn't occur at this stage
         return [Alert(self.config.sensor_id, self.config.capability, ts,
                       self.name, 1.0, 1.0, atype, 1.0,
-                      feat.get("state"), w0, w1,
+                      feat.get("state"), None, None,
                       [{"detector": self.name, "state": feat.get("state")}])]

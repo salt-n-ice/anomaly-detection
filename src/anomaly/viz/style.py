@@ -47,7 +47,6 @@ TYPE_FRIENDLY: dict[str, str] = {
     "frequency_change":       "frequency change",
     "month_shift":            "long-term shift",
     "degradation_trajectory": "gradual degradation",
-    "unusual_occupancy":      "unusual occupancy",
     "stuck_at":               "frozen reading",
     "dropout":                "dropout",
     "spike":                  "spike",
@@ -75,13 +74,13 @@ def type_friendly(t: str) -> str:
 
 
 _PLACEMENT_PREFIXES = frozenset({
-    "outlet", "mains", "basement", "bedroom", "kitchen", "livingroom", "bathroom",
+    "outlet", "mains", "basement", "kitchen", "livingroom", "bathroom",
 })
-_CAPABILITY_SUFFIXES = ("_power", "_voltage", "_leak", "_motion", "_temperature")
+_CAPABILITY_SUFFIXES = ("_power", "_voltage", "_leak", "_temperature")
 _ACRONYM_OVERRIDES = {"tv": "TV", "ac": "AC", "ev": "EV", "led": "LED"}
 # Capability suffixes whose word denotes a sensor *purpose* (not a direct
 # measurement), so we tack on " sensor" for stakeholder readability.
-_NEEDS_SENSOR_SUFFIX = frozenset({"_leak", "_motion"})
+_NEEDS_SENSOR_SUFFIX = frozenset({"_leak"})
 
 
 def _titlecase_token(tok: str) -> str:
@@ -95,7 +94,7 @@ def sensor_friendly(sensor_id: str,
     Algorithm: strip capability suffix, split on '_', reorder placement prefix
     to the back, title-case (preserving known acronyms). Single-placement
     tokens (e.g., 'mains_voltage') reconstruct as "Placement <capability>",
-    with " sensor" appended for purpose-suffixes like _leak / _motion.
+    with " sensor" appended for purpose-suffixes like _leak.
 
     Override via the optional `overrides` dict (sensor_id -> friendly).
     """

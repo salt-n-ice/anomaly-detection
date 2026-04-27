@@ -1,0 +1,8633 @@
+[
+  {
+    "scenario": "household_60d",
+    "row_idx": 0,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 3,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 4,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 6,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 7,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 8,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 9,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 82,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 221,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 230,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 255,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 268,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 274,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 280,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 290,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 309,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 315,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 362,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 378,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 387,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 392,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 402,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 461,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 492,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 497,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 534,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 541,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 553,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 560,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 563,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 594,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 616,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 642,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 680,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 730,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 779,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 814,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 834,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 870,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 924,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 925,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 930,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 950,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 965,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1002,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1025,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1034,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1053,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1132,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1140,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1150,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1179,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1194,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1213,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1272,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1337,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1339,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1364,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1385,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1408,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1426,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1480,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1482,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1485,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1506,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1513,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1532,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1541,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1564,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1594,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1601,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1604,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1615,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1630,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1637,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1658,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1661,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1675,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1682,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1703,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1708,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1711,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1716,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1721,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1738,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1739,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1744,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1751,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1760,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1767,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1778,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1784,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1797,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1804,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1810,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1823,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1829,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1832,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1843,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1844,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1847,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1868,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1882,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1891,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1896,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1903,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1906,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1912,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1922,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1933,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1940,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1943,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1958,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 1965,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2004,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2010,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2017,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2020,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2035,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2038,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2048,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2056,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2101,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2106,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2112,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2144,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2222,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2325,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2392,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2441,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2448,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2470,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2471,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2480,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2497,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2498,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2499,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_60d",
+    "row_idx": 2500,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 136,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 186,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 198,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 227,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 269,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 282,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 337,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 352,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 357,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 379,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 447,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 452,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 528,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 591,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 592,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 641,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 674,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 689,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 702,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 740,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 777,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 813,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 912,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 926,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 932,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 947,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 971,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 984,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1007,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1035,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1076,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1133,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1172,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1213,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1253,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1272,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1315,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1330,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1362,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1377,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1412,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1418,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1433,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1461,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1505,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1532,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1535,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1554,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1558,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1594,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1604,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1610,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1612,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1628,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1635,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1643,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1652,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1659,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1665,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1666,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1700,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1704,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1709,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1714,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1717,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1719,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1724,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1734,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1735,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1741,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1745,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1747,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1762,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1777,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1784,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1799,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1806,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1813,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1818,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1837,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1850,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1858,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1868,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1875,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1921,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1930,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 1957,
+    "type": "level_shift",
+    "confidence": 0.65,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2035,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2096,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2107,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2115,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2124,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2126,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2185,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2211,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2229,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2257,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2295,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2321,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2402,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2411,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2419,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2425,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2484,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2487,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2505,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2583,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2592,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2604,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2633,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2650,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2656,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2687,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2743,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2754,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2757,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2771,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2857,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2874,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2881,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2924,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2945,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 2970,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3055,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3074,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3076,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3137,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3140,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3168,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3252,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3309,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3337,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3400,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3408,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3435,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3473,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3488,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3495,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3499,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3501,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3511,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3517,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3526,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3540,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3608,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3690,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3696,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3705,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3714,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3716,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3796,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3807,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3855,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3870,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3883,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3897,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3951,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3965,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 3981,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4044,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4053,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4072,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4079,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4090,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4105,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4154,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4159,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4178,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4242,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4312,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4424,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4433,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4447,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4454,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4468,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4480,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4507,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4520,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4533,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4542,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4545,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4550,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4555,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4556,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4573,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4582,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4591,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4598,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4605,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4614,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4630,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4631,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4634,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4638,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4730,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4746,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4753,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4796,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4892,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4895,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4902,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4925,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 4986,
+    "type": "level_shift",
+    "confidence": 0.65,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5002,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5005,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5015,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5064,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5076,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5086,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5145,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5156,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5166,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5176,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5240,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5284,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5347,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5418,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5457,
+    "type": "month_shift",
+    "confidence": 0.7,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5472,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5527,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5542,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5547,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5562,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5566,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5570,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5583,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5587,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5596,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5624,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5627,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5652,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5665,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5733,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5734,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5754,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5778,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5815,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5848,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5872,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5915,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5926,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5939,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5971,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 5980,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6046,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6058,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6075,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6093,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6108,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6117,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6122,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6123,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6127,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6136,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6141,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6145,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6151,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6168,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6175,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6192,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6205,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6218,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6233,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6238,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6243,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6249,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6253,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6262,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6267,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6271,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6286,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6295,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6306,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6317,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6325,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6328,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6334,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6335,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6354,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6355,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6364,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6378,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6397,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6404,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6416,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6432,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6436,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6438,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6447,
+    "type": "level_shift",
+    "confidence": 0.65,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6452,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6456,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6462,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6468,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6486,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6493,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6504,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6513,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6520,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6522,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6528,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6534,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6539,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6540,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6552,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6555,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6558,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6564,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6569,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6575,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6586,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6599,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6615,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6618,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6637,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6654,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6659,
+    "type": "level_shift",
+    "confidence": 0.65,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6675,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6744,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6795,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6802,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6818,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6832,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6835,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6861,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6869,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6875,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6888,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6902,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6928,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6933,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6936,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6940,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6944,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6951,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6953,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6959,
+    "type": "level_shift",
+    "confidence": 0.65,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6963,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6978,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6983,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6989,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 6994,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7001,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7007,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7011,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7020,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7029,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7034,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7039,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7040,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7045,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7104,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7138,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7213,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7241,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7257,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7272,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7353,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7358,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7359,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7364,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7425,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7439,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7457,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7492,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7519,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7534,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7553,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7608,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7611,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7619,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7633,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7725,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7732,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7772,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7815,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7817,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7820,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7885,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7914,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7947,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7981,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 7984,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8058,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8085,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8092,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8107,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8165,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8174,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8175,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8176,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_120d",
+    "row_idx": 8177,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 3,
+    "type": "dip",
+    "confidence": 0.75,
+    "reasoning": ""
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 4,
+    "type": "dip",
+    "confidence": 0.75,
+    "reasoning": ""
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 5,
+    "type": "dip",
+    "confidence": 0.75,
+    "reasoning": ""
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 7,
+    "type": "dip",
+    "confidence": 0.75,
+    "reasoning": ""
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 8,
+    "type": "dip",
+    "confidence": 0.75,
+    "reasoning": ""
+  },
+  {
+    "scenario": "leak_30d",
+    "row_idx": 9,
+    "type": "dip",
+    "confidence": 0.75,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 84,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 123,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 128,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 150,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 173,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 201,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 209,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 251,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 306,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 315,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 320,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 371,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 373,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 376,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 381,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 386,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 395,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 398,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 414,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 421,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 424,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 433,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 438,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 444,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 451,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 454,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 460,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 462,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 465,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 471,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 476,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 482,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 486,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 494,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 496,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 508,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 515,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 518,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 520,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 526,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 540,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 541,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 566,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 587,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 605,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 615,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 636,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 638,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 645,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 689,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 696,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 704,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 715,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 731,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 767,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 792,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 812,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 816,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 818,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 819,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "holdout_household_45d",
+    "row_idx": 820,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 0,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 1,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 2,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 3,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 4,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 5,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 6,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 7,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 8,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 9,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 10,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 11,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 12,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 13,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 14,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 15,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 16,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 17,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 18,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 19,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 20,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 21,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 22,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 23,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 24,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 25,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 26,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 27,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 28,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 29,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 30,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 31,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 32,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 33,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 34,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 35,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 36,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 37,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 38,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 39,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 40,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 41,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 42,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 43,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 44,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 45,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 46,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 47,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 48,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 49,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 50,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 51,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 52,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 53,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 54,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 55,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 56,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 57,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 58,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 59,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 60,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 61,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 62,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 63,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 64,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 65,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 66,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 67,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 68,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 69,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 70,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 71,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 72,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 73,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 74,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 75,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 76,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 77,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 78,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 79,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 80,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 81,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 82,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 83,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 84,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 85,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 86,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 87,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 88,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 89,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 90,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 91,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 92,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 93,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 94,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 95,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 96,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 97,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 98,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 99,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 100,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 101,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 102,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 103,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 104,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 105,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 106,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 107,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 108,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 109,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 110,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 111,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 112,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 113,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 114,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 115,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 116,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 117,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 118,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 119,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 120,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 121,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 122,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 123,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 124,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 125,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 126,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 127,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 131,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 139,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 140,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 141,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 142,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 143,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 144,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 145,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 146,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 147,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 148,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 149,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 150,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 151,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 152,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 153,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 154,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 155,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 156,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 157,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 158,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 159,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 160,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 161,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 162,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 164,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 165,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 166,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 167,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 168,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 169,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 170,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 171,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 172,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 173,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 174,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 175,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 176,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 177,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 178,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 179,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 180,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 181,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 182,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 183,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 184,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 185,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 186,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 187,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 188,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 189,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 190,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 191,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 192,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 193,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 194,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 195,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 196,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 197,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "single_outlet_fridge_30d",
+    "row_idx": 198,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 173,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 183,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 194,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 204,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 255,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 265,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 333,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 381,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 388,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 424,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 467,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 536,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 549,
+    "type": "level_shift",
+    "confidence": 0.65,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 613,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 639,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 746,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 815,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 826,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 884,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 993,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1011,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1101,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1106,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1127,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1172,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1212,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1335,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1456,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1466,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1488,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1547,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1584,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1638,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1655,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1686,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1730,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1757,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1779,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1822,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1860,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1928,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 1964,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2107,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2133,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2192,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2209,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2291,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2334,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2391,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2569,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2585,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2608,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2689,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2711,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2760,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2770,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2851,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2974,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_sparse_60d",
+    "row_idx": 2975,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 0,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 4,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 5,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 6,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 7,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 8,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 9,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 10,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 11,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 12,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 13,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 14,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 25,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 45,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 49,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 54,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 99,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 103,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 123,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 127,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 130,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 140,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 145,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 150,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 175,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 179,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 197,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 200,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 224,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 231,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 235,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 249,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 269,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 273,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 293,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 302,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 306,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 317,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 334,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 341,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 373,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 421,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 447,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 449,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 457,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 476,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 496,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 500,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 528,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 532,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 534,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 536,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 540,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 547,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 555,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 568,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 571,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 573,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 578,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 582,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 587,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 595,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 600,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 609,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 612,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 662,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 691,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 700,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 704,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 718,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 721,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 726,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 741,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 743,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 747,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 752,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 756,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 762,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 765,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 771,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 773,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 780,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 783,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 787,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 790,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 796,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 798,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 800,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 802,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 804,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 807,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 810,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 812,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 823,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 825,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 830,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 839,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 844,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 847,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 857,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 861,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 864,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 867,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 875,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 879,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 882,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 907,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 943,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 955,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 977,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 982,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 991,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1003,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1016,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1031,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1035,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1039,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1052,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1061,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1067,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1069,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1074,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1079,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1096,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1111,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1120,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1123,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1128,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1151,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1154,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1166,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1186,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1190,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1196,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1202,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1206,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1217,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1224,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1233,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1244,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1256,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1267,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1269,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1276,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1279,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1293,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1301,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1303,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1313,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1319,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1321,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1324,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1331,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1336,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1342,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1346,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1349,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1378,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1395,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1413,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1420,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1425,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1431,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1433,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1450,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1456,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1460,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1479,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1487,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1492,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1522,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1528,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1530,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1534,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1538,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1540,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1545,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1548,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1570,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1587,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1591,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1621,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1633,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1637,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1654,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1668,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1673,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1678,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1692,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1696,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1697,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1701,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1704,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1710,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1717,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1726,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1731,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1750,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1753,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1757,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1761,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1779,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1794,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1823,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1825,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1829,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1839,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1842,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1844,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1850,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1854,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1859,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1865,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1867,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1875,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1880,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1883,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1916,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1919,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1934,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1950,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1956,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1965,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 1979,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2012,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2014,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2023,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2029,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2036,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2040,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2043,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2047,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2063,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2071,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2075,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2085,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2094,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2104,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2109,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2114,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2144,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2153,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2157,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2174,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2179,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2198,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2210,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2225,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2228,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2229,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2234,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2236,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2240,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2246,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2252,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2261,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2269,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2273,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2288,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2294,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2312,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2332,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2338,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2347,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2351,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2356,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2361,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2373,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2392,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2394,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2398,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2405,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2410,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2416,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2423,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2428,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2431,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2435,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2452,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2457,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2475,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2483,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2510,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2512,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2520,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2534,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2560,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2570,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2573,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2578,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2582,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2613,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2618,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2621,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2628,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2652,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2657,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2669,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2670,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2685,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2711,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2720,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2724,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2739,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2750,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2760,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2765,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2768,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2772,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2776,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2779,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2784,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2786,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2789,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2796,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2818,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2824,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2838,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2852,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2854,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2879,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2888,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2898,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2931,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2941,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2943,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2947,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2958,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2965,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2969,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2978,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2982,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2989,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 2995,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3034,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3043,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3051,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3054,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3059,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3065,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3067,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3070,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3075,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3095,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3107,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3109,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3113,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3143,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3146,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3150,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3159,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3173,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3182,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3193,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3201,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3206,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3209,
+    "type": "weekend_anomaly",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3215,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3221,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3243,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3247,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3256,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3260,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3264,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3268,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3282,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3286,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3288,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3292,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3294,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3297,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3313,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3315,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3322,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3326,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3341,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3353,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3364,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3368,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3411,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3416,
+    "type": "level_shift",
+    "confidence": 0.5,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3435,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3454,
+    "type": "time_of_day",
+    "confidence": 0.6,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3455,
+    "type": "statistical_anomaly",
+    "confidence": 0.3,
+    "reasoning": ""
+  },
+  {
+    "scenario": "household_dense_90d",
+    "row_idx": 3456,
+    "type": "calibration_drift",
+    "confidence": 0.8,
+    "reasoning": ""
+  }
+]

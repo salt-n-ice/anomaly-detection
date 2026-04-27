@@ -19,6 +19,7 @@ def group_alerts(alerts: list[Alert]) -> Alert:
     w0 = min((a.window_start or a.timestamp) for a in alerts)
     w1 = max((a.window_end or a.timestamp) for a in alerts)
     first_fire = min(a.timestamp for a in alerts)
+    fire_ticks = tuple(sorted(a.timestamp for a in alerts))
     names = "+".join(sorted({a.detector for a in alerts}))
     ctx: list[dict] = []
     for a in alerts:
@@ -26,7 +27,7 @@ def group_alerts(alerts: list[Alert]) -> Alert:
             ctx.extend(a.context)
     return Alert(top.sensor_id, top.capability, top.timestamp, names,
                  top.score, top.threshold, top.anomaly_type, top.raw_value,
-                 top.state, w0, w1, ctx or None, first_fire)
+                 top.state, w0, w1, ctx or None, first_fire, fire_ticks)
 
 
 class DefaultAlertFuser:

@@ -1,0 +1,577 @@
+{
+  "timestamp": "2026-04-24T08:22:21.845825+00:00",
+  "scenarios_included": [
+    "household_60d",
+    "household_120d",
+    "leak_30d",
+    "holdout_household_45d",
+    "single_outlet_fridge_30d",
+    "household_sparse_60d",
+    "household_dense_90d"
+  ],
+  "anomaly_types": {
+    "calibration_drift": {
+      "count": 5,
+      "label_class_breakdown": {
+        "sensor_fault": 5
+      },
+      "duration_buckets": {
+        "long": 5
+      },
+      "archetypes_seen": [
+        "CONTINUOUS"
+      ],
+      "sensors_seen": [
+        "basement_temp",
+        "mains_voltage"
+      ]
+    },
+    "degradation_trajectory": {
+      "count": 2,
+      "label_class_breakdown": {
+        "user_behavior": 2
+      },
+      "duration_buckets": {
+        "long": 2
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_fridge_power"
+      ]
+    },
+    "dip": {
+      "count": 3,
+      "label_class_breakdown": {
+        "user_behavior": 3
+      },
+      "duration_buckets": {
+        "medium": 3
+      },
+      "archetypes_seen": [
+        "CONTINUOUS"
+      ],
+      "sensors_seen": [
+        "basement_temp"
+      ]
+    },
+    "dropout": {
+      "count": 3,
+      "label_class_breakdown": {
+        "sensor_fault": 3
+      },
+      "duration_buckets": {
+        "short": 3
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_fridge_power"
+      ]
+    },
+    "frequency_change": {
+      "count": 6,
+      "label_class_breakdown": {
+        "user_behavior": 6
+      },
+      "duration_buckets": {
+        "medium": 6
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_fridge_power",
+        "outlet_kettle_power"
+      ]
+    },
+    "level_shift": {
+      "count": 16,
+      "label_class_breakdown": {
+        "user_behavior": 16
+      },
+      "duration_buckets": {
+        "long": 16
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_fridge_power",
+        "outlet_kettle_power",
+        "outlet_tv_power"
+      ]
+    },
+    "month_shift": {
+      "count": 6,
+      "label_class_breakdown": {
+        "user_behavior": 6
+      },
+      "duration_buckets": {
+        "long": 6
+      },
+      "archetypes_seen": [
+        "BINARY",
+        "CONTINUOUS"
+      ],
+      "sensors_seen": [
+        "bedroom_motion",
+        "mains_voltage"
+      ]
+    },
+    "reporting_rate_change": {
+      "count": 2,
+      "label_class_breakdown": {
+        "sensor_fault": 2
+      },
+      "duration_buckets": {
+        "long": 2
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_kettle_power"
+      ]
+    },
+    "spike": {
+      "count": 2,
+      "label_class_breakdown": {
+        "user_behavior": 2
+      },
+      "duration_buckets": {
+        "short": 2
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_fridge_power"
+      ]
+    },
+    "stuck_at": {
+      "count": 5,
+      "label_class_breakdown": {
+        "sensor_fault": 5
+      },
+      "duration_buckets": {
+        "medium": 5
+      },
+      "archetypes_seen": [
+        "BINARY"
+      ],
+      "sensors_seen": [
+        "bedroom_motion"
+      ]
+    },
+    "time_of_day": {
+      "count": 11,
+      "label_class_breakdown": {
+        "user_behavior": 11
+      },
+      "duration_buckets": {
+        "medium": 7,
+        "long": 4
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_kettle_power"
+      ]
+    },
+    "trend": {
+      "count": 6,
+      "label_class_breakdown": {
+        "user_behavior": 6
+      },
+      "duration_buckets": {
+        "long": 6
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_fridge_power"
+      ]
+    },
+    "unusual_occupancy": {
+      "count": 19,
+      "label_class_breakdown": {
+        "user_behavior": 19
+      },
+      "duration_buckets": {
+        "short": 12,
+        "medium": 7
+      },
+      "archetypes_seen": [
+        "BINARY"
+      ],
+      "sensors_seen": [
+        "bedroom_motion",
+        "utility_motion"
+      ]
+    },
+    "water_leak_sustained": {
+      "count": 15,
+      "label_class_breakdown": {
+        "user_behavior": 15
+      },
+      "duration_buckets": {
+        "medium": 15
+      },
+      "archetypes_seen": [
+        "BINARY"
+      ],
+      "sensors_seen": [
+        "basement_leak"
+      ]
+    },
+    "weekend_anomaly": {
+      "count": 11,
+      "label_class_breakdown": {
+        "user_behavior": 11
+      },
+      "duration_buckets": {
+        "long": 11
+      },
+      "archetypes_seen": [
+        "BURSTY"
+      ],
+      "sensors_seen": [
+        "outlet_kettle_power",
+        "outlet_tv_power"
+      ]
+    }
+  },
+  "sensor_physics": {
+    "household_60d:outlet_fridge_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 300.0,
+      "zoh_fraction": 0.5339,
+      "n_events": 19536
+    },
+    "household_60d:outlet_kettle_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 4.0,
+      "zoh_fraction": 0.3502,
+      "n_events": 24056
+    },
+    "household_60d:outlet_tv_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 4.0,
+      "zoh_fraction": 0.1291,
+      "n_events": 116673
+    },
+    "household_60d:mains_voltage": {
+      "archetype": "CONTINUOUS",
+      "capability": "voltage",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 600.0,
+      "zoh_fraction": 0.0,
+      "n_events": 8640
+    },
+    "household_60d:basement_leak": {
+      "archetype": "BINARY",
+      "capability": "water",
+      "expected_interval_s": 7200,
+      "heartbeat_s": 7200,
+      "median_inter_event_s": 7200.0,
+      "zoh_fraction": 0.9944,
+      "n_events": 721
+    },
+    "household_60d:bedroom_motion": {
+      "archetype": "BINARY",
+      "capability": "motion",
+      "expected_interval_s": 1800,
+      "heartbeat_s": 1800,
+      "median_inter_event_s": 535.0,
+      "zoh_fraction": 0.2892,
+      "n_events": 6498
+    },
+    "household_120d:outlet_fridge_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 300.0,
+      "zoh_fraction": 0.4147,
+      "n_events": 39391
+    },
+    "household_120d:outlet_kettle_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 3.0,
+      "zoh_fraction": 0.3445,
+      "n_events": 48671
+    },
+    "household_120d:outlet_tv_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 4.0,
+      "zoh_fraction": 0.1376,
+      "n_events": 221091
+    },
+    "household_120d:mains_voltage": {
+      "archetype": "CONTINUOUS",
+      "capability": "voltage",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 600.0,
+      "zoh_fraction": 0.0,
+      "n_events": 17282
+    },
+    "household_120d:basement_leak": {
+      "archetype": "BINARY",
+      "capability": "water",
+      "expected_interval_s": 7200,
+      "heartbeat_s": 7200,
+      "median_inter_event_s": 7200.0,
+      "zoh_fraction": 0.9958,
+      "n_events": 1441
+    },
+    "household_120d:bedroom_motion": {
+      "archetype": "BINARY",
+      "capability": "motion",
+      "expected_interval_s": 1800,
+      "heartbeat_s": 1800,
+      "median_inter_event_s": 544.0,
+      "zoh_fraction": 0.2936,
+      "n_events": 12884
+    },
+    "leak_30d:basement_leak": {
+      "archetype": "BINARY",
+      "capability": "water",
+      "expected_interval_s": 7200,
+      "heartbeat_s": 7200,
+      "median_inter_event_s": 7200.0,
+      "zoh_fraction": 0.978,
+      "n_events": 364
+    },
+    "leak_30d:basement_temp": {
+      "archetype": "CONTINUOUS",
+      "capability": "temperature",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 5.0,
+      "zoh_fraction": 0.0,
+      "n_events": 154926
+    },
+    "leak_30d:utility_motion": {
+      "archetype": "BINARY",
+      "capability": "motion",
+      "expected_interval_s": 1800,
+      "heartbeat_s": 1800,
+      "median_inter_event_s": 568.0,
+      "zoh_fraction": 0.3029,
+      "n_events": 3170
+    },
+    "holdout_household_45d:outlet_fridge_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 300.0,
+      "zoh_fraction": 0.5069,
+      "n_events": 14660
+    },
+    "holdout_household_45d:outlet_kettle_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 3.0,
+      "zoh_fraction": 0.3145,
+      "n_events": 20080
+    },
+    "holdout_household_45d:outlet_tv_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 4.0,
+      "zoh_fraction": 0.1224,
+      "n_events": 91557
+    },
+    "holdout_household_45d:mains_voltage": {
+      "archetype": "CONTINUOUS",
+      "capability": "voltage",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 600.0,
+      "zoh_fraction": 0.0,
+      "n_events": 6480
+    },
+    "holdout_household_45d:basement_leak": {
+      "archetype": "BINARY",
+      "capability": "water",
+      "expected_interval_s": 7200,
+      "heartbeat_s": 7200,
+      "median_inter_event_s": 7200.0,
+      "zoh_fraction": 0.9926,
+      "n_events": 542
+    },
+    "holdout_household_45d:bedroom_motion": {
+      "archetype": "BINARY",
+      "capability": "motion",
+      "expected_interval_s": 1800,
+      "heartbeat_s": 1800,
+      "median_inter_event_s": 576.0,
+      "zoh_fraction": 0.303,
+      "n_events": 4756
+    },
+    "single_outlet_fridge_30d:outlet_fridge_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 300.0,
+      "zoh_fraction": 0.4668,
+      "n_events": 9851
+    },
+    "household_sparse_60d:outlet_fridge_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 300.0,
+      "zoh_fraction": 0.5498,
+      "n_events": 19654
+    },
+    "household_sparse_60d:outlet_kettle_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 4.0,
+      "zoh_fraction": 0.3505,
+      "n_events": 24149
+    },
+    "household_sparse_60d:outlet_tv_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 4.0,
+      "zoh_fraction": 0.148,
+      "n_events": 103767
+    },
+    "household_sparse_60d:mains_voltage": {
+      "archetype": "CONTINUOUS",
+      "capability": "voltage",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 600.0,
+      "zoh_fraction": 0.0,
+      "n_events": 8640
+    },
+    "household_sparse_60d:basement_leak": {
+      "archetype": "BINARY",
+      "capability": "water",
+      "expected_interval_s": 7200,
+      "heartbeat_s": 7200,
+      "median_inter_event_s": 7200.0,
+      "zoh_fraction": 0.9972,
+      "n_events": 720
+    },
+    "household_sparse_60d:bedroom_motion": {
+      "archetype": "BINARY",
+      "capability": "motion",
+      "expected_interval_s": 1800,
+      "heartbeat_s": 1800,
+      "median_inter_event_s": 559.5,
+      "zoh_fraction": 0.2991,
+      "n_events": 6401
+    },
+    "household_dense_90d:outlet_fridge_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 300.0,
+      "zoh_fraction": 0.4654,
+      "n_events": 29390
+    },
+    "household_dense_90d:outlet_kettle_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 3.0,
+      "zoh_fraction": 0.3298,
+      "n_events": 37991
+    },
+    "household_dense_90d:outlet_tv_power": {
+      "archetype": "BURSTY",
+      "capability": "power",
+      "expected_interval_s": 300,
+      "heartbeat_s": null,
+      "median_inter_event_s": 4.0,
+      "zoh_fraction": 0.132,
+      "n_events": 171674
+    },
+    "household_dense_90d:mains_voltage": {
+      "archetype": "CONTINUOUS",
+      "capability": "voltage",
+      "expected_interval_s": 600,
+      "heartbeat_s": null,
+      "median_inter_event_s": 600.0,
+      "zoh_fraction": 0.0,
+      "n_events": 12960
+    },
+    "household_dense_90d:basement_leak": {
+      "archetype": "BINARY",
+      "capability": "water",
+      "expected_interval_s": 7200,
+      "heartbeat_s": 7200,
+      "median_inter_event_s": 7200.0,
+      "zoh_fraction": 0.9945,
+      "n_events": 1083
+    },
+    "household_dense_90d:bedroom_motion": {
+      "archetype": "BINARY",
+      "capability": "motion",
+      "expected_interval_s": 1800,
+      "heartbeat_s": 1800,
+      "median_inter_event_s": 611.0,
+      "zoh_fraction": 0.3022,
+      "n_events": 9405
+    }
+  },
+  "shape_distribution": {
+    "BINARY": {
+      "level_shift": 20,
+      "rate_change": 19,
+      "other": 5
+    },
+    "BURSTY": {
+      "level_shift": 16,
+      "drift": 8,
+      "regime": 6,
+      "other": 5,
+      "seasonal": 22,
+      "spike_dip": 2
+    },
+    "CONTINUOUS": {
+      "drift": 5,
+      "level_shift": 1,
+      "spike_dip": 3
+    }
+  }
+}

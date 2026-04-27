@@ -97,8 +97,8 @@ outlet_fridge_power,power,2026-02-05T14:00:00Z,2026-02-05T14:02:00Z,spike,pca,"{
 
 Each sensor declares its archetype (`continuous` / `bursty` / `binary`) plus physical bounds. Bundled configs:
 
-- `configs/household.yaml` — fridge + kettle + tv (bursty power) · mains_voltage (continuous) · basement_leak + bedroom_motion (binary). Used by the `household_60d` and `household_120d` scenarios.
-- `configs/leak_30d.yaml` — basement_leak (binary water) · basement_temp (continuous) · utility_motion (binary).
+- `configs/household.yaml` — fridge + kettle + tv (bursty power) · mains_voltage (continuous) · basement_leak (binary). Used by the `household_60d` and `household_120d` scenarios.
+- `configs/leak_30d.yaml` — basement_leak (binary water) · basement_temp (continuous).
 
 ```yaml
 sensors:

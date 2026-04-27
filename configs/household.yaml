@@ -1,9 +1,4 @@
 # household scenario: appliances + voltage + basement leak.
-# Motion (bedroom_motion) temporarily commented out — BINARY motion
-# state_transition over-fires on every occupancy transition (~1700
-# alerts / 60d), dominating NAB FP accounting and masking real
-# detector deltas. Re-introduce after the baseline stabilizes on
-# drift / level-shift / leak anomalies.
 sensors:
   - id: outlet_fridge_power
     capability: power
@@ -35,9 +30,3 @@ sensors:
     expected_interval_sec: 7200
     heartbeat_sec: 7200
     deterministic_trigger: true
-  # - id: bedroom_motion  # TEMPORARILY DISABLED — see header comment
-  #   capability: motion
-  #   archetype: binary
-  #   expected_interval_sec: 1800
-  #   heartbeat_sec: 1800
-  #   deterministic_trigger: true

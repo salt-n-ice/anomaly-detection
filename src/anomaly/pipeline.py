@@ -135,9 +135,8 @@ class Pipeline:
         # small deviations and the chain stops re-forming. Counter resets
         # on any non-max-span emit (chain ended naturally → not wind-down)
         # and after each adapt (require fresh streak before next adapt).
-        # K=3 chosen over K=2 (iter 028) to preserve more of hh60d
-        # bedroom_motion month_shift tail coverage and reduce hh120d
-        # voltage month_shift latency pressure.
+        # K=3 chosen over K=2 (iter 028) to preserve more month_shift
+        # tail coverage and reduce voltage month_shift latency pressure.
         span_threshold = 0.9 * st.fuser.max_span
         for em in emitted:
             if em.window_start is None or em.window_end is None:
@@ -205,6 +204,14 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         # read this column instead of `start` so sliding-window and cross-
         # chain artifacts don't back-date the reported alert fire time.
         first_fire = a.first_fire_ts or a.timestamp
+        # fire_ticks: every component fire tick in the chain (semicolon-
+        # joined ISO). Per-fire metrics grade each tick against GT
+        # containment independently, so a fuser-bridged chain whose only
+        # in-label fire was at 75% elapsed can't pretend it was caught
+        # at the chain's earliest pre-label tick. Immediate alerts have
+        # no fused components, so we fall back to (timestamp,).
+        ticks = a.fire_ticks or (a.timestamp,)
+        fire_ticks_iso = ";".join(t.isoformat() for t in ticks)
         # inferred_type: explainer-derived canonical type (pre-typed alerts
         # from DQG / state_transition pass through; detector-combo chains
         # get a best-guess label via classify_type). inferred_class maps
@@ -217,6 +224,7 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         rows.append({"sensor_id": a.sensor_id, "capability": a.capability,
                      "start": start.isoformat(), "end": end.isoformat(),
                      "first_fire_ts": first_fire.isoformat(),
+                     "fire_ticks": fire_ticks_iso,
                      "anomaly_type": a.anomaly_type or a.detector,
                      "inferred_type": inferred_type,
                      "inferred_class": inferred_class,
@@ -225,7 +233,7 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
                      "score": a.score})
     path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows, columns=["sensor_id","capability","start","end",
-                                 "first_fire_ts","anomaly_type",
+                                 "first_fire_ts","fire_ticks","anomaly_type",
                                  "inferred_type","inferred_class",
                                  "detector","threshold","score"]).to_csv(path, index=False)
 
@@ -263,19 +271,29 @@ def evaluate(detections_csv: Path, labels_csv: Path,
         timeline_days = float((le.max() - ls.min()).total_seconds() / 86400)
     m = compute_stratified(gt, det, timeline_days)
     print(f"\n=== Headline (timeline {timeline_days:.1f}d) ===")
-    print(f"{'block':<14} {'n_labels':>8} {'time_F1':>8} "
-          f"{'incR':>6} {'evt_F1':>7} {'uvfp/d':>7} {'latP95s':>9}")
+    # Per-fire grading: each pre-fusion component tick = one LLM call.
+    # `fire_purity` = fires landing in any GT / total fires.
+    # `type_acc`    = of in-GT fires, fraction with correct inferred_type.
+    # `lat%P95`     = first in-GT fire latency / label duration, P95
+    #                 (bounded ≤ 1.0; uses in-GT ticks, not chain start,
+    #                  so fuser bridging can't credit zero).
+    # `uvfp/d`      = chains classified user_behavior with no GT overlap,
+    #                 per day (the user-visible LLM-spam rate).
+    print(f"{'block':<14} {'n_lbl':>5} {'incR':>6} {'evt_F1':>7} "
+          f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'lat%P95':>8}")
     for block_name in ("behavior", "sensor_fault"):
         b = m[block_name]
         if b.get("n_labels", 0) == 0:
             print(f"  {block_name:<12} (no labels)")
             continue
-        latp = b.get("nondqg_latency_p95_s")
-        latp_s = "      -" if latp is None else f"{latp:>9.0f}"
-        print(f"  {block_name:<12} {b['n_labels']:>8d} "
-              f"{b['time_f1']:>8.3f} {b['incident_recall']:>6.3f} "
-              f"{b['evt_f1']:>7.3f} "
-              f"{b['user_visible_fps_per_day']:>7.2f} {latp_s}")
+        ta = b.get("type_acc")
+        ta_s = "     -" if ta is None else f"{ta:>6.3f}"
+        lf = b.get("lat_frac_p95")
+        lf_s = "       -" if lf is None else f"{lf:>8.3f}"
+        print(f"  {block_name:<12} {b['n_labels']:>5d} "
+              f"{b['incident_recall']:>6.3f} {b['evt_f1']:>7.3f} "
+              f"{b['fire_purity']:>6.3f} {ta_s} "
+              f"{b['user_visible_fps_per_day']:>7.2f} {lf_s}")
     return m
 
 

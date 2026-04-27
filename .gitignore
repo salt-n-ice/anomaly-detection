@@ -9,4 +9,7 @@ __pycache__/
 *.pyc
 docs
 *egg-info
-research
+research/explain/runs/
+research/runs/
+research/training_data.csv
+research/type_classifier.joblib

@@ -1,0 +1,275 @@
+{
+  "timestamp": "2026-04-25T14:09:11.776543+00:00",
+  "git_hash": "9ccbbc9",
+  "git_dirty": true,
+  "run_dir": "20260425T135658Z",
+  "metric_definition": {
+    "headline": "super_match_rate \u2014 fraction of TP user_behavior labels whose super-class matches some overlapping chain's bundle.classification.type super-class",
+    "auxiliaries": [
+      "strict_match_rate \u2014 exact-type equality (informational)",
+      "class_match_rate \u2014 bundle.classification.class vs GT.label_class (gates TP credit)",
+      "by_gt_type \u2014 per-anomaly-type breakdown of strict + super"
+    ],
+    "super_class_map": {
+      "level_shift": "value_shift",
+      "month_shift": "value_shift",
+      "trend": "value_shift",
+      "degradation_trajectory": "value_shift",
+      "weekend_anomaly": "calendar_pattern",
+      "time_of_day": "calendar_pattern",
+      "seasonal_mismatch": "calendar_pattern",
+      "seasonality_loss": "calendar_pattern",
+      "spike": "impulse",
+      "dip": "impulse"
+    },
+    "tol": 0.02,
+    "noise_floor": 0.005
+  },
+  "scenarios": {
+    "holdout_household_45d": {
+      "n_user_behavior_tp_labels": 10,
+      "n_all_tp_labels": 11,
+      "super_match_rate": 0.9,
+      "strict_match_rate": 0.6,
+      "class_match_rate": 0.9091,
+      "by_gt_type": {
+        "water_leak_sustained": {
+          "n": 2,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "time_of_day": {
+          "n": 3,
+          "strict_rate": 0.6666666666666666,
+          "super_rate": 1.0
+        },
+        "weekend_anomaly": {
+          "n": 2,
+          "strict_rate": 0.5,
+          "super_rate": 1.0
+        },
+        "level_shift": {
+          "n": 2,
+          "strict_rate": 0.0,
+          "super_rate": 0.5
+        },
+        "trend": {
+          "n": 1,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        }
+      },
+      "suite": "holdout"
+    },
+    "household_120d": {
+      "n_user_behavior_tp_labels": 23,
+      "n_all_tp_labels": 26,
+      "super_match_rate": 0.7826,
+      "strict_match_rate": 0.6957,
+      "class_match_rate": 0.8846,
+      "by_gt_type": {
+        "weekend_anomaly": {
+          "n": 3,
+          "strict_rate": 0.6666666666666666,
+          "super_rate": 1.0
+        },
+        "time_of_day": {
+          "n": 3,
+          "strict_rate": 0.6666666666666666,
+          "super_rate": 0.6666666666666666
+        },
+        "level_shift": {
+          "n": 5,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "water_leak_sustained": {
+          "n": 3,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "trend": {
+          "n": 3,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "frequency_change": {
+          "n": 3,
+          "strict_rate": 0.0,
+          "super_rate": 0.0
+        },
+        "degradation_trajectory": {
+          "n": 1,
+          "strict_rate": 0.0,
+          "super_rate": 1.0
+        },
+        "month_shift": {
+          "n": 1,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "spike": {
+          "n": 1,
+          "strict_rate": 0.0,
+          "super_rate": 0.0
+        }
+      },
+      "suite": "production"
+    },
+    "household_60d": {
+      "n_user_behavior_tp_labels": 12,
+      "n_all_tp_labels": 14,
+      "super_match_rate": 0.8333,
+      "strict_match_rate": 0.75,
+      "class_match_rate": 0.9286,
+      "by_gt_type": {
+        "weekend_anomaly": {
+          "n": 2,
+          "strict_rate": 0.5,
+          "super_rate": 1.0
+        },
+        "time_of_day": {
+          "n": 3,
+          "strict_rate": 0.6666666666666666,
+          "super_rate": 0.6666666666666666
+        },
+        "level_shift": {
+          "n": 3,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "water_leak_sustained": {
+          "n": 2,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "trend": {
+          "n": 1,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "frequency_change": {
+          "n": 1,
+          "strict_rate": 0.0,
+          "super_rate": 0.0
+        }
+      },
+      "suite": "production"
+    },
+    "household_dense_90d": {
+      "n_user_behavior_tp_labels": 14,
+      "n_all_tp_labels": 16,
+      "super_match_rate": 0.7857,
+      "strict_match_rate": 0.5,
+      "class_match_rate": 0.75,
+      "by_gt_type": {
+        "time_of_day": {
+          "n": 2,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "weekend_anomaly": {
+          "n": 3,
+          "strict_rate": 0.3333333333333333,
+          "super_rate": 1.0
+        },
+        "level_shift": {
+          "n": 3,
+          "strict_rate": 0.3333333333333333,
+          "super_rate": 0.6666666666666666
+        },
+        "water_leak_sustained": {
+          "n": 3,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "frequency_change": {
+          "n": 1,
+          "strict_rate": 0.0,
+          "super_rate": 0.0
+        },
+        "degradation_trajectory": {
+          "n": 1,
+          "strict_rate": 0.0,
+          "super_rate": 1.0
+        },
+        "spike": {
+          "n": 1,
+          "strict_rate": 0.0,
+          "super_rate": 0.0
+        }
+      },
+      "suite": "holdout"
+    },
+    "household_sparse_60d": {
+      "n_user_behavior_tp_labels": 4,
+      "n_all_tp_labels": 4,
+      "super_match_rate": 1.0,
+      "strict_match_rate": 1.0,
+      "class_match_rate": 1.0,
+      "by_gt_type": {
+        "weekend_anomaly": {
+          "n": 1,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "level_shift": {
+          "n": 2,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "water_leak_sustained": {
+          "n": 1,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        }
+      },
+      "suite": "holdout"
+    },
+    "leak_30d": {
+      "n_user_behavior_tp_labels": 6,
+      "n_all_tp_labels": 7,
+      "super_match_rate": 0.8333,
+      "strict_match_rate": 0.8333,
+      "class_match_rate": 0.8571,
+      "by_gt_type": {
+        "water_leak_sustained": {
+          "n": 4,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "dip": {
+          "n": 2,
+          "strict_rate": 0.5,
+          "super_rate": 0.5
+        }
+      },
+      "suite": "production"
+    },
+    "single_outlet_fridge_30d": {
+      "n_user_behavior_tp_labels": 3,
+      "n_all_tp_labels": 4,
+      "super_match_rate": 0.6667,
+      "strict_match_rate": 0.6667,
+      "class_match_rate": 1.0,
+      "by_gt_type": {
+        "level_shift": {
+          "n": 1,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "trend": {
+          "n": 1,
+          "strict_rate": 1.0,
+          "super_rate": 1.0
+        },
+        "frequency_change": {
+          "n": 1,
+          "strict_rate": 0.0,
+          "super_rate": 0.0
+        }
+      },
+      "suite": "holdout"
+    }
+  }
+}
