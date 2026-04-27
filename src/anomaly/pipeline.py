@@ -196,38 +196,25 @@ def run(events_csv: Path, config_yaml: Path, out_csv: Path, bootstrap_days: floa
 
 def _write_detections(alerts: list[Alert], path: Path) -> None:
     # Pre-pass: flag DQG out_of_range fires that recur on the same sensor
-    # AND are corroborated by a behavior detector (DCS / RMP / EventRate)
-    # firing on the same sensor within ±12h. DQG bypasses the fuser so
-    # chain-side corroboration isn't available; the co-fire check is
-    # explicit. Sustained-OOR alone isn't enough — synth-gen's level_shift
-    # offset can persist past the label window, producing a stream of
-    # post-label OOR fires that have no behavior-detector corroboration
-    # (because the appliance's duty / event-peak pattern returned to
-    # normal even though raw values are still offset). Behavior co-fire
-    # is the signal that the OOR represents a real behavior shift, not
-    # an artifact.
+    # within a 6h sliding window. Sustained-OOR is the level-shift
+    # signature on power-capability sensors — synth-gen's
+    # ``level_shift offset=-N`` drives the off-state below the configured
+    # min, producing OOR every cooldown for the label duration. Iter 1
+    # gated this on a behavior-detector co-fire (within ±12h) as a
+    # defensive guard against post-label OOR drift, but the synth-gen
+    # bound (94ab893) made offsets stop at the label end, so the guard is
+    # no longer needed and was costing ~700 misclassified fires across
+    # the suite (TV/kettle level_shift labels with no DCS co-fire).
     SUSTAINED_OOR_WINDOW = pd.Timedelta(hours=6)
     SUSTAINED_OOR_COUNT = 3
-    COFIRE_WINDOW = pd.Timedelta(hours=12)
-    _BEHAVIOR_DETECTORS = frozenset({
-        "duty_cycle_shift_1h", "duty_cycle_shift_3h",
-        "duty_cycle_shift_6h", "duty_cycle_shift_12h",
-        "rolling_median_peak_shift", "event_peak_shift",
-        "event_rate_shift",
-    })
     oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
-    behavior_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     for a in alerts:
         detectors = set((a.detector or "").split("+"))
         if (a.anomaly_type == "out_of_range"
                 and a.capability == "power"
                 and "data_quality_gate" in detectors):
             oor_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
-        if detectors & _BEHAVIOR_DETECTORS:
-            behavior_ts_by_sensor.setdefault(a.sensor_id, []).append(a.timestamp)
     for v in oor_ts_by_sensor.values():
-        v.sort()
-    for v in behavior_ts_by_sensor.values():
         v.sort()
     import bisect
     def _is_sustained_oor(a: Alert) -> bool:
@@ -240,17 +227,7 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         hi = ts + SUSTAINED_OOR_WINDOW
         l = bisect.bisect_left(ts_list, lo)
         r = bisect.bisect_right(ts_list, hi)
-        if (r - l) < SUSTAINED_OOR_COUNT:
-            return False
-        # Behavior-detector corroboration (±12h window).
-        bts = behavior_ts_by_sensor.get(sid)
-        if not bts:
-            return False
-        blo = ts - COFIRE_WINDOW
-        bhi = ts + COFIRE_WINDOW
-        bl = bisect.bisect_left(bts, blo)
-        br = bisect.bisect_right(bts, bhi)
-        return br > bl
+        return (r - l) >= SUSTAINED_OOR_COUNT
 
     rows = []
     for a in alerts:
