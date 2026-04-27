@@ -433,8 +433,19 @@ def _classify_duty(s: Signals) -> str:
     if has_peak and has_rate:
         return "level_shift"
     if has_peak:
-        # Combined duty + peak: classic level_shift signature. But a
-        # short weekend hit is more plausibly a weekend behavior change.
+        # Combined duty + peak: usually a level_shift signature. But a
+        # SHORT chain (single-day) can't be a sustained level_shift —
+        # those produce peak co-fire across multiple days fused into
+        # one chain. A single-day peak co-fire is more likely a calendar
+        # pattern: kettle 10-12 daily produces peak shifts during the
+        # active hours. Iter 7: route single-day chains by calendar
+        # position; multi-day chains stay level_shift.
+        if s.duration_sec < 24 * 3600:
+            if s.is_weekend:
+                return "weekend_anomaly"
+            if s.is_off_hours:
+                return "time_of_day"
+            return "time_of_day"
         if s.is_weekend and s.duration_sec < 3 * 86400:
             return "weekend_anomaly"
         return "level_shift"
