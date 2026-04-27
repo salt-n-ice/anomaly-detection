@@ -10,7 +10,7 @@ from .adapter import make_adapter, Adapter
 from .features import FeatureEngineer
 from .fusion import DefaultAlertFuser
 from .profiles import profile_for
-from .metrics import compute_metrics
+from .metrics import compute_metrics, compute_stratified
 from .explain import classify_type, type_to_class
 
 
@@ -230,9 +230,52 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
                                  "detector","threshold","score"]).to_csv(path, index=False)
 
 
-def evaluate(detections_csv: Path, labels_csv: Path) -> dict:
-    m = compute_metrics(pd.read_csv(labels_csv), pd.read_csv(detections_csv))
-    print(m)
+def evaluate(detections_csv: Path, labels_csv: Path,
+             events_csv: Path | None = None,
+             config_yaml: Path | None = None) -> dict:
+    """Print the stratified BEHAVIOR / sensor_fault headline block and
+    return the structured dict.
+
+    Timeline span (used to normalize `user_visible_fps_per_day`) is read
+    from `events_csv` when provided, else derived from the labels'
+    min/max range. Pass `--events` for the most accurate rate.
+
+    If `config_yaml` is provided, GT labels for sensors not in the
+    config are dropped — mirroring the pipeline's own sensor filter so
+    OOS labels don't count as FN. Pass the same `--config` you used
+    with `python -m anomaly run` to get research-matching numbers.
+    """
+    gt = pd.read_csv(labels_csv)
+    if config_yaml is not None:
+        cfg = yaml.safe_load(Path(config_yaml).read_text())
+        cfg_sensors = {(s["id"], s["capability"]) for s in cfg["sensors"]}
+        gt = gt[gt.apply(
+            lambda r: (r["sensor_id"], r["capability"]) in cfg_sensors,
+            axis=1)].reset_index(drop=True)
+    det = pd.read_csv(detections_csv)
+    if events_csv is not None:
+        ts = pd.to_datetime(pd.read_csv(events_csv, usecols=["timestamp"])
+                            ["timestamp"], utc=True, format="ISO8601")
+        timeline_days = float((ts.max() - ts.min()).total_seconds() / 86400)
+    else:
+        ls = pd.to_datetime(gt["start"], utc=True, format="ISO8601")
+        le = pd.to_datetime(gt["end"], utc=True, format="ISO8601")
+        timeline_days = float((le.max() - ls.min()).total_seconds() / 86400)
+    m = compute_stratified(gt, det, timeline_days)
+    print(f"\n=== Headline (timeline {timeline_days:.1f}d) ===")
+    print(f"{'block':<14} {'n_labels':>8} {'time_F1':>8} "
+          f"{'incR':>6} {'evt_F1':>7} {'uvfp/d':>7} {'latP95s':>9}")
+    for block_name in ("behavior", "sensor_fault"):
+        b = m[block_name]
+        if b.get("n_labels", 0) == 0:
+            print(f"  {block_name:<12} (no labels)")
+            continue
+        latp = b.get("nondqg_latency_p95_s")
+        latp_s = "      -" if latp is None else f"{latp:>9.0f}"
+        print(f"  {block_name:<12} {b['n_labels']:>8d} "
+              f"{b['time_f1']:>8.3f} {b['incident_recall']:>6.3f} "
+              f"{b['evt_f1']:>7.3f} "
+              f"{b['user_visible_fps_per_day']:>7.2f} {latp_s}")
     return m
 
 
@@ -248,6 +291,14 @@ def main(argv=None) -> int:
     e = sub.add_parser("eval")
     e.add_argument("--detections", required=True, type=Path)
     e.add_argument("--labels", required=True, type=Path)
+    e.add_argument("--events", type=Path, default=None,
+                   help="optional; events.csv used to derive the timeline span "
+                        "for user_visible_fps_per_day. Falls back to label "
+                        "min/max range when omitted.")
+    e.add_argument("--config", type=Path, default=None,
+                   help="optional; same sensor config used with `run`. When "
+                        "provided, GT labels for sensors not in the config "
+                        "are dropped (mirrors pipeline's sensor filter).")
     v = sub.add_parser("viz")
     v.add_argument("--events", required=True, type=Path)
     v.add_argument("--labels", required=True, type=Path)
@@ -277,7 +328,7 @@ def main(argv=None) -> int:
     if args.cmd == "run":
         run(args.events, args.config, args.out, args.bootstrap_days); return 0
     if args.cmd == "eval":
-        evaluate(args.detections, args.labels); return 0
+        evaluate(args.detections, args.labels, args.events, args.config); return 0
     if args.cmd == "viz":
         import json as _json
         from .viz import render

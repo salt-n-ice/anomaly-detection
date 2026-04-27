@@ -135,17 +135,24 @@ Writes `detections.csv` with columns `sensor_id, capability, start, end, first_f
 
 ### Evaluate against ground truth
 
-Two eval paths:
-
-**Quick one-shot F1** — legacy 1:1 interval match, prints a single dict. Useful when you just want a number.
+**Headline eval (built-in)** — prints the BEHAVIOR + sensor_fault block for one scenario. Runs from a fresh clone (no `research/` needed). Pass `--config` to mirror the pipeline's sensor filter (drops GT for sensors not in scope) and `--events` so the user-visible FP rate normalizes to the actual events span.
 
 ```powershell
 python -m anomaly eval `
   --detections out\household_60d_detections.csv `
-  --labels ..\synthetic-generator\out\household_60d\labels.csv
+  --labels ..\synthetic-generator\out\household_60d\labels.csv `
+  --events ..\synthetic-generator\out\household_60d\events.csv `
+  --config configs\household.yaml
+
+# === Headline (timeline 60.0d) ===
+# block          n_labels  time_F1   incR  evt_F1  uvfp/d   latP95s
+#   behavior           12    0.372  0.917   0.753    0.48     71190
+#   sensor_fault        2    0.030  0.500   0.500   28.67       -
 ```
 
-**Research eval (canonical)** — the scorer the tuning loop uses. Runs the pipeline, slices labels by `label_class` (`user_behavior` vs `sensor_fault`), and prints a BEHAVIOR block + FAULT block per scenario plus an onset-timing audit. Writes a JSON snapshot to `research\runs\<timestamp>.json`.
+The headline block is the user-facing optimization target; the `sensor_fault` row is reported for visibility, not optimized against.
+
+**Research suite (multi-scenario sweep)** — the scorer the tuning loop uses. Runs the pipeline across all 7 scenarios, writes a JSON snapshot, supports `--diff-baseline` regression checks. The `research/` directory is gitignored, so this path is local-only after clone.
 
 ```powershell
 python research\run_research_eval.py --suite all           # household_60d + household_120d + leak_30d

@@ -428,3 +428,126 @@ def compute_metrics_by_bucket(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict
             "lat_frac_max": None if lat_max is None else round(lat_max, 4),
         }
     return out
+
+
+# ---------------------------------------------------------------------------
+# Stratified evaluation — BEHAVIOR (user-facing) vs sensor_fault.
+#
+# The headline numbers reported in the README + research log come from
+# splitting GT by `label_class` (column on labels.csv), restricting
+# detections to the GT-bearing sensors, then computing the standard
+# metrics on each block. `user_visible_fps_per_day` counts chains the
+# pipeline classified `user_behavior` that don't overlap ANY GT label
+# (any class) on the same sensor — i.e. the user-visible false-alarm
+# count the production LLM would get pinged for.
+# ---------------------------------------------------------------------------
+
+
+def _stratify_gt(gt: pd.DataFrame, klass: str) -> pd.DataFrame:
+    """Return GT labels of one class. Falls back to all labels when the
+    `label_class` column is absent (legacy datasets)."""
+    if "label_class" not in gt.columns:
+        return gt
+    return gt[gt["label_class"] == klass].reset_index(drop=True)
+
+
+def _restrict_det_to_sensors(det: pd.DataFrame,
+                             gt_subset: pd.DataFrame) -> pd.DataFrame:
+    """A detection only counts as an FP for THIS class if it fired on a
+    sensor that actually carries GT of THIS class. Otherwise a detection
+    on a sensor whose GT labels are all the other class would count as
+    a class-FP unfairly."""
+    sensors = set(gt_subset["sensor_id"].unique())
+    if not sensors:
+        return det.iloc[0:0]
+    return det[det["sensor_id"].isin(sensors)]
+
+
+def _filter_det_by_class(det: pd.DataFrame, klass: str) -> pd.DataFrame:
+    """Keep detections whose `inferred_class` is `klass` or `unknown`/NaN.
+    A confidently-other-class chain is dropped (e.g. a DQG `dropout`
+    claim doesn't TP a `water_leak_sustained` GT). Falls back to passing
+    everything through when the column is missing."""
+    if "inferred_class" not in det.columns:
+        return det
+    return det[(det["inferred_class"] == klass)
+               | (det["inferred_class"] == "unknown")
+               | det["inferred_class"].isna()]
+
+
+def _count_class_fps_no_overlap(det: pd.DataFrame, all_labels: pd.DataFrame,
+                                klass: str) -> int:
+    """Chains classified `klass` that don't overlap any GT label on the
+    same sensor (any-class overlap exempts)."""
+    if "inferred_class" not in det.columns or len(det) == 0:
+        return 0
+    cls_chains = det[det["inferred_class"] == klass]
+    if len(cls_chains) == 0:
+        return 0
+    label_intervals: dict[str, list[tuple[pd.Timestamp, pd.Timestamp]]] = {}
+    for _, lab in all_labels.iterrows():
+        s = pd.Timestamp(lab["start"]); e = pd.Timestamp(lab["end"])
+        label_intervals.setdefault(str(lab["sensor_id"]), []).append((s, e))
+    n = 0
+    for _, row in cls_chains.iterrows():
+        sensor = str(row["sensor_id"])
+        s = pd.Timestamp(row["start"]); e = pd.Timestamp(row["end"])
+        if not any(s <= le and e >= ls
+                    for ls, le in label_intervals.get(sensor, [])):
+            n += 1
+    return n
+
+
+def _round_or_none(x, ndigits: int):
+    return None if x is None or pd.isna(x) else round(float(x), ndigits)
+
+
+def _stratified_block(gt: pd.DataFrame, det: pd.DataFrame, klass: str,
+                       timeline_days: float) -> dict:
+    sub_gt = _stratify_gt(gt, klass)
+    sub_det = _restrict_det_to_sensors(det, sub_gt)
+    sub_det = _filter_det_by_class(sub_det, klass)
+    if sub_gt.empty:
+        return {"n_labels": 0}
+    mev = compute_metrics_event(sub_gt, sub_det)
+    mpw = compute_metrics_pointwise(sub_gt, sub_det)
+    mtm = compute_metrics_time(sub_gt, sub_det)
+    sub_det_nondqg = sub_det[sub_det["detector"] != "data_quality_gate"]
+    mlat_nd = compute_metrics_latency(sub_gt, sub_det_nondqg)
+    n_uv = _count_class_fps_no_overlap(det, gt, klass)
+    return {
+        "n_labels": int(len(sub_gt)),
+        "evt_f1": round(float(mev["f1"]), 4),
+        "evt_precision": round(float(mev["precision"]), 4),
+        "evt_recall": round(float(mev["recall"]), 4),
+        "time_f1": round(float(mtm["time_f1"]), 4),
+        "time_precision": round(float(mtm["time_precision"]), 4),
+        "time_recall": round(float(mtm["time_recall"]), 4),
+        "incident_recall": round(float(mpw["recall"]), 4),
+        "n_user_visible_fps": int(n_uv),
+        "user_visible_fps_per_day": round(
+            float(n_uv / max(1e-6, timeline_days)), 3),
+        "nondqg_latency_p95_s": _round_or_none(mlat_nd["latency_p95_s"], 1),
+    }
+
+
+def compute_stratified(gt_df: pd.DataFrame, det_df: pd.DataFrame,
+                       timeline_days: float) -> dict:
+    """Headline-metrics dict with `behavior` + `sensor_fault` blocks.
+
+    `timeline_days` is the scenario span used to normalize the
+    user-visible FP rate; pass `(events.timestamp.max() -
+    events.timestamp.min()).days` (or label-derived if events isn't
+    available).
+
+    BEHAVIOR is the user-facing optimization target; the FAULT block is
+    reported for visibility but isn't gated. See README §"Evaluate
+    against ground truth" for the metric semantics.
+    """
+    return {
+        "behavior":     _stratified_block(gt_df, det_df, "user_behavior",
+                                          timeline_days),
+        "sensor_fault": _stratified_block(gt_df, det_df, "sensor_fault",
+                                          timeline_days),
+        "timeline_days": round(float(timeline_days), 3),
+    }
