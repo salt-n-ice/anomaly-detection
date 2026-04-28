@@ -37,50 +37,116 @@ skinparam ArrowColor #455A64
 skinparam ArrowFontColor #607D8B
 skinparam ArrowFontSize 10
 skinparam ArrowThickness 1.2
+
 skinparam ComponentBackgroundColor #FFFFFF
 skinparam ComponentBorderColor #37474F
 skinparam ComponentFontColor #263238
 skinparam ComponentFontStyle bold
+
 skinparam QueueBackgroundColor #FFF8E1
 skinparam QueueBorderColor #F57F17
 
-title <b>Smart-Home Anomaly Detection — Real-time Pipeline</b>\n<size:10><i>per-sensor · in-memory · microseconds per event</i></size>
+skinparam DatabaseBackgroundColor #F3E5F5
+skinparam DatabaseBorderColor #6A1B9A
+skinparam DatabaseFontColor #4A148C
 
-queue       "Sensor Event"      as Event
-component   "Data Quality\nGate" as DQG
-component   "Adapter"            as Adapter
-component   "Feature\nEngineer"  as FE
-component   "Detectors"          as Det
-component   "Fuser"              as Fuser
-component   "Classify"           as Classify
-component   "Explain"            as Explain
-queue       "LLM-ready\nPrompt"  as Prompt #E1F5FE
-
-' --- pipeline boundary ends at the prompt ---
-' Downstream LLM + user-facing notification are external consumers.
-package "downstream (out of pipeline scope)" <<Cloud>> {
-  component "LLM\nconsumer"           as LLM #FFFDE7
-  queue     "Household\nNotification" as Out #E8F5E9
+skinparam package {
+  BackgroundColor #F1F8FB
+  BorderColor #90A4AE
+  FontColor #455A64
+  FontStyle bold
+  FontSize 11
 }
 
-Event    --> DQG       : per-event
-Event    --> Adapter   : per-event
-Adapter  --> FE        : 60 s ticks
-FE       --> Det       : enriched
-Det      --> Fuser     : medium alerts
-DQG      --> Fuser     : immediate alerts
-Fuser    --> Classify  : fused chain
-Classify --> Explain   : type + class
-Explain  --> Prompt    : Markdown bundle
-Prompt  ..> LLM        : prompt
-LLM     ..> Out        : natural language
+skinparam note {
+  BackgroundColor #FFF8E1
+  BorderColor #F9A825
+  FontSize 9
+  FontColor #5D4037
+}
+
+title <b>Smart-Home Anomaly Detection · Real-time Pipeline</b>\n<size:10><i>per-sensor · in-memory · microseconds per event · single-process Python</i></size>
+
+queue "Sensor\nEvent" as Event
+
+package "SHORT-band  ·  per raw event" as P_SHORT {
+  component "Data Quality\nGate" as DQG
+}
+
+package "Resample + features  ·  per 60 s tick" as P_RESAMPLE {
+  component "Adapter" as Adapter
+  component "Feature\nEngineer" as FE
+  database "Recent rows\nring (144 h)" as RR
+}
+
+package "MEDIUM-band  ·  per tick (after 14 d bootstrap)" as P_MED {
+  component "RecentShift\n<size:9><i>CONT</i></size>" as RS
+  component "DutyCycle\nShift\n<size:9><i>BURSTY</i></size>" as DCS
+  component "RollingMedian\nPeakShift\n<size:9><i>BURSTY</i></size>" as RMP
+  component "State\nTransition\n<size:9><i>BINARY</i></size>" as ST
+}
+
+package "Post-processing  ·  per chain" as P_POST {
+  component "Fuser" as Fuser
+  component "Classify" as Classify
+  component "Explain" as Explain
+}
+
+queue "LLM-ready\nPrompt" as Prompt #E1F5FE
+
+Event   --> DQG       : raw event
+Event   --> Adapter   : raw event
+Adapter --> FE        : 60 s ticks
+FE      --> RS
+FE      --> DCS
+FE      --> RMP
+FE      --> ST
+FE      --> RR        : retain
+
+RR -[#7B1FA2,dashed]-> P_MED : <i>adapt_to_recent</i>\n<i>after K=3 max-span chains</i>
+
+DQG --> Fuser : immediate
+RS  --> Fuser
+DCS --> Fuser
+RMP --> Fuser
+ST  --> Fuser : immediate
+
+Fuser    --> Classify : fused chain
+Classify --> Explain  : (anomaly_type, label_class)
+Explain  --> Prompt   : Markdown bundle
+
+note right of DQG
+  out_of_range · dropout
+  saturation · extreme_value
+  clock_drift · duplicate_stale
+  batch_arrival
+  <i>(bypasses bootstrap;</i>
+  <i>fires sub-second)</i>
+end note
+
+note right of FE
+  rolling 1 h / 24 h / 7 d
+  per (state, feature)
+  O(1) running sums
+end note
+
+note right of Fuser
+  CONT gap 15 min
+  BURSTY / BIN gap 4 h
+  max_span 96 h
+  immediate alerts pass through
+end note
+
 @enduml
 ```
 
 Paste into <https://www.plantuml.com/plantuml> or any PlantUML
-renderer. If your renderer crowds the layout, swap the two
-`Event -->` lines for an explicit `Event -down-> DQG` /
-`Event -down-> Adapter` to force vertical alignment.
+renderer. The four packages group stages by cadence (raw event →
+tick → tick post-bootstrap → per chain). The dashed purple feedback
+loop from the recent-rows ring shows the K=3 max-span streak adapt
+mechanism — the only post-bootstrap re-fit path. Pipeline terminates
+at the LLM-ready prompt; what the LLM consumer does with it is
+downstream and out of scope.
 
 ### Companion stage-detail table
 
