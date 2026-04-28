@@ -408,6 +408,18 @@ def _classify_continuous(s: Signals) -> str:
     """
     if s.capability == "voltage":
         if s.duration_sec >= 12 * 3600:
+            # Iter 21: score-based split between sensor calibration
+            # drift and grid-scale month_shift. RS reports score as
+            # delta / bootstrap_quantile_threshold; on tightly-regulated
+            # mains voltage (daily-median MAD ~0.02V) a score ≥ 4 means
+            # the rolling shift is far beyond grid noise (synth-gen
+            # bias=1.5V calibration_drift produces score 6-7 across
+            # production scenarios). Real grid month_shifts show closer
+            # to 2-3× the noise threshold because seasonal voltage
+            # variation is shallow. Routes the heavier shifts to the
+            # sensor_fault block where calibration drift belongs.
+            if s.score >= 4.0:
+                return "calibration_drift"
             return "month_shift"
         if s.duration_sec >= 3600:
             return "level_shift"

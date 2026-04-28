@@ -140,6 +140,12 @@ class Signals:
     # chain that bridges across Sat/Sun would gap and split — only
     # weekday-resident chains reach multi-day duration).
     chain_weekday_only: bool
+    # Iter 21: alert.score is detector-specific magnitude — RS reports
+    # `delta / bootstrap_threshold`, so score ≥ 4 means the value
+    # shift is 4× the historical noise floor. _classify_continuous
+    # uses this on voltage to split sensor calibration drift (large,
+    # signal-heavy) from grid-scale month_shift (smaller, near-noise).
+    score: float
 
     @classmethod
     def from_alert(cls, alert: Alert, mag: dict | None = None) -> "Signals":
@@ -166,6 +172,7 @@ class Signals:
             bucket_typical=_bucket_typical_from_context(alert.context),
             chain_weekday_only=_chain_weekday_only(
                 alert.window_start, alert.window_end),
+            score=float(alert.score),
         )
 
 

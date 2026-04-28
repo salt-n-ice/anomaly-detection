@@ -1,108 +1,141 @@
 # Smart Home Sensor Anomaly Detection — Pipeline
 
-A streaming pipeline that turns raw sensor events into household-facing
-anomaly notifications. Each event flows through six in-memory stages,
-fully event-driven, ~microseconds per event.
+A streaming, in-memory pipeline that turns raw sensor events into
+household-facing anomaly notifications. Single-process Python,
+microseconds per event, ~15–20 MB resident per sensor.
 
-## Data flow
+## Real-time data flow
 
 ```
 Event(sensor_id, capability, value, timestamp)
-        │
-        ▼
-   ┌──────────┐    Per archetype: resamples to a fixed tick rate,
-   │ Adapter  │    tracks state (CONTINUOUS rolling window, BURSTY
-   └────┬─────┘    on/off events, BINARY transitions). Emits a
-        │         uniform tick stream + ev objects to detectors.
-        ▼
-   ┌──────────┐    Stateless threshold check on every raw event:
-   │   DQG    │    out-of-range, dropout (gap), saturation, clock
-   └────┬─────┘    drift, extreme_value. Sub-second fire path.
-        │
-        ▼
-   ┌──────────┐    Statistical detectors fed by adapter ticks:
-   │ Detectors│      CONTINUOUS  → RecentShift
-   │  (per    │      BURSTY      → DutyCycleShift, RollingMedianPeak
-   │ archtype)│      BINARY      → StateTransition
-   └────┬─────┘    Each compares current rolling state to a frozen
-        │         bootstrap baseline (median + MAD or quantiles).
-        ▼
-   ┌──────────┐    Per-sensor fuser. Fires within a gap window are
-   │  Fuser   │    stitched into one chain so the user sees ONE
-   └────┬─────┘    notification per anomaly window.
-        │           CONTINUOUS gap = 15 min; BURSTY/BINARY = 4 h;
-        │           max chain span = 96 h.
-        ▼
-   ┌──────────┐    Maps the chain's detector signature + timestamp
-   │ Classify │    to a canonical anomaly_type (level_shift,
-   └────┬─────┘    time_of_day, weekend_anomaly, frequency_change,
-        │         spike, dip, water_leak_sustained, …) and a
-        │         label_class (user_behavior | sensor_fault).
-        ▼
-   ┌──────────┐    Builds a structured bundle: window, magnitude,
-   │ Explain  │    temporal context, detector evidence, rate
-   │ (bundle) │    context, classification block. Pure post-
-   └────┬─────┘    detection summarisation; no extra detection logic.
-        │
-        ▼
-   ┌──────────┐    Renders the bundle as Markdown for an LLM
-   │  Prompt  │    consumer ("# Anomaly on sensor X …"). The
-   └────┬─────┘    prompt is signal-rich, verdict-light: heuristic
-        │         classification surfaced as advisory hint, body
-        │         dominated by raw evidence so the LLM can
-        │         override based on household context.
-        ▼
+          │
+          ▼
+   ┌──────────────┐  SHORT-band check on every raw event. Threshold
+   │ DataQuality  │  + cadence checks vs config (min/max, expected
+   │   Gate       │  interval). Fires sub-second; bypasses bootstrap.
+   └──────┬───────┘
+          │
+          ▼
+   ┌──────────────┐  Per-archetype resampler — aligns events to a
+   │  Adapter     │  fixed 60 s tick:
+   │              │    CONTINUOUS  → linear interpolation
+   │              │    BURSTY      → k-means state (off/on) assignment
+   │              │    BINARY      → state hold + transition tracking
+   └──────┬───────┘  Gaps > 5 × expected_interval mark the tick as
+          │         dropout.
+          ▼
+   ┌──────────────┐  Adds rolling means (1 h / 24 h / 7 d) per
+   │ Feature      │  (state, feature) to each tick via O(1) running
+   │ Engineer     │  sums.
+   └──────┬───────┘
+          │
+          ▼
+   ┌──────────────┐  MEDIUM-band statistical detectors:
+   │  Detectors   │    CONTINUOUS  → RecentShift
+   │              │    BURSTY      → DutyCycleShift,
+   │              │                  RollingMedianPeakShift
+   │              │    BINARY      → StateTransition (immediate)
+   └──────┬───────┘  Compare live rolling state to the per-sensor
+          │         baseline fit during bootstrap.
+          ▼
+   ┌──────────────┐  Per-sensor chain assembler. Co-fires within
+   │  Fuser       │  `gap` stitch into one chain so the user sees
+   │              │  one notification per anomaly window.
+   │              │    CONTINUOUS  gap = 15 min
+   │              │    BURSTY/BIN  gap = 4 h
+   │              │    max_span    = 96 h
+   └──────┬───────┘
+          │
+          ▼
+   ┌──────────────┐  Walks a decision tree on (detector signature,
+   │  Classify    │  direction, calendar position, magnitude) →
+   │              │  (anomaly_type, label_class). Pre-typed alerts
+   └──────┬───────┘  (DQG, StateTransition) pass through.
+          │
+          ▼
+   ┌──────────────┐  bundle.explain → prompt.build_prompt produces
+   │  Explain     │  Markdown for the LLM consumer. Signal-rich,
+   │              │  verdict-light: the heuristic class is advisory;
+   └──────┬───────┘  the LLM can override with household context.
+          │
+          ▼
    Household-facing notification
 ```
 
-## Components (what ships in deployment)
+## What each detector does
 
-### Adapter (`src/anomaly/adapter.py`)
-Per-sensor instance, one of three subclasses by archetype:
-- **CONTINUOUS** (e.g. mains voltage, basement temp): rolling window of
-  recent values, derives instantaneous + first-difference features.
-- **BURSTY** (e.g. outlet power, kettle): event-segmenter — detects
-  rising/falling edges, tracks the current event's peak + duration.
-- **BINARY** (e.g. leak, switch): state machine, emits
-  transitions and tracks time-in-state.
+Per-sensor instances. SHORT-band runs per raw event; MEDIUM-band runs
+per 60 s tick after the 14-day bootstrap.
 
-All adapters emit a uniform `(tick, event)` stream consumed by detectors.
-Per-sensor state is bounded by the rolling window (typically minutes to
-a few hours of buffered ticks).
+| Detector | Archetype | Mechanism | Catches |
+|---|---|---|---|
+| **DataQualityGate** | all | Per-event threshold checks against `min_value` / `max_value` / `expected_interval`, with per-rule cooldowns to suppress oscillation around boundaries. | out_of_range, dropout, saturation, extreme_value, clock_drift, duplicate_stale, batch_arrival |
+| **RecentShift** | CONTINUOUS | `value_roll_1h` vs `value_roll_24h` / `_7d`; fires when ❘delta❘ exceeds the bootstrap-quantile threshold × `min_score`. | level_shift, calibration_drift, month_shift on continuous signals |
+| **DutyCycleShift** | BURSTY | Rolling 6 h fraction-of-time-on vs bootstrap median ± MAD (z-score). Percentile-novelty gate engages when MAD collapses to its floor on bimodal-zero sensors. Per-(weekend, hour) bucket map disambiguates calendar patterns. | frequency_change, time_of_day, weekend_anomaly, level_shift on outlets |
+| **RollingMedianPeakShift** | BURSTY | Median of last 5 event peaks vs bootstrap peak median ± MAD (z-score). Magnitude-based, orthogonal to DCS. | trend, degradation_trajectory, level_shift on outlet peaks |
+| **StateTransition** | BINARY | Fires immediately on 0→1 transitions, only for sensors marked `deterministic_trigger: true`. | water_leak_sustained |
 
-### Detectors (`src/anomaly/detectors.py`)
-Five active classes, registered per archetype in `profiles.py`:
+## Bootstrap and continuous adaptation
 
-| Detector | Archetype | What it catches |
+**Bootstrap (14 days per sensor, one-time per cold start).** Medium-band
+detectors are silent. Each sensor accumulates ticks, then `fit()`
+computes its baseline:
+
+- `RecentShift` — quantile of |short − baseline| deltas
+- `DutyCycleShift` — median / MAD / q01 / q99 over sliding 6 h windows
+  + per-(weekend, hour) bucket calendar baseline
+- `RollingMedianPeakShift` — median + MAD of per-event peaks
+- `BurstyAdapter` — k-means state centers (off / on)
+
+DQG and StateTransition do not bootstrap; they fire from event 1.
+
+**The system does NOT freeze after bootstrap.** Three independent
+adaptation mechanisms keep baselines current:
+
+1. **Pipeline-level adapt** (`pipeline.py:140`) — after three
+   consecutive max-span chains (~12 days of continuous firing) on a
+   sensor, the pipeline calls `detector.adapt_to_recent()` with the
+   last 144 h of feature rows; detectors re-fit baselines from that
+   window. The streak resets on any non-max-span emit (chain ended
+   naturally) and after each adapt.
+2. **RMP self-adapt** (`detectors.py:418`) — after three
+   cooldown-spaced fires (~18 h sustained high-|z|) inside a 24 h-quiet
+   window, `RollingMedianPeakShift` re-fits `boot_median`/`boot_mad`
+   from its last 20 event peaks, with a MAD-only-grow floor.
+3. **DQG `extreme_value` ratchet** (`detectors.py:92`) — the reference
+   max updates on every event during calibration (first 100 events),
+   then on every fire. Sustained high values continuously re-anchor
+   the threshold upward.
+
+Adaptation is intentionally conservative: gated on sustained firing,
+sized in days. **Silent drift (regime change below the firing
+threshold) does not trigger adapt** — the system stays calibrated to
+its bootstrap until something fires.
+
+## Per-sensor state in production
+
+In-memory, per sensor, post-bootstrap:
+
+| Component | State | Footprint |
 |---|---|---|
-| `DataQualityGate` | all | out_of_range, dropout, extreme_value, clock_drift, saturation, duplicate_stale (instantaneous threshold checks) |
-| `RecentShift` | CONTINUOUS | sustained shifts in the rolling-mean tail (level shifts, drifts) |
-| `DutyCycleShift` | BURSTY | fraction-of-time-on over a 6h window deviating from baseline |
-| `RollingMedianPeakShift` | BURSTY | per-event peak magnitude vs bootstrap median+MAD |
-| `StateTransition` | BINARY | 0→1 transitions on water/leak sensors |
+| Adapter | 1–2 buffered raw points; k-means centers (BURSTY); 1 h / 24 h history (BINARY) | < 100 KB |
+| DataQualityGate | scalar counters + last-fire timestamps + 12-event burst deque | < 1 KB |
+| **FeatureEngineer rolling buffers** | per (state × feature × window) deques — 1 h / 24 h / **7 d** sized in ticks; e.g. 4 features × 3 windows × 2 states for BURSTY | **~2 MB** |
+| RecentShift | bootstrap quantile threshold per baseline feature | < 1 KB |
+| DutyCycleShift | bootstrap stats + 6 h rolling `(ts, on/off)` deque + 48-cell bucket map | ~10 KB |
+| RollingMedianPeakShift | bootstrap median + MAD + 5-event + 20-event peak deques | < 1 KB |
+| StateTransition | last trigger ts | 1 timestamp |
+| Fuser | pending alert chain + last-newest ts | < 1 KB |
+| **Pipeline `recent_rows` ring** | 144 h × 60 enriched feature dicts; held so `adapt_to_recent` has a re-fit window when the K=3 max-span streak fires | **~5–10 MB** |
 
-Each detector loads frozen bootstrap stats (median, MAD, quantiles)
-fitted on the first 7-14 days of normal traffic, and a small rolling
-state buffer for live evaluation.
+**Total ~15–20 MB per sensor in Python.** A 5-sensor home is ~100 MB;
+a 1000-sensor fleet is ~15 GB at single-process scale — shard by
+household / tenant for fleets.
 
-### Fuser (`src/anomaly/fusion.py::DefaultAlertFuser`)
-Per-sensor instance. Holds the most recent unflushed alerts and chains
-co-fires within a gap window. Emits one chain per anomaly window with
-`window_start`, `window_end`, `first_fire_ts`, `score`, and the
-detector union.
-
-### Classifier (`src/anomaly/explain/classify.py::classify`)
-Stateless function: takes a fused chain + magnitude + temporal context
-and returns `(type, class, confidence, signal_classes)`. Pre-typed
-alerts (DQG, StateTransition) pass through; detector-combo chains walk
-a decision tree based on which signals fired and the calendar context
-of the chain.
-
-### Explain layer (`src/anomaly/explain/`)
-- **`bundle.explain(alert, events_df)`** — assembles the structured
-  bundle dict from the alert + recent events.
-- **`prompt.build_prompt(bundle)`** — renders the bundle as the
-  Markdown prompt the LLM consumer reads.
+**Bootstrap memory spike** (one-time, cold start): `bootstrap_raw`
+accumulates 14 days of adapter output (~10 MB / sensor) before `fit()`
+runs, then is released. Could be made streaming-online but isn't
+currently.
 
 ## Sensor config
 
@@ -118,78 +151,62 @@ sensors:
     max_value: 3000
 ```
 
-`min_value` / `max_value` drive `DataQualityGate.out_of_range`;
-`expected_interval_sec` drives the `dropout` / `clock_drift` checks.
-Sensors not in the config are silently dropped by `Pipeline.ingest`.
-
-## Bootstrap
-
-Detectors are silent on a sensor for its first 7-14 days
-(`--bootstrap-days`). During that window they fit their baseline stats
-(median, MAD, quantiles) and freeze them. After bootstrap there is no
-online retraining — `RollingMedianPeakShift` updates its peak median
-additively but the alert thresholds stay locked.
-
-## State / storage in production
-
-In-memory, per sensor:
-
-| Component | State | Footprint |
-|---|---|---|
-| Adapter | rolling tick window + state vars | few KB |
-| DataQualityGate | scalar counters + last-fire timestamps | ~16 floats |
-| RecentShift | bootstrap quantiles + rolling summary | ~10 floats |
-| DutyCycleShift | bootstrap median/MAD/q01/q99 + 6h rolling deque of `(ts, on/off)` pairs | ~few KB |
-| RollingMedianPeakShift | bootstrap median+MAD + 5-event peak deque | ~10 floats |
-| StateTransition | last trigger ts | 1 timestamp |
-| Fuser | last-emit ts, chain span tracker | ~5 floats |
-
-**Constant per sensor**, no growth over runtime, no external store.
-A 1k-sensor fleet fits in a few MB of pipeline RAM.
+- `min_value` / `max_value` drive `DataQualityGate.out_of_range`.
+- `expected_interval_sec` drives `dropout` (gap > 5 × expected) and
+  `clock_drift` (per-tick deviation > 0.5 %) checks.
+- `archetype` selects which medium-band detectors load.
+- Sensors not in the config are silently dropped by `Pipeline.ingest`.
 
 ## Latency budget
 
-- Per-event compute through `Pipeline.ingest`: **microseconds**
-  (in-memory scalar ops over 3-4 detectors + fuser).
-- Time from anomaly onset to first chain emit:
-  - DQG-pre-typed (sensor faults): **sub-second**.
-  - Behavioral chains (DutyCycle / RollingMedianPeak / RecentShift /
-    StateTransition): governed by detector tick interval + fuser gap.
-    Typical user-visible p95 is **15 min – several hours** for
-    sustained behavioural anomalies.
-- Bootstrap: detectors silent for the first 7-14 days per sensor (one-time).
+- **Per-event compute** through `Pipeline.ingest`: microseconds —
+  in-memory scalar ops over the adapter, feature engineer, 3–4
+  detectors, and the fuser.
+- **Onset → first chain emit**:
+  - DQG / StateTransition (sensor faults, water leak): sub-second.
+  - DCS / RMP / RecentShift: detector cooldown + fuser gap. Median
+    observed latency across the eval suite is 2.6 h; on-time rate
+    against per-type MET budgets is 76 %.
+- **Bootstrap silence**: 14 days per sensor, one-time per cold start.
+- **Adaptation**: triggers after ~12 days of sustained firing
+  (pipeline-level) or ~18 h (RMP self-adapt).
 
 ## Output
 
-`Pipeline.ingest(event)` returns a list of zero or more `Alert`
-objects. Each fully-fused chain comes through with:
+`Pipeline.ingest(event)` returns zero or more `Alert` objects. Each
+chain carries:
 
 ```python
 Alert(
-  sensor_id, capability, timestamp, detector,    # detector union as "+"-joined string
-  score, threshold, anomaly_type, window_start,
-  window_end, first_fire_ts, context,
+  sensor_id, capability, timestamp,
+  detector,         # "+"-joined union of detectors fused into the chain
+  score, threshold,
+  anomaly_type,     # post-classify canonical label
+  window_start, window_end,
+  first_fire_ts,    # earliest component fire tick (latency reference)
+  fire_ticks,       # all component fire ticks (per-fire grading)
+  context,          # detector evidence dicts
 )
 ```
 
-The deployment consumer calls `bundle.explain(alert, events_df)` →
-`prompt.build_prompt(bundle)` to get the LLM-ready Markdown for the
-household notification.
+Deployment consumer:
+
+```python
+bundle = explain(alert, events_df)
+prompt = build_prompt(bundle)   # → LLM input
+```
 
 ## What's NOT in deployment
 
-- **CSV-replay path** (`python -m anomaly run / eval / explain`) —
+- **CSV replay path** (`python -m anomaly run / eval / explain`) —
   research/offline only. Reads `events.csv` upfront, replays through
-  `Pipeline.ingest`, writes detections at end. Not a streaming
-  pattern.
-- **Bundle JSONL writer** (`csv.explain_detections_csv`) — also
-  CSV-replay only. Production callers invoke `bundle.explain()` per
-  alert directly; no CSV round-trip.
-- **Research harness** (`research/run_research_eval.py`,
-  `research/explain/*`) — gitignored, local-only. Headline metric
-  evaluation against ground truth, baselines, iteration logs.
-- **MatrixProfile, CUSUM, PCA, BOCPD, TemporalProfile, etc.** —
-  removed in `bf6adbc` (chore: prune dead detectors). The current
-  five-detector set is the deployment surface; ~1970 LOC of legacy
-  detectors was pruned with byte-identical detection CSVs across all
-  scenarios (zero behaviour change).
+  `Pipeline.ingest`, writes detections at end. Not a streaming pattern.
+- **Bundle JSONL writer** (`csv.explain_detections_csv`) — research
+  only; production calls `bundle.explain()` per alert directly.
+- **Research harness** (`research/`, `scripts/run_all_scenarios.py`,
+  `scripts/latency_report.py`) — dev-only. Headline metrics, latency
+  reports, baselines, iteration logs.
+- **Cross-sensor correlation** ("kettle + TV co-fire → guests") —
+  not implemented; each sensor is analyzed independently.
+- **CUSUM, PCA, MatrixProfile, BOCPD, TemporalProfile, …** — pruned.
+  The five-detector set above is the entire deployment surface.
