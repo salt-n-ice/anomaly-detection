@@ -26,24 +26,31 @@ import pandas as pd
 import yaml
 
 MET_HOURS: dict[str, float] = {
+    # Synthgen label durations (suite-wide min/median/max) inform each
+    # type's MET — see scripts/scan_durations or scenarios/*.yaml.
+    #
     # Immediate-trigger types — detector fires on a single tick / event.
-    "spike":                    0.5,
-    "dropout":                  0.5,
+    "spike":                    0.5,   # labels 5 min; instant trigger
+    "dropout":                  0.5,   # labels ~45 min (heartbeat lapse)
     "extreme_value":            0.5,
-    "water_leak_sustained":     0.5,
-    "dip":                      1.0,   # CONT recent_shift has 1h analysis window
+    "water_leak_sustained":     0.5,   # labels 1-8h; binary state, instant
+    "dip":                      2.0,   # labels 3-6h; 1h analysis window + fuser
     # Short-window step-change types.
-    "level_shift":              6.0,
-    "frequency_change":        12.0,
+    "level_shift":              6.0,   # labels 72-720h; bias instant on signal
+    "frequency_change":         6.0,   # labels 2-8h; lower bound = label dur
     # Slow-drift / day-level types — rolling baseline + multi-day evidence.
-    "usage_anomaly":           24.0,
-    "trend":                   24.0,
-    "month_shift":             24.0,
-    "calibration_drift":       24.0,
-    "degradation_trajectory":  48.0,
+    "usage_anomaly":           24.0,   # day-level statistical outlier
+    "trend":                   48.0,   # labels 72-168h, slope 2e-5..5e-5;
+                                       # gentle slopes need ~24-48h accumulation
+    "month_shift":             24.0,   # labels 552h (23d); 1h window catches fast
+    "calibration_drift":       24.0,   # labels 48h; 50% of label is honest
+    "degradation_trajectory":  48.0,   # labels 336h (14d); slow slope
     # Calendar-pattern types — need cross-day evidence.
-    "weekend_anomaly":         48.0,   # need most of one weekend
-    "time_of_day":             72.0,   # need cross-day repetition
+    "weekend_anomaly":         48.0,   # labels 24-672h; need ≥1 full weekend
+    "time_of_day":             72.0,   # labels 1-336h; 1-4h labels miss anyway
+                                       # (can't classify as time_of_day on a
+                                       # single-day fire), captured cases are
+                                       # 14d labels needing cross-day repeat
     # Defaults.
     "temporal_pattern":        24.0,
     "statistical_anomaly":     12.0,
