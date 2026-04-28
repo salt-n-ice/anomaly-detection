@@ -294,6 +294,27 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         "duty_cycle_shift_6h", "duty_cycle_shift_12h",
     })
     _RECENT_SHIFT_DETECTORS = frozenset({"recent_shift"})
+    _RMP_DETECTORS = frozenset({"rolling_median_peak_shift"})
+    # Iter 18: opposite-direction RMP cascade walk. RMP detector's
+    # adapt mechanism re-fits boot_median upward during a sustained
+    # in-label "+" run; once the label ends and value reverts to
+    # natural baseline, roll_median falls below the (now elevated)
+    # boot_median → RMP fires "-" direction for several hours. That's
+    # the post-recovery cascade we want to suppress. Mirrors
+    # iter 14/15/16 (opposite-dir + iter 15 same-dir skip).
+    #
+    # Two extra gates vs iter 16 to keep this safe:
+    #   1. RMP_CASCADE_GAP = 72h (matches iter 11's RETURN_TRANSIENT_GAP)
+    #   2. RMP_CASCADE_PRIOR_GAP = 24h: head qualifies only if its
+    #      LATEST same-direction prior is within 24h. This protects
+    #      hh60d fridge: a "loose" head with priors 50h+ apart is
+    #      sporadic post-label noise, NOT a sustained trend cluster;
+    #      its forward walk would otherwise reach the next label's
+    #      in-window TP fires.
+    # Solo RMP chains only (combo chains route through different
+    # classifiers and aren't the post-trend-cluster FP target).
+    RMP_CASCADE_GAP = pd.Timedelta(hours=72)
+    RMP_CASCADE_PRIOR_GAP = pd.Timedelta(hours=24)
 
     def _dcs_direction(a: Alert) -> str | None:
         """Extract +/- from any DCS context dict on the alert."""
@@ -324,6 +345,21 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
                 return "+" if sv > bv else "-"
         return None
 
+    def _rmp_direction(a: Alert) -> str | None:
+        """RMP detector emits direction='high'/'low' on the alert
+        context (z > 0 vs z < 0 against bootstrap median). Map to +/-."""
+        if not a.context:
+            return None
+        for ctx in a.context:
+            d = ctx.get("direction")
+            if d in ("+", "-"):
+                return d
+            if d == "high":
+                return "+"
+            if d == "low":
+                return "-"
+        return None
+
     oor_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     dcs_ts_by_sensor: dict[str, list[pd.Timestamp]] = {}
     # (first_fire, last_fire, direction) per DCS chain — needed by iter 10
@@ -340,6 +376,12 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # chains the metric counts as TPs).
     rs_chains_by_sensor: dict[
         str, list[tuple[pd.Timestamp, pd.Timestamp, str | None, int]]
+    ] = {}
+    # Iter 18: solo-RMP chains only (combo chains like DCS+RMP route
+    # through different classifiers and are not the post-trend-cluster
+    # FP target).
+    rmp_chains_by_sensor: dict[
+        str, list[tuple[pd.Timestamp, pd.Timestamp, str | None]]
     ] = {}
     for a in alerts:
         detectors = set((a.detector or "").split("+"))
@@ -365,6 +407,10 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
             n_ticks = len(a.fire_ticks) if a.fire_ticks else 1
             rs_chains_by_sensor.setdefault(a.sensor_id, []).append(
                 (ff, a.timestamp, _rs_direction(a), n_ticks))
+        if detectors == _RMP_DETECTORS:
+            ff = a.first_fire_ts or a.timestamp
+            rmp_chains_by_sensor.setdefault(a.sensor_id, []).append(
+                (ff, a.timestamp, _rmp_direction(a)))
     for v in oor_ts_by_sensor.values():
         v.sort()
     for v in dcs_ts_by_sensor.values():
@@ -372,6 +418,8 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     for v in dcs_chains_by_sensor.values():
         v.sort(key=lambda t: t[0])
     for v in rs_chains_by_sensor.values():
+        v.sort(key=lambda t: t[0])
+    for v in rmp_chains_by_sensor.values():
         v.sort(key=lambda t: t[0])
     import bisect
     def _is_sustained_oor(a: Alert) -> bool:
@@ -552,6 +600,56 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         cur_ff = a.first_fire_ts or a.timestamp
         return (a.sensor_id, cur_ff) in dcs_cascade_suppressed_keys
 
+    # Iter 18: solo-RMP opposite-direction cascade walk. After a
+    # sustained head (≥3 same-direction solo RMP chains in 14d, latest
+    # prior within 24h of head — a TIGHT cluster), suppress every
+    # opposite-direction solo RMP chain within 72h of the running
+    # anchor. Anchor extends per suppression. Iter 15-style skip-same
+    # for in-label same-direction continuations between head and the
+    # opp-direction recovery cluster.
+    rmp_cascade_suppressed_keys: set[tuple[str, pd.Timestamp]] = set()
+    for sid, chains in rmp_chains_by_sensor.items():
+        for i, ch in enumerate(chains):
+            prev_ff, prev_lf, prev_dir = ch
+            if prev_dir is None:
+                continue
+            prior_lo = prev_ff - SUSTAINED_DCS_WINDOW
+            same_dir_priors = [c for c in chains
+                               if prior_lo <= c[0] < prev_ff and c[2] == prev_dir]
+            if len(same_dir_priors) < (RETURN_TRANSIENT_PRIOR_COUNT - 1):
+                continue
+            # Tightness gate: latest same-direction prior must be
+            # within 24h of head. Distinguishes a true sustained run
+            # (priors clustered near head) from sporadic post-label
+            # noise (priors spread over multiple days).
+            latest_prior_ff = max(c[0] for c in same_dir_priors)
+            if (prev_ff - latest_prior_ff) > RMP_CASCADE_PRIOR_GAP:
+                continue
+            opp_dir = "-" if prev_dir == "+" else "+"
+            anchor_lf = prev_lf
+            for j in range(i + 1, len(chains)):
+                ff_j, lf_j, dir_j = chains[j]
+                # Iter 15-style: skip same-direction (and unknown)
+                # without breaking — anchor stays put.
+                if dir_j != opp_dir:
+                    continue
+                gap = ff_j - anchor_lf
+                if gap < pd.Timedelta(0):
+                    continue
+                if gap > RMP_CASCADE_GAP:
+                    break
+                rmp_cascade_suppressed_keys.add((sid, ff_j))
+                anchor_lf = lf_j
+
+    def _is_rmp_cascade_suppressed(a: Alert) -> bool:
+        # Iter 18: membership check. Only solo RMP (single-detector
+        # rolling_median_peak_shift chain) is in the cascade index.
+        detectors = set((a.detector or "").split("+"))
+        if detectors != _RMP_DETECTORS:
+            return False
+        cur_ff = a.first_fire_ts or a.timestamp
+        return (a.sensor_id, cur_ff) in rmp_cascade_suppressed_keys
+
     def _is_time_of_day_pattern(a: Alert) -> bool:
         # Iter 9: chain hour-of-day appears on BOTH weekdays and
         # weekends in the 14d window — that's a daily calendar
@@ -595,7 +693,8 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         # the recent_shift cascade; iter 16 the rest of the DCS cascade.
         if (_is_return_transient(a)
                 or _is_rs_return_transient(a)
-                or _is_dcs_cascade_suppressed(a)):
+                or _is_dcs_cascade_suppressed(a)
+                or _is_rmp_cascade_suppressed(a)):
             continue
         start = a.window_start or a.timestamp
         end = a.window_end or (a.timestamp + pd.Timedelta(minutes=1))
