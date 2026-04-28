@@ -13,8 +13,9 @@ claiming to be `user_behavior` is only credited against
 with `inferred_class == unknown` count for both.
 
 All metrics below come from `compute_stratified` in
-`src/anomaly/metrics.py`. Latency comes from
-`scripts/latency_report.py`.
+`src/anomaly/metrics.py`. The same module also surfaces the on-time
+rate; `scripts/latency_report.py` adds median / max absolute-latency
+breakdowns for deeper inspection.
 
 ---
 
@@ -80,20 +81,33 @@ days. Any-class overlap exempts: a `user_behavior` chain hitting a
 
 ---
 
-## On-time rate + median absolute latency
+## `on_time_rate` (`onTime%`)
 
-From `scripts/latency_report.py`. Two numbers per block:
-
-1. **on-time rate** — fraction of *correctly-typed-detected* labels
-   where the alert fires within `MET(label_type)` of label start.
-2. **median absolute latency (h)** — typical time-to-alert, in hours.
+Fraction of *correctly-typed-detected* labels where the alert fires
+within `MET(label_type)` of label start. Surfaced both in the eval
+headline (`python -m anomaly eval` → `onTime%`) and in
+`scripts/latency_report.py` (which also reports median / max absolute
+latency for context the headline omits).
 
 A label is correctly-typed-detected if at least one chain overlaps
 it AND that chain's `inferred_type` matches the label's
 `anomaly_type`. Per label, the EARLIEST matching chain's `end`
-(chain emit / `window_end`) is the alert time.
+(chain emit / `window_end`) is the alert time. The denominator is
+correctly-typed-detected labels only — labels with no matching chain
+are excluded from the rate (`incident_recall` and `type_acc` already
+account for those misses; this metric measures *speed* of correctly-
+typed alerts, not coverage).
 
-`MET` is the **user-expectation budget** — the latest the alert can
+- `100.0%` — every correctly-typed alert fired within budget.
+- `66.7%` — a third of alerts arrived late (after the per-type MET).
+
+Why `chain.end` rather than `first_fire_ts`: chain emit is the user-
+visible alert time at fuser flush. A chain that has fires at T+30min
+but doesn't flush until T+5h does not reach the user until T+5h —
+the metric reflects that.
+
+`MET` is the **user-expectation budget** (single source of truth:
+`MET_HOURS` in `src/anomaly/metrics.py`) — the latest the alert can
 arrive and still be useful to a human:
 
 | anomaly_type             | MET   | rationale                                                            |

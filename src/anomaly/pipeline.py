@@ -790,16 +790,19 @@ def evaluate(detections_csv: Path, labels_csv: Path,
     #                 per day (the user-visible LLM-spam rate).
     print(f"{'block':<14} {'n_lbl':>5} {'incR':>6} {'evt_F1':>7} "
           f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'onTime%':>8}")
-    for block_name in ("behavior", "sensor_fault"):
-        b = m[block_name]
-        if b.get("n_labels", 0) == 0:
-            print(f"  {block_name:<12} (no labels)")
-            continue
+    # Only the BEHAVIOR block is the optimization target; sensor_fault
+    # numbers stay in the returned dict for archaeology but aren't worth
+    # the line of console real estate (immediate-trigger detectors,
+    # rarely move).
+    b = m["behavior"]
+    if b.get("n_labels", 0) == 0:
+        print("  behavior     (no labels)")
+    else:
         ta = b.get("type_acc")
         ta_s = "     -" if ta is None else f"{ta:>6.3f}"
         ot = b.get("on_time_rate")
         ot_s = "       -" if ot is None else f"{ot * 100:>7.1f}%"
-        print(f"  {block_name:<12} {b['n_labels']:>5d} "
+        print(f"  {'behavior':<12} {b['n_labels']:>5d} "
               f"{b['incident_recall']:>6.3f} {b['evt_f1']:>7.3f} "
               f"{b['fire_purity']:>6.3f} {ta_s} "
               f"{b['user_visible_fps_per_day']:>7.2f} {ot_s}")
