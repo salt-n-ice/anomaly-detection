@@ -497,6 +497,61 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
         cur_ff = a.first_fire_ts or a.timestamp
         return (a.sensor_id, cur_ff) in rs_suppressed_keys
 
+    # Iter 16: parallel cascade-walk for DCS chains. Iter 11
+    # (`_is_return_transient`) catches only the FIRST reversal after a
+    # sustained DCS run — subsequent chains slip through because their
+    # immediate prev is the just-suppressed reversal (now same-direction
+    # as cur), so the per-chain gate fails. This pre-pass mirrors iter
+    # 14 / 15: from each sustained head (≥3 same-direction chains in
+    # 14d, == iter 11 priors gate), walk forward and suppress every
+    # opposite-direction chain within RETURN_TRANSIENT_GAP (72h) of the
+    # running anchor; the anchor extends per suppression. Iter 15-style
+    # skip-same-dir keeps the cascade reachable past in-label
+    # same-direction continuations.
+    #
+    # Same gate as iter 11 (RETURN_TRANSIENT_PRIOR_COUNT) so chains iter
+    # 11 wouldn't have called sustained heads aren't promoted. The two
+    # mechanisms are complementary: iter 11 catches the first reversal
+    # via per-chain check; iter 16 catches the rest via cascade.
+    dcs_cascade_suppressed_keys: set[tuple[str, pd.Timestamp]] = set()
+    for sid, chains in dcs_chains_by_sensor.items():
+        for i, ch in enumerate(chains):
+            prev_ff, prev_lf, prev_dir = ch
+            if prev_dir is None:
+                continue
+            prior_lo = prev_ff - SUSTAINED_DCS_WINDOW
+            same_dir_priors = sum(
+                1 for c in chains
+                if prior_lo <= c[0] < prev_ff and c[2] == prev_dir
+            )
+            if same_dir_priors < (RETURN_TRANSIENT_PRIOR_COUNT - 1):
+                continue
+            opp_dir = "-" if prev_dir == "+" else "+"
+            anchor_lf = prev_lf
+            for j in range(i + 1, len(chains)):
+                ff_j, lf_j, dir_j = chains[j]
+                if dir_j != opp_dir:
+                    continue
+                gap = ff_j - anchor_lf
+                if gap < pd.Timedelta(0):
+                    continue
+                if gap > RETURN_TRANSIENT_GAP:
+                    break
+                dcs_cascade_suppressed_keys.add((sid, ff_j))
+                anchor_lf = lf_j
+
+    def _is_dcs_cascade_suppressed(a: Alert) -> bool:
+        # Iter 16: membership check against the pre-computed cascade
+        # suppression set built above. Sustained head + cascade walk
+        # generalises iter 11 from "first reversal only" to "all
+        # opposite-direction recovery chains within 72h of the running
+        # anchor."
+        detectors = set((a.detector or "").split("+"))
+        if not (detectors & _DCS_DETECTORS):
+            return False
+        cur_ff = a.first_fire_ts or a.timestamp
+        return (a.sensor_id, cur_ff) in dcs_cascade_suppressed_keys
+
     def _is_time_of_day_pattern(a: Alert) -> bool:
         # Iter 9: chain hour-of-day appears on BOTH weekdays and
         # weekends in the 14d window — that's a daily calendar
@@ -534,10 +589,13 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
 
     rows = []
     for a in alerts:
-        # Iter 10/14: skip post-label return-transient chains entirely.
-        # DCS uses iter 11's rule; recent_shift uses iter 14's
-        # size-aware variant.
-        if _is_return_transient(a) or _is_rs_return_transient(a):
+        # Iter 10/14/16: skip post-label return-transient chains entirely.
+        # iter 11 (`_is_return_transient`) catches the first reversal of
+        # a sustained DCS head; iter 14/15 (`_is_rs_return_transient`)
+        # the recent_shift cascade; iter 16 the rest of the DCS cascade.
+        if (_is_return_transient(a)
+                or _is_rs_return_transient(a)
+                or _is_dcs_cascade_suppressed(a)):
             continue
         start = a.window_start or a.timestamp
         end = a.window_end or (a.timestamp + pd.Timedelta(minutes=1))
