@@ -45,19 +45,19 @@ MET_HOURS: dict[str, float] = {
     "month_shift":             24.0,   # labels 552h (23d); 1h window catches fast
     "calibration_drift":       24.0,   # labels 48h; 50% of label is honest
     "degradation_trajectory":  48.0,   # labels 336h (14d); slow slope
-    # Calendar-pattern types — bottleneck is fuser chain-close, not classifier.
-    "weekend_anomaly":        120.0,   # labels 24-672h. Dominant variant is
-                                       # target=weekday: detector first-fires
-                                       # within hours, but the chain runs
-                                       # Mon-Fri continuously and only closes
-                                       # at the 96h max_span boundary — only
-                                       # then does the chain_weekday_only
-                                       # signal land at the classifier.
-                                       # 120h = max_span + ~1d propagation.
-                                       # target=weekend variant typically
-                                       # closes at ~24h (Sun night) and is
-                                       # well under budget here.
-    "time_of_day":             72.0,   # labels 1-336h; 1-4h labels miss anyway
+    # Calendar-pattern types — MET reflects USER expectation, not system floor.
+    "weekend_anomaly":         48.0,   # "tell me by end of weekend / mid-week
+                                       # for the weekday-pattern variant".
+                                       # System currently averages ~110h on
+                                       # the target=weekday variant due to
+                                       # the 96h fuser max_span — that's a
+                                       # real architecture limitation the
+                                       # metric should surface, not hide.
+    "time_of_day":             72.0,   # 72h is BOTH user-expectation and
+                                       # physical floor — the iter 9 rule
+                                       # needs weekday + weekend evidence in
+                                       # the 14d window (Sat + Mon + Tue is
+                                       # the earliest satisfying triple).
                                        # (can't classify as time_of_day on a
                                        # single-day fire), captured cases are
                                        # 14d labels needing cross-day repeat
