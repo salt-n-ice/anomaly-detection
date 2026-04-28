@@ -1,6 +1,5 @@
 """Run the anomaly pipeline across all production scenarios and report the
-BEHAVIOR headline (sensor_fault block is computed but not printed —
-immediate-trigger DQG detectors rarely move iter-to-iter).
+stratified BEHAVIOR / sensor_fault headline.
 
 Expects the companion `synthetic-generator/` project to be a sibling
 directory of `anomaly-detection/`, with scenarios already generated under
@@ -55,18 +54,19 @@ for name, scenario_dir, cfg in SCENARIOS:
     timeline_days = (ev_ts.max() - ev_ts.min()).total_seconds() / 86400 if len(ev_ts) else 0
     m = compute_stratified(gt, det, timeline_days)
     print(f"  elapsed={elapsed:.1f}s  labels={len(gt)}  dets={len(det)}  timeline={timeline_days:.1f}d")
-    b = m["behavior"]
-    if b.get("n_labels", 0) == 0:
-        print("  behavior     (no labels)")
-    else:
+    for block_name in ("behavior", "sensor_fault"):
+        b = m[block_name]
+        if b.get("n_labels", 0) == 0:
+            print(f"  {block_name:<12} (no labels)")
+            continue
         ta = b.get("type_acc")
         ta_s = "  -" if ta is None else f"{ta:.3f}"
-        ot = b.get("on_time_rate")
-        ot_s = "    -" if ot is None else f"{ot * 100:.1f}%"
-        print(f"  {'behavior':<12} n={b['n_labels']:>3d}  incR={b['incident_recall']:.3f}  "
+        lf = b.get("lat_frac_p95")
+        lf_s = "  -" if lf is None else f"{lf:.3f}"
+        print(f"  {block_name:<12} n={b['n_labels']:>3d}  incR={b['incident_recall']:.3f}  "
               f"evt_F1={b['evt_f1']:.3f}  fpur={b['fire_purity']:.3f}  "
               f"tyAcc={ta_s}  uvfp/d={b['user_visible_fps_per_day']:.2f}  "
-              f"onTime%={ot_s}")
+              f"lat%P95={lf_s}")
     results.append({
         "scenario": name,
         "elapsed_s": elapsed,
@@ -78,21 +78,33 @@ for name, scenario_dir, cfg in SCENARIOS:
     })
 
 # -- Summary table --------------------------------------------------------
-# BEHAVIOR-only — sensor_fault is computed and stored on each result row
-# (`r["sensor_fault"]`) for archaeology, but no summary section is
-# printed. Immediate-trigger DQG detectors don't shift across iters and
-# the row was costing console real estate without informing tuning.
+# Grouped by block so the BEHAVIOR row vs sensor_fault row stays visually
+# distinct (behavior is the optimization target; sensor_fault is the
+# infrastructure side-channel).
 print("\n\n=== SUMMARY (BEHAVIOR) ===")
 print(f"{'scenario':<24} {'n_lbl':>5} {'incR':>6} {'evt_F1':>7} "
-      f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'onTime%':>8}")
+      f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'lat%P95':>8}")
 for r in results:
     b = r["behavior"]
     if b.get("n_labels", 0) == 0:
         continue
     ta = b.get("type_acc"); ta_s = "     -" if ta is None else f"{ta:>6.3f}"
-    ot = b.get("on_time_rate")
-    ot_s = "       -" if ot is None else f"{ot * 100:>7.1f}%"
+    lf = b.get("lat_frac_p95"); lf_s = "       -" if lf is None else f"{lf:>8.3f}"
     print(f"{r['scenario']:<24} {b['n_labels']:>5d} "
           f"{b['incident_recall']:>6.3f} {b['evt_f1']:>7.3f} "
           f"{b['fire_purity']:>6.3f} {ta_s} "
-          f"{b['user_visible_fps_per_day']:>7.2f} {ot_s}")
+          f"{b['user_visible_fps_per_day']:>7.2f} {lf_s}")
+
+print("\n=== SUMMARY (SENSOR_FAULT) ===")
+print(f"{'scenario':<24} {'n_lbl':>5} {'incR':>6} {'evt_F1':>7} "
+      f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'lat%P95':>8}")
+for r in results:
+    b = r["sensor_fault"]
+    if b.get("n_labels", 0) == 0:
+        continue
+    ta = b.get("type_acc"); ta_s = "     -" if ta is None else f"{ta:>6.3f}"
+    lf = b.get("lat_frac_p95"); lf_s = "       -" if lf is None else f"{lf:>8.3f}"
+    print(f"{r['scenario']:<24} {b['n_labels']:>5d} "
+          f"{b['incident_recall']:>6.3f} {b['evt_f1']:>7.3f} "
+          f"{b['fire_purity']:>6.3f} {ta_s} "
+          f"{b['user_visible_fps_per_day']:>7.2f} {lf_s}")
