@@ -75,6 +75,29 @@ per 60 s tick after the 14-day bootstrap.
 | **RollingMedianPeakShift** | BURSTY | Median of last 5 event peaks vs bootstrap peak median ± MAD (z-score). Magnitude-based, orthogonal to DCS. | trend, degradation_trajectory, level_shift on outlet peaks |
 | **StateTransition** | BINARY | Fires immediately on 0→1 transitions, only for sensors marked `deterministic_trigger: true`. | water_leak_sustained |
 
+## user_behavior anomaly vocabulary — what the household gets
+
+`inferred_type` is one of these canonical strings (mirrors the
+ground-truth vocabulary the synthetic-generator emits).
+`type_to_class(inferred_type)` maps to the class column; anything
+outside the set resolves to `unknown`.
+
+| type                     | what the alert tells the household                                                   |
+|--------------------------|--------------------------------------------------------------------------------------|
+| `spike`                  | brief over-power surge — faulty appliance, pre-breaker / pre-fire signal             |
+| `dip`                    | voltage dip = grid or wiring fault; fridge temp dip = door left open / seal broken   |
+| `level_shift`            | appliance unplugged, replaced, or left running — equipment-state visibility          |
+| `trend`                  | gradual motor / compressor wear — service the appliance before it fails              |
+| `degradation_trajectory` | multi-week decline (HVAC filter clogging, fridge dying) — pre-failure replacement    |
+| `frequency_change`       | cadence shifted — guest staying, newborn, work-from-home onset                       |
+| `seasonality_loss`       | expected daily pattern missing — homeowner traveled or appliance silently broken     |
+| `time_of_day`            | usage at off-hours — vampire loads, hidden leaks, late-night activity                |
+| `weekend_anomaly`        | weekend-vs-weekday split — WFH transition, vacation mode, lifestyle change           |
+| `month_shift`            | sustained shift over weeks — utility-grid adjustment or appliance running constantly |
+| `seasonal_mismatch`      | AC in winter / heater in summer — broken thermostat or HVAC misconfiguration         |
+| `water_leak_sustained`   | minutes-not-hours alert; prevents thousands in water damage                          |
+| `usage_anomaly`          | day with markedly elevated activity — party, sick day, unattended appliance          |
+
 ## Bootstrap and continuous adaptation
 
 **Bootstrap (14 days per sensor, one-time per cold start).** Medium-band
