@@ -3,6 +3,51 @@ from dataclasses import dataclass
 import pandas as pd
 
 
+# Per-type minimum-evidence-time budgets (hours). The on-time-rate metric
+# checks whether the earliest correctly-typed chain emits within this
+# budget after label start. Synthgen label durations (suite-wide
+# min/median/max) inform each type's MET — see scripts/scan_durations or
+# scenarios/*.yaml. Single source of truth: imported by both the eval
+# headline (`python -m anomaly eval`) and `scripts/latency_report.py`.
+MET_HOURS: dict[str, float] = {
+    # Immediate-trigger types — detector fires on a single tick / event.
+    "spike":                    0.5,   # labels 5 min; instant trigger
+    "dropout":                  0.5,   # labels ~45 min (heartbeat lapse)
+    "extreme_value":            0.5,
+    "water_leak_sustained":     0.5,   # labels 1-8h; binary state, instant
+    "dip":                      2.0,   # labels 3-6h; 1h analysis window + fuser
+    # Short-window step-change types.
+    "level_shift":              6.0,   # labels 72-720h; bias instant on signal
+    "frequency_change":         6.0,   # labels 2-8h; lower bound = label dur
+    # Slow-drift / day-level types — rolling baseline + multi-day evidence.
+    "usage_anomaly":           24.0,   # day-level statistical outlier
+    "trend":                   48.0,   # labels 72-168h, slope 2e-5..5e-5;
+                                       # gentle slopes need ~24-48h accumulation
+    "month_shift":             24.0,   # labels 552h (23d); 1h window catches fast
+    "calibration_drift":       24.0,   # labels 48h; 50% of label is honest
+    "degradation_trajectory":  48.0,   # labels 336h (14d); slow slope
+    # Calendar-pattern types — MET reflects USER expectation, not system floor.
+    "weekend_anomaly":         48.0,   # "tell me by end of weekend / mid-week
+                                       # for the weekday-pattern variant".
+                                       # System currently averages ~110h on
+                                       # the target=weekday variant due to
+                                       # the 96h fuser max_span — that's a
+                                       # real architecture limitation the
+                                       # metric should surface, not hide.
+    "time_of_day":             72.0,   # 72h is BOTH user-expectation and
+                                       # physical floor — the iter 9 rule
+                                       # needs weekday + weekend evidence in
+                                       # the 14d window (Sat + Mon + Tue is
+                                       # the earliest satisfying triple).
+                                       # (can't classify as time_of_day on a
+                                       # single-day fire), captured cases are
+                                       # 14d labels needing cross-day repeat
+    # Defaults.
+    "temporal_pattern":        24.0,
+    "statistical_anomaly":     12.0,
+}
+
+
 @dataclass(frozen=True)
 class Interval:
     sensor_id: str
@@ -604,6 +649,63 @@ def compute_metrics_by_bucket(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict
     return out
 
 
+def compute_metrics_on_time(gt_df: pd.DataFrame, det_df: pd.DataFrame) -> dict:
+    """On-time-rate against per-type MET budgets, mirroring the
+    `latency_report.py` headline.
+
+    Per label, alert time = earliest correctly-typed overlapping
+    chain's `end` (window_end at fuser flush — the user-visible alert
+    time in the deployment loop). On-time iff
+    ``max(0, alert_end - label.start) <= MET(anomaly_type)``.
+
+    Denominator is *correctly-typed-detected* labels (those with at
+    least one overlapping chain whose `inferred_type` matches GT).
+    Labels with no correctly-typed coverage are excluded — `incident_recall`
+    already accounts for missed labels, and `type_acc` covers wrong-type
+    coverage; this metric measures how fast the correctly-typed alert
+    arrived.
+
+    Returns:
+        ``{"n_typed_matched": int, "on_time_rate": float | None}``
+    """
+    if gt_df.empty or det_df.empty:
+        return {"n_typed_matched": 0, "on_time_rate": None}
+    if "inferred_type" not in det_df.columns:
+        return {"n_typed_matched": 0, "on_time_rate": None}
+    gt = gt_df.reset_index(drop=True)
+    gt_starts = pd.to_datetime(gt["start"], utc=True, format="ISO8601")
+    gt_ends   = pd.to_datetime(gt["end"],   utc=True, format="ISO8601")
+    det_starts = pd.to_datetime(det_df["start"], utc=True, format="ISO8601")
+    det_ends   = pd.to_datetime(det_df["end"],   utc=True, format="ISO8601")
+    n_matched = 0
+    n_on_time = 0
+    for i in range(len(gt)):
+        sid = gt["sensor_id"].iloc[i]
+        atype = gt["anomaly_type"].iloc[i]
+        ls = gt_starts.iloc[i]
+        le = gt_ends.iloc[i]
+        mask = (
+            (det_df["sensor_id"].values == sid)
+            & (det_df["inferred_type"].values == atype)
+            & (det_ends.values >= ls.to_datetime64())
+            & (det_starts.values <= le.to_datetime64())
+        )
+        if not mask.any():
+            continue
+        n_matched += 1
+        earliest_end = det_ends[mask].min()
+        abs_lat_h = max(0.0, (earliest_end - ls).total_seconds() / 3600.0)
+        budget = MET_HOURS.get(atype, 24.0)
+        if abs_lat_h <= budget:
+            n_on_time += 1
+    if n_matched == 0:
+        return {"n_typed_matched": 0, "on_time_rate": None}
+    return {
+        "n_typed_matched": int(n_matched),
+        "on_time_rate": round(float(n_on_time / n_matched), 4),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Stratified evaluation — BEHAVIOR (user-facing) vs sensor_fault.
 #
@@ -694,6 +796,7 @@ def _stratified_block(gt: pd.DataFrame, det: pd.DataFrame, klass: str,
     # bridging pre-label fire can't credit zero latency.
     mpf = compute_metrics_per_fire(sub_gt, sub_det, timeline_days)
     mlf = compute_metrics_lat_frac(sub_gt, sub_det)
+    mot = compute_metrics_on_time(sub_gt, sub_det)
     n_uv = _count_class_fps_no_overlap(det, gt, klass)
     return {
         "n_labels": int(len(sub_gt)),
@@ -702,6 +805,8 @@ def _stratified_block(gt: pd.DataFrame, det: pd.DataFrame, klass: str,
         "evt_f1": round(float(mev["f1"]), 4),
         "fire_purity": mpf["fire_purity"],
         "type_acc": mpf["type_acc"],
+        "on_time_rate": mot["on_time_rate"],
+        "n_typed_matched": mot["n_typed_matched"],
         "lat_frac_p95": mlf["lat_frac_p95"],
         "user_visible_fps_per_day": round(
             float(n_uv / max(1e-6, timeline_days)), 3),

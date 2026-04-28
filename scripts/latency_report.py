@@ -25,46 +25,10 @@ import os, sys
 import pandas as pd
 import yaml
 
-MET_HOURS: dict[str, float] = {
-    # Synthgen label durations (suite-wide min/median/max) inform each
-    # type's MET — see scripts/scan_durations or scenarios/*.yaml.
-    #
-    # Immediate-trigger types — detector fires on a single tick / event.
-    "spike":                    0.5,   # labels 5 min; instant trigger
-    "dropout":                  0.5,   # labels ~45 min (heartbeat lapse)
-    "extreme_value":            0.5,
-    "water_leak_sustained":     0.5,   # labels 1-8h; binary state, instant
-    "dip":                      2.0,   # labels 3-6h; 1h analysis window + fuser
-    # Short-window step-change types.
-    "level_shift":              6.0,   # labels 72-720h; bias instant on signal
-    "frequency_change":         6.0,   # labels 2-8h; lower bound = label dur
-    # Slow-drift / day-level types — rolling baseline + multi-day evidence.
-    "usage_anomaly":           24.0,   # day-level statistical outlier
-    "trend":                   48.0,   # labels 72-168h, slope 2e-5..5e-5;
-                                       # gentle slopes need ~24-48h accumulation
-    "month_shift":             24.0,   # labels 552h (23d); 1h window catches fast
-    "calibration_drift":       24.0,   # labels 48h; 50% of label is honest
-    "degradation_trajectory":  48.0,   # labels 336h (14d); slow slope
-    # Calendar-pattern types — MET reflects USER expectation, not system floor.
-    "weekend_anomaly":         48.0,   # "tell me by end of weekend / mid-week
-                                       # for the weekday-pattern variant".
-                                       # System currently averages ~110h on
-                                       # the target=weekday variant due to
-                                       # the 96h fuser max_span — that's a
-                                       # real architecture limitation the
-                                       # metric should surface, not hide.
-    "time_of_day":             72.0,   # 72h is BOTH user-expectation and
-                                       # physical floor — the iter 9 rule
-                                       # needs weekday + weekend evidence in
-                                       # the 14d window (Sat + Mon + Tue is
-                                       # the earliest satisfying triple).
-                                       # (can't classify as time_of_day on a
-                                       # single-day fire), captured cases are
-                                       # 14d labels needing cross-day repeat
-    # Defaults.
-    "temporal_pattern":        24.0,
-    "statistical_anomaly":     12.0,
-}
+# Single source of truth lives in src/anomaly/metrics.py so the eval
+# headline and this report can't drift.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+from anomaly.metrics import MET_HOURS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 GEN  = Path(os.environ.get("SENSORGEN_OUT", ROOT.parent / "synthetic-generator" / "out"))

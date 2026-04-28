@@ -781,13 +781,15 @@ def evaluate(detections_csv: Path, labels_csv: Path,
     # Per-fire grading: each pre-fusion component tick = one LLM call.
     # `fire_purity` = fires landing in any GT / total fires.
     # `type_acc`    = of in-GT fires, fraction with correct inferred_type.
-    # `lat%P95`     = first in-GT fire latency / label duration, P95
-    #                 (bounded ≤ 1.0; uses in-GT ticks, not chain start,
-    #                  so fuser bridging can't credit zero).
+    # `onTime%`     = correctly-typed-detected labels with earliest-typed
+    #                 chain-end within MET budget, %. Reflects user-visible
+    #                 alert latency at fuser flush; budgets per type live in
+    #                 metrics.MET_HOURS. Denominator is correctly-typed-
+    #                 detected labels only (not all labels).
     # `uvfp/d`      = chains classified user_behavior with no GT overlap,
     #                 per day (the user-visible LLM-spam rate).
     print(f"{'block':<14} {'n_lbl':>5} {'incR':>6} {'evt_F1':>7} "
-          f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'lat%P95':>8}")
+          f"{'fpur':>6} {'tyAcc':>6} {'uvfp/d':>7} {'onTime%':>8}")
     for block_name in ("behavior", "sensor_fault"):
         b = m[block_name]
         if b.get("n_labels", 0) == 0:
@@ -795,12 +797,12 @@ def evaluate(detections_csv: Path, labels_csv: Path,
             continue
         ta = b.get("type_acc")
         ta_s = "     -" if ta is None else f"{ta:>6.3f}"
-        lf = b.get("lat_frac_p95")
-        lf_s = "       -" if lf is None else f"{lf:>8.3f}"
+        ot = b.get("on_time_rate")
+        ot_s = "       -" if ot is None else f"{ot * 100:>7.1f}%"
         print(f"  {block_name:<12} {b['n_labels']:>5d} "
               f"{b['incident_recall']:>6.3f} {b['evt_f1']:>7.3f} "
               f"{b['fire_purity']:>6.3f} {ta_s} "
-              f"{b['user_visible_fps_per_day']:>7.2f} {lf_s}")
+              f"{b['user_visible_fps_per_day']:>7.2f} {ot_s}")
     return m
 
 
