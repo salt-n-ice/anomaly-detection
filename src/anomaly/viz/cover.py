@@ -48,7 +48,14 @@ def render_cover(fig: matplotlib.figure.Figure, ctx: Context) -> None:
         rest = sum(c for _, c in type_counts.most_common()[6:])
         top.append(("... and others", rest))
     if top:
-        ax_bar = fig.add_axes([0.06, 0.34, 0.40, 0.28])
+        # axes shifted right (0.18 vs prior 0.06) so the horizontal-bar
+        # y-tick labels — which render to the left of the axes by default
+        # — fit inside the page. Type labels like "time-of-day pattern" at
+        # fontsize 10 on a 13" figure need ~0.10 figure-width; with the
+        # axes at left=0.06 they overflowed past the page boundary.
+        # Width shrinks 0.40 -> 0.28 so the right edge stays at 0.46
+        # (unchanged) and the timeline strip at x=0.50 is unaffected.
+        ax_bar = fig.add_axes([0.18, 0.34, 0.28, 0.28])
         ax_bar.set_facecolor(style.PAGE_BG)
         types = [style.type_friendly(t) if not t.startswith("...") else t
                  for t, _ in top]
