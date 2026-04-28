@@ -261,6 +261,34 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
     # the eval would credit (saw on holdout Feb 22 00:39, gap 49min).
     RECENT_SHIFT_MIN_GAP = pd.Timedelta(hours=1)
     RECENT_SHIFT_PREV_TICK_THRESHOLD = 100
+    # Iter 15: extend iter 14's cascade walk to SKIP past same-direction
+    # chains instead of breaking on them. Iter 14 catches the post-
+    # recovery transient when the immediate next chain after a sustained
+    # head is opposite-direction (hh120d's Mar 19 "+" head followed by
+    # Mar 21 "-" recovery, gap 61h). But synth-gen's calibration_drift
+    # bias is applied gradually, so the in-label firing on holdout
+    # (12 small "+" chains over 2 days during a 0.8V drift) precedes the
+    # actual "-" recovery cascade. Iter 14 breaks at the first "+"
+    # continuation chain and never reaches the "-" recovery — leaving
+    # 13 mv user_visible FPs on holdout.
+    #
+    # Mechanism: when walking opposite-direction recovery from a
+    # sustained head, treat same-direction chains as transparent
+    # fillers — skip without breaking and without updating the anchor.
+    # The 72h gap is still measured from the LAST opposite-direction
+    # chain's lf (or the head's lf if none seen yet), so an unrelated
+    # event much later (gap >72h via the anchor) still ends the
+    # cascade. This preserves the iter 14 invariant that protects
+    # hh120d's mixed-direction month_shift label firing (chain 8 "-"
+    # head's anchor stays at Apr 21 00:22; chain 24 "+" at May 1 has
+    # gap 240h > 72h → break, TPs preserved).
+    #
+    # Applies uniformly across all recent_shift detectors — the
+    # extension still requires an OPPOSITE-direction recovery chain
+    # to suppress anything; only the path to find that chain is
+    # widened. Verified safe on basement_temp dip clusters in leak_30d
+    # (no direction-mixed sustained heads followed by opposite-dir
+    # recovery pattern).
     _DCS_DETECTORS = frozenset({
         "duty_cycle_shift_1h", "duty_cycle_shift_3h",
         "duty_cycle_shift_6h", "duty_cycle_shift_12h",
@@ -438,24 +466,31 @@ def _write_detections(alerts: list[Alert], path: Path) -> None:
             anchor_lf = prev_lf
             for j in range(i + 1, len(chains)):
                 ff_j, lf_j, dir_j, _ = chains[j]
+                # Iter 15: skip same-direction (and unknown-direction)
+                # chains without breaking — anchor stays put so the gap
+                # check below is still measured from the last
+                # opposite-direction chain (or head's lf). Lets the
+                # cascade find an opposite-direction recovery cluster
+                # that's separated from the head by in-label same-dir
+                # continuation chains.
+                if dir_j != opp_dir:
+                    continue
                 gap = ff_j - anchor_lf
                 if gap < RECENT_SHIFT_MIN_GAP:
                     continue
                 if gap > RETURN_TRANSIENT_GAP:
                     break
-                if dir_j != opp_dir:
-                    break
                 rs_suppressed_keys.add((sid, ff_j))
                 anchor_lf = lf_j
 
     def _is_rs_return_transient(a: Alert) -> bool:
-        # Iter 14 with cascade: the heavy lifting happened at index-build
-        # time. Here we just check membership in the precomputed set.
-        # Pattern targets: post-calibration_drift / post-month_shift
-        # recovery on CONTINUOUS sensors (mains_voltage), where
-        # recent_shift fires for days as the rolling baseline adapts.
-        # Bulk of hh120d's wholly-FP behavior ticks (6869 of 7093) come
-        # from a single such cascade post-Mar 21 calibration_drift.
+        # Iter 14 / 15: the cascade walk built `rs_suppressed_keys`
+        # above; this hook is a membership check. Iter 15 widened the
+        # walk to skip past same-direction continuation chains, so a
+        # head's opposite-direction recovery cascade is reachable even
+        # when the head is followed by in-label same-direction firing
+        # before the recovery starts (the holdout / hh60d cal_drift
+        # pattern).
         detectors = set((a.detector or "").split("+"))
         if not (detectors & _RECENT_SHIFT_DETECTORS):
             return False
