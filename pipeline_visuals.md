@@ -46,15 +46,22 @@ skinparam QueueBorderColor #F57F17
 
 title <b>Smart-Home Anomaly Detection — Real-time Pipeline</b>\n<size:10><i>per-sensor · in-memory · microseconds per event</i></size>
 
-queue       "Sensor Event"           as Event
-component   "Data Quality\nGate"      as DQG
-component   "Adapter"                 as Adapter
-component   "Feature\nEngineer"       as FE
-component   "Detectors"               as Det
-component   "Fuser"                   as Fuser
-component   "Classify"                as Classify
-component   "Explain"                 as Explain
-queue       "Household\nNotification" as Out
+queue       "Sensor Event"      as Event
+component   "Data Quality\nGate" as DQG
+component   "Adapter"            as Adapter
+component   "Feature\nEngineer"  as FE
+component   "Detectors"          as Det
+component   "Fuser"              as Fuser
+component   "Classify"           as Classify
+component   "Explain"            as Explain
+queue       "LLM-ready\nPrompt"  as Prompt #E1F5FE
+
+' --- pipeline boundary ends at the prompt ---
+' Downstream LLM + user-facing notification are external consumers.
+package "downstream (out of pipeline scope)" <<Cloud>> {
+  component "LLM\nconsumer"           as LLM #FFFDE7
+  queue     "Household\nNotification" as Out #E8F5E9
+}
 
 Event    --> DQG       : per-event
 Event    --> Adapter   : per-event
@@ -64,7 +71,9 @@ Det      --> Fuser     : medium alerts
 DQG      --> Fuser     : immediate alerts
 Fuser    --> Classify  : fused chain
 Classify --> Explain   : type + class
-Explain  --> Out       : Markdown
+Explain  --> Prompt    : Markdown bundle
+Prompt  ..> LLM        : prompt
+LLM     ..> Out        : natural language
 @enduml
 ```
 
@@ -83,7 +92,7 @@ renderer. If your renderer crowds the layout, swap the two
 | **Detectors** | every tick (after 14 d bootstrap) | CONT → RecentShift; BURSTY → DutyCycleShift, RollingMedianPeakShift; BINARY → StateTransition | medium-band alerts with detector context |
 | **Fuser** | every alert | gap = 15 min (CONT) or 4 h (BURSTY/BIN); `max_span` = 96 h; immediate alerts (DQG non-dropout, StateTransition) bypass | one fused chain per anomaly window with `first_fire_ts`, `fire_ticks`, detector union |
 | **Classify** | per fused chain | decision tree on (detector signature, direction, calendar bucket, magnitude); pre-typed alerts pass through | `(anomaly_type, label_class)` |
-| **Explain** | per chain | bundle assembled from chain + recent events; prompt rendered as Markdown | LLM-ready bundle for household notification |
+| **Explain** | per chain | bundle assembled from chain + recent events; prompt rendered as Markdown | **LLM-ready Markdown prompt** (pipeline's terminal output — the LLM consumer is downstream and out of pipeline scope) |
 
 ---
 
