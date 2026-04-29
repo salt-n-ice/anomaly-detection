@@ -10,10 +10,14 @@ generalization canary and is **not** used to drive iter decisions.
 
 ## Headline — BEHAVIOR, suite mean (5 production scenarios)
 
+> **Primary headline: `evt_F1`.** This is the single number iter
+> accept/reject decisions are made against. Every other metric in
+> this table is diagnostic — it explains *why* `evt_F1` moved.
+
 | Metric | Value | Inference |
 |---|---:|---|
 | **incR** (incident_recall) | **0.930** | We notice ~93 % of real anomaly labels — coverage is strong. |
-| **evt_F1** | **0.790** | Solid precision/recall balance per fire; the ~21 % gap to ceiling is split between misses and over-firing on the same label. |
+| **`evt_F1`** ← HEADLINE | **0.790** | Solid precision/recall balance per fire; the ~21 % gap to ceiling is split between misses and over-firing on the same label. |
 | **fpur** (fire_purity) | **0.882** | ~88 % of fires sit inside a GT label; 12 % are false alarms. |
 | **tyAcc** (type_acc) | **0.919** | When a fire is in-GT, the classifier names the type correctly ~92 % of the time. |
 | **on_time_rate** | **0.827** | Of correctly-typed alerts, ~83 % land inside the per-type MET budget; ~17 % arrive late. |
